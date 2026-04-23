@@ -1,27 +1,22 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from objects.types import UserReputationRole, UserRole
-from .base import BaseEntity
+from .base import BaseEntity, MetadataEntity
 
 
 class UserEntity(BaseEntity):
     telegram_id: int
-    username: str
-    balance: int
-    experience: int
-    message_count: int
-    joined_at: datetime
+    username: Optional[str]
     role: UserRole
-    is_active: bool
-    last_activity_at: datetime
 
 
-class UserReputationEntity(BaseEntity):
+class UserReputationEntity(MetadataEntity):
+    user_id: int
     description: str
     role: UserReputationRole
-    user_id: int
     added_by_user_id: int
 
 
@@ -30,7 +25,25 @@ class UserReputationWithUserEntity(UserReputationEntity):
     added_by_user: UserEntity
 
 
-class FeedbackEntity(BaseEntity):
-    message: str
-    is_read: bool
+class ChatUserEntity(MetadataEntity):
     user_id: int
+    balance: int
+    experience: int
+    message_count: int
+    is_active: bool
+    last_activity_at: datetime
+
+
+class ChatUserWithUserEntity(ChatUserEntity):
+    user: UserEntity
+
+
+class MarketplaceUserEntity(MetadataEntity):
+    user_id: int
+    name: Optional[str]
+    description: Optional[str]
+    rating: float
+
+
+class MarketplaceUserWithUserEntity(MarketplaceUserEntity):
+    user: UserEntity

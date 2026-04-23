@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Optional, List
+from typing import List, Optional
 from datetime import datetime
 
 from objects.types import ViolationType, ReportStatus, ReportType
-from .base import BaseEntity
+from .base import EntityWithMetadata
 from .user import UserEntity
 
 
-class ViolationEntity(BaseEntity):
+class ChatViolationEntity(EntityWithMetadata):
     reason: str
     type: ViolationType
     telegram_chat_id: int
@@ -18,16 +18,26 @@ class ViolationEntity(BaseEntity):
     applied_by_user_id: int
 
 
-class ViolationWithUserEntity(ViolationEntity):
+class ChatViolationWithUserEntity(ChatViolationEntity):
     user: UserEntity
     applied_by_user: UserEntity
 
 
-class ReportEntity(BaseEntity):
+class ViolationEntity(EntityWithMetadata):
+    name: str
+    expires_at: Optional[datetime] = None
+    user_id: int
+
+
+class ViolationWithUserEntity(ViolationEntity):
+    user: UserEntity
+
+
+class ReportEntity(EntityWithMetadata):
     reason: str
     status: ReportStatus
     attachments: List[str]
-    report_type: ReportType
+    type: ReportType
     admin_comment: Optional[str] = None
     user_id: int
     accused_user_id: Optional[int] = None
