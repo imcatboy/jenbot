@@ -9,36 +9,44 @@ from objects.types import UserReputationRole, UserRole
 from .base import EntityModel, BaseModel, MetadataModel
 
 if TYPE_CHECKING:
-    from .moderation import ChatViolationModel, ReportModel
-    from .economy import TransactionModel, ChatPurchaseModel
+    from .moderation import ChatViolationModel, ViolationModel, ReportModel
+    from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
+    from .marketplace import AdvertisementModel
+    from .trading import DealModel
+    from .messaging import ChatModel, ChatParticipantModel, MessageModel, MessageFileModel
 
 
 class UserModel(EntityModel):
     __tablename__ = "users"
     fk_name = "user_id"
 
-    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
-    username: Mapped[Optional[str]] = mapped_column(String(32), unique=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.USER)
-    user_reputation: Mapped[UserReputationModel] = relationship(
+    telegram_id: Mapped[int] = mapped_column(BigInteger)
+    username: Mapped[Optional[str]] = mapped_column(String(32))
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"))
+    user_reputation: Mapped[Optional[UserReputationModel]] = relationship(
         back_populates="user",
         foreign_keys="UserReputationModel.user_id",
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    chat_user: Mapped[ChatUserModel] = relationship(
+    chat_user: Mapped[Optional[ChatUserModel]] = relationship(
         back_populates="user",
         foreign_keys="ChatUserModel.user_id",
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    marketplace_user: Mapped[MarketplaceUserModel] = relationship(
+    marketplace_user: Mapped[Optional[MarketplaceUserModel]] = relationship(
         back_populates="user",
         foreign_keys="MarketplaceUserModel.user_id",
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    violations: Mapped[List[ChatViolationModel]] = relationship(
+    violations: Mapped[List[ViolationModel]] = relationship(
+        back_populates="user",
+        foreign_keys="ViolationModel.user_id",
+        cascade="all, delete-orphan",
+    )
+    chat_violations: Mapped[List[ChatViolationModel]] = relationship(
         back_populates="user",
         foreign_keys="ChatViolationModel.user_id",
         cascade="all, delete-orphan",
@@ -59,11 +67,14 @@ class UserModel(EntityModel):
         cascade="all, delete-orphan",
     )
     purchases: Mapped[List[ChatPurchaseModel]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="user",
+        foreign_keys="ChatPurchaseModel.user_id",
+        cascade="all, delete-orphan",
     )
     received_transactions: Mapped[List[TransactionModel]] = relationship(
         back_populates="receiver",
         foreign_keys="TransactionModel.receiver_id",
+        cascade="all, delete-orphan",
     )
     reports: Mapped[List[ReportModel]] = relationship(
         back_populates="user",
@@ -80,16 +91,66 @@ class UserModel(EntityModel):
         foreign_keys="ReportModel.accused_user_id",
         cascade="all, delete-orphan",
     )
+    advertisements: Mapped[List[AdvertisementModel]] = relationship(
+        back_populates="user",
+        foreign_keys="AdvertisementModel.user_id",
+        cascade="all, delete-orphan",
+    )
+    buyer_deals: Mapped[List[DealModel]] = relationship(
+        foreign_keys="DealModel.user_id",
+        back_populates="buyer",
+    )
+    seller_deals: Mapped[List[DealModel]] = relationship(
+        foreign_keys="DealModel.seller_id",
+        back_populates="seller",
+    )
+    agent_deals: Mapped[List[DealModel]] = relationship(
+        foreign_keys="DealModel.agent_id",
+        back_populates="agent",
+    )
+    reviews_written: Mapped[List[ReviewModel]] = relationship(
+        foreign_keys="ReviewModel.user_id",
+        back_populates="author",
+    )
+    reviews_received: Mapped[List[ReviewModel]] = relationship(
+        foreign_keys="ReviewModel.for_user_id",
+        back_populates="subject",
+    )
+    chat_participants: Mapped[List[ChatParticipantModel]] = relationship(
+        back_populates="user",
+        foreign_keys="ChatParticipantModel.user_id",
+        cascade="all, delete-orphan",
+    )
+    authored_chats: Mapped[List[ChatModel]] = relationship(
+        back_populates="author",
+        foreign_keys="ChatModel.author_id",
+    )
+    messages: Mapped[List[MessageModel]] = relationship(
+        back_populates="user",
+        foreign_keys="MessageModel.user_id",
+        cascade="all, delete-orphan",
+    )
+    files: Mapped[List[MessageFileModel]] = relationship(
+        back_populates="user",
+        foreign_keys="MessageFileModel.user_id",
+        cascade="all, delete-orphan",
+    )
+
 
 
 class UserReputationModel(BaseModel, MetadataModel):
-    __tablename__ = "user_reputations"
+    __tablename__ = "reputation_users"
     fk_name = "user_reputation_id"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     description: Mapped[str] = mapped_column(String(255))
-    role: Mapped[UserReputationRole] = mapped_column(Enum(UserReputationRole))
-    added_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    role: Mapped[UserReputationRole] = mapped_column(
+        Enum(UserReputationRole, name="REPUTATION_ROLE"),
+    )
+    added_by_user_id: Mapped[int] = mapped_column(
+        "added_by_user",
+        ForeignKey("users.id"),
+    )
     added_by_user: Mapped[UserModel] = relationship(
         back_populates="added_reputations",
         foreign_keys=[added_by_user_id],
@@ -105,11 +166,11 @@ class ChatUserModel(BaseModel, MetadataModel):
     fk_name = "chat_user_id"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    balance: Mapped[int] = mapped_column(default=0)
-    experience: Mapped[int] = mapped_column(default=0)
-    message_count: Mapped[int] = mapped_column(default=0)
-    is_active: Mapped[bool] = mapped_column(default=True)
-    last_activity_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    balance: Mapped[int]
+    experience: Mapped[int]
+    message_count: Mapped[int]
+    is_active: Mapped[bool]
+    last_activity_at: Mapped[datetime]
     user: Mapped[UserModel] = relationship(
         back_populates="chat_user",
         foreign_keys=[user_id],
@@ -123,7 +184,7 @@ class MarketplaceUserModel(BaseModel, MetadataModel):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(32))
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    rating: Mapped[float] = mapped_column(default=0)
+    rating: Mapped[float]
     user: Mapped[UserModel] = relationship(
         back_populates="marketplace_user",
         foreign_keys=[user_id],

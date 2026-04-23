@@ -16,6 +16,8 @@ class MetadataModel:
 
 
 class EntityModel(BaseModel, MetadataModel):
+    __abstract__ = True
+
     id: Mapped[int] = mapped_column(primary_key=True)
 
 
@@ -23,5 +25,5 @@ class ConfigModel(BaseModel):
     __tablename__ = "configs"
     fk_name = "config_id"
 
-    key: Mapped[str] = mapped_column(String(255))
+    key: Mapped[str] = mapped_column(String(255), primary_key=True)
     value: Mapped[Any] = mapped_column(JSON, nullable=False)

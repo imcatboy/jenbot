@@ -19,6 +19,6 @@ def get_user_reputation_relations() -> List[Any]:
 
 def get_violation_relations() -> List[Any]:
     return [
-        joinedload(models.ViolationModel.user),
-        joinedload(models.ViolationModel.applied_by_user),
+        joinedload(models.ChatViolationModel.user),
+        joinedload(models.ChatViolationModel.applied_by_user),
     ]

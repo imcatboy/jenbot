@@ -17,7 +17,7 @@ class ModerationRepository(BaseRepository):
     async def add_violation(
         self, dto: dtos.AddViolationDTO
     ) -> entities.ViolationEntity:
-        violation = models.ViolationModel(**dto.model_dump())
+        violation = models.ChatViolationModel(**dto.model_dump())
         await self.create_relation(violation, models.UserModel, dto.user_id)
         await self.create_relation(
             violation, models.UserModel, dto.applied_by_user_id, "applied_by_user_id"
@@ -30,7 +30,7 @@ class ModerationRepository(BaseRepository):
         self, user_id: int
     ) -> List[entities.ViolationWithUserEntity]:
         violations = await self.get_all_by_data(
-            models.ViolationModel,
+            models.ChatViolationModel,
             options=get_violation_relations(),
             user_id=user_id,
         )
@@ -40,27 +40,27 @@ class ModerationRepository(BaseRepository):
         ]
 
     async def set_violation_active(self, violation_id: int, is_active: bool) -> None:
-        violation = await self.get_by_id(models.ViolationModel, violation_id)
+        violation = await self.get_by_id(models.ChatViolationModel, violation_id)
         violation.is_active = is_active
     
     async def set_violations_active(self, ids: List[int], is_active: bool) -> None:
         await self.session.execute(
-            update(models.ViolationModel)
-            .where(models.ViolationModel.id.in_(ids))
+            update(models.ChatViolationModel)
+            .where(models.ChatViolationModel.id.in_(ids))
             .values(is_active=is_active)
         )
         await self.session.flush()
 
     async def get_violation(self, violation_id: int) -> entities.ViolationEntity:
-        violation = await self.get_by_id(models.ViolationModel, violation_id)
+        violation = await self.get_by_id(models.ChatViolationModel, violation_id)
         return entities.ViolationEntity.model_validate(violation)
 
     async def set_violations_inactive(self, user_id: int, type: ViolationType) -> None:
         await self.session.execute(
-            update(models.ViolationModel)
+            update(models.ChatViolationModel)
             .where(
-                models.ViolationModel.user_id == user_id,
-                models.ViolationModel.type == type,
+                models.ChatViolationModel.user_id == user_id,
+                models.ChatViolationModel.type == type,
             )
             .values(is_active=False)
         )
@@ -129,5 +129,9 @@ class ModerationRepository(BaseRepository):
         )
 
     async def get_violations_to_actualize(self) -> List[entities.ViolationWithUserEntity]:
-        violations = await self.get_all_by_data(models.ViolationModel, is_active=True, options=get_violation_relations())
+        violations = await self.get_all_by_data(
+            models.ChatViolationModel,
+            is_active=True,
+            options=get_violation_relations(),
+        )
         return [entities.ViolationWithUserEntity.model_validate(violation) for violation in violations]

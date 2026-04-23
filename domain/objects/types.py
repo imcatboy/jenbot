@@ -50,6 +50,13 @@ class ReportStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class DealStatus(StrEnum):
+    PENDING = "pending"
+    EXPIRED = "expired"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
 def parse_username(v: Any) -> Union[str, int]:
     if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
         return v.replace("@", "")
