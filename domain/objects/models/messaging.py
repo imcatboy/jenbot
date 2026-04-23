@@ -39,7 +39,7 @@ class MessageModel(EntityModel):
     __tablename__ = "messages"
     fk_name = "message_id"
 
-    body: Mapped[Optional[str]] = mapped_column("text", String(1024))
+    body: Mapped[Optional[str]] = mapped_column(String(1024))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[UserModel] = relationship(
         back_populates="messages",

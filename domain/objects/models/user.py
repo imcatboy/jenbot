@@ -23,9 +23,9 @@ class UserModel(EntityModel):
     telegram_id: Mapped[int] = mapped_column(BigInteger)
     username: Mapped[Optional[str]] = mapped_column(String(32))
     role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"))
-    user_reputation: Mapped[Optional[UserReputationModel]] = relationship(
+    user_reputation: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="user",
-        foreign_keys="UserReputationModel.user_id",
+        foreign_keys="ReputationUserModel.user_id",
         cascade="all, delete-orphan",
         single_parent=True,
     )
@@ -56,9 +56,9 @@ class UserModel(EntityModel):
         foreign_keys="ChatViolationModel.applied_by_user_id",
         cascade="all, delete-orphan",
     )
-    added_reputations: Mapped[List[UserReputationModel]] = relationship(
+    added_reputations: Mapped[List[ReputationUserModel]] = relationship(
         back_populates="added_by_user",
-        foreign_keys="UserReputationModel.added_by_user_id",
+        foreign_keys="ReputationUserModel.added_by_user_id",
         cascade="all, delete-orphan",
     )
     transactions: Mapped[List[TransactionModel]] = relationship(
@@ -138,7 +138,7 @@ class UserModel(EntityModel):
 
 
 
-class UserReputationModel(BaseModel, MetadataModel):
+class ReputationUserModel(BaseModel, MetadataModel):
     __tablename__ = "reputation_users"
     fk_name = "user_reputation_id"
 
@@ -184,7 +184,11 @@ class MarketplaceUserModel(BaseModel, MetadataModel):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(32))
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    rating: Mapped[float]
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(255))
+    rating: Mapped[float] = mapped_column(default=0.0)
+    advertisement_count: Mapped[int] = mapped_column(default=0)
+    deals_count: Mapped[int] = mapped_column(default=0)
+    reviews_count: Mapped[int] = mapped_column(default=0)
     user: Mapped[UserModel] = relationship(
         back_populates="marketplace_user",
         foreign_keys=[user_id],

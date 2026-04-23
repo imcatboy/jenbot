@@ -68,16 +68,16 @@ class ReviewModel(EntityModel):
     fk_name = "review_id"
 
     message: Mapped[str] = mapped_column(String(255))
-    rating: Mapped[int] = mapped_column("review")
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    for_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    rating: Mapped[int]
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    subject_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     deal_id: Mapped[int] = mapped_column(ForeignKey("deals.id"))
     author: Mapped[UserModel] = relationship(
-        foreign_keys=[user_id],
+        foreign_keys=[author_id],
         back_populates="reviews_written",
     )
     subject: Mapped[UserModel] = relationship(
-        foreign_keys=[for_user_id],
+        foreign_keys=[subject_id],
         back_populates="reviews_received",
     )
     deal: Mapped[DealModel] = relationship(

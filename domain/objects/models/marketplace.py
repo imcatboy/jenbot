@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import ARRAY, Boolean, ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -26,7 +26,7 @@ class CategoryModel(EntityModel):
     parent_category_id: Mapped[Optional[int]] = mapped_column(
         "parent_category", ForeignKey("categories.id")
     )
-    products: Mapped[list[ProductModel]] = relationship(
+    products: Mapped[List[ProductModel]] = relationship(
         back_populates="category"
     )
 
@@ -36,14 +36,14 @@ class ProductModel(EntityModel):
     fk_name = "product_id"
 
     name: Mapped[str] = mapped_column(String(100))
-    images: Mapped[list[str]] = mapped_column(ARRAY(String(100)))
+    image_urls: Mapped[List[str]] = mapped_column(ARRAY(String(100)))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     category: Mapped[CategoryModel] = relationship(back_populates="products")
-    product_types: Mapped[list[ProductTypeModel]] = relationship(
+    product_types: Mapped[List[ProductTypeModel]] = relationship(
         secondary=product_types_products,
         back_populates="products",
     )
-    advertisements: Mapped[list[AdvertisementModel]] = relationship(
+    advertisements: Mapped[List[AdvertisementModel]] = relationship(
         back_populates="product",
         cascade="all, delete-orphan",
     )
@@ -55,11 +55,11 @@ class ProductTypeModel(EntityModel):
 
     name: Mapped[str] = mapped_column(String(255))
     can_many: Mapped[bool] = mapped_column(Boolean)
-    products: Mapped[list[ProductModel]] = relationship(
+    products: Mapped[List[ProductModel]] = relationship(
         secondary=product_types_products,
         back_populates="product_types",
     )
-    options: Mapped[list[ProductOptionModel]] = relationship(
+    options: Mapped[List[ProductOptionModel]] = relationship(
         back_populates="product_type",
         cascade="all, delete-orphan",
     )
@@ -74,11 +74,11 @@ class ProductOptionModel(EntityModel):
     product_type: Mapped[ProductTypeModel] = relationship(
         back_populates="options"
     )
-    advertisement_options: Mapped[list[AdvertisementOptionModel]] = relationship(
+    advertisement_options: Mapped[List[AdvertisementOptionModel]] = relationship(
         secondary=advertisement_options_product_options,
         back_populates="product_options",
     )
-    trade_product_options: Mapped[list[TradeProductOptionModel]] = relationship(
+    trade_product_options: Mapped[List[TradeProductOptionModel]] = relationship(
         back_populates="product_option",
         cascade="all, delete-orphan",
     )
@@ -90,8 +90,8 @@ class CurrencyModel(EntityModel):
 
     name: Mapped[str] = mapped_column(String(50))
     sign: Mapped[str] = mapped_column(String(5))
-    description: Mapped[str | None] = mapped_column(String(255))
-    option_prices: Mapped[list[AdvertisementOptionPriceModel]] = relationship(
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    option_prices: Mapped[List[AdvertisementOptionPriceModel]] = relationship(
         back_populates="currency",
         cascade="all, delete-orphan",
     )
@@ -109,7 +109,7 @@ class AdvertisementModel(EntityModel):
     product: Mapped[ProductModel] = relationship(
         back_populates="advertisements"
     )
-    options: Mapped[list[AdvertisementOptionModel]] = relationship(
+    options: Mapped[List[AdvertisementOptionModel]] = relationship(
         back_populates="advertisement",
         cascade="all, delete-orphan",
     )
@@ -119,24 +119,25 @@ class AdvertisementOptionModel(EntityModel):
     __tablename__ = "advertisement_options"
     fk_name = "advertisement_option_id"
 
-    option_count: Mapped[int] = mapped_column("count")
+    count: Mapped[int]
+    sold_count: Mapped[int] = mapped_column(default=0)
     advertisement_id: Mapped[int] = mapped_column(ForeignKey("advertisements.id"))
     advertisement: Mapped[AdvertisementModel] = relationship(
         back_populates="options"
     )
-    prices: Mapped[list[AdvertisementOptionPriceModel]] = relationship(
+    prices: Mapped[List[AdvertisementOptionPriceModel]] = relationship(
         back_populates="advertisement_option",
         cascade="all, delete-orphan",
     )
-    product_options: Mapped[list[ProductOptionModel]] = relationship(
+    product_options: Mapped[List[ProductOptionModel]] = relationship(
         secondary=advertisement_options_product_options,
         back_populates="advertisement_options",
     )
-    trades: Mapped[list["TradeModel"]] = relationship(
+    trades: Mapped[List[TradeModel]] = relationship(
         back_populates="advertisement_option",
         cascade="all, delete-orphan",
     )
-    deals: Mapped[list["DealModel"]] = relationship(
+    deals: Mapped[List[DealModel]] = relationship(
         back_populates="advertisement_option",
         cascade="all, delete-orphan",
     )
@@ -155,7 +156,7 @@ class AdvertisementOptionPriceModel(EntityModel):
     advertisement_option: Mapped[AdvertisementOptionModel] = relationship(
         back_populates="prices"
     )
-    deals: Mapped[list["DealModel"]] = relationship(
+    deals: Mapped[List[DealModel]] = relationship(
         back_populates="advertisement_option_price",
         cascade="all, delete-orphan",
     )

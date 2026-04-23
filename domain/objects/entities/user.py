@@ -13,14 +13,14 @@ class UserEntity(BaseEntity):
     role: UserRole
 
 
-class UserReputationEntity(MetadataEntity):
+class ReputationUserEntity(MetadataEntity):
     user_id: int
     description: str
     role: UserReputationRole
     added_by_user_id: int
 
 
-class UserReputationWithUserEntity(UserReputationEntity):
+class ReputationUserWithUserEntity(ReputationUserEntity):
     user: UserEntity
     added_by_user: UserEntity
 

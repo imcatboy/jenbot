@@ -39,7 +39,8 @@ class AdvertisementEntity(EntityWithMetadata):
 
 
 class AdvertisementOptionEntity(EntityWithMetadata):
-    option_count: int
+    count: int
+    sold_count: int
     advertisement_id: int
 
 
