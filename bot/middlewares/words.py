@@ -1,0 +1,57 @@
+import asyncio
+import re
+
+from typing import Callable, Dict, Any, Awaitable
+from aiogram import BaseMiddleware
+from aiogram.enums import ChatType
+from aiogram.types import Message
+from typing import List
+from html import escape
+
+from domain.objects.types import UserRole
+from domain.services import ConfigService
+from domain.objects import entities
+from bot.data import text
+
+
+class WordsMiddleware(BaseMiddleware):
+
+    async def __call__(
+        self,
+        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+        event: Message,
+        data: Dict[str, Any],
+    ) -> Any:
+        user: entities.UserEntity = data["user"]
+
+        if (
+            user.role in [UserRole.ADMIN, UserRole.MODERATOR]
+            or event.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
+            or not event.text
+        ):
+            return await handler(event, data)
+
+        config_service: ConfigService = data["config_service"]
+        words: List[str] = await config_service.get("ban_words", [])
+        normalized_message = self._normalize_message(event.text)
+
+        for word in words:
+            if word.lower() in normalized_message:
+                await event.delete()
+                message = await event.answer(
+                    text.BAN_WORD_ERROR.format(
+                        escape(event.from_user.username or event.from_user.first_name),
+                        escape(word),
+                    )
+                )
+                await asyncio.sleep(5)
+                await message.delete()
+                return
+
+        return await handler(event, data)
+
+    def _normalize_message(self, message: str) -> str:
+        message = message.lower()
+        message = message.translate(text.HOMOGLYPHS)
+        message = re.sub(r"[^а-яёa-z]", "", message)
+        return message

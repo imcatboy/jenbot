@@ -1,0 +1,304 @@
+from aiogram.filters import Command
+from aiogram.types import Message
+from aiogram.enums import ChatType
+from typing import Optional
+from aiogram import Router
+from html import escape
+
+from domain.services import ModerationService, ConfigService
+from bot.actions import UserActions, ModerationActions
+from domain.objects import dtos, entities, exceptions
+from domain.objects.types import UserRole
+from domain.services import UserService
+from bot.filters import GroupsFilter
+from bot.data import text
+
+
+moderation_router = Router()
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("ban"),
+    flags={
+        "command_model": dtos.BanCommandDTO,
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+    },
+)
+async def ban_handler(
+    message: Message,
+    command_data: dtos.BanCommandDTO,
+    user: entities.UserEntity,
+    user_actions: UserActions,
+    moderation_actions: ModerationActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.BanUserDTO(
+        user_id=purpose_user.id,
+        reason=command_data.reason,
+        applied_by_user_id=user.id,
+        telegram_chat_id=message.chat.id,
+        expires_at=command_data.expires_at,
+    )
+    await moderation_actions.ban_user(dto)
+    await message.answer(
+        text.get_ban_user_success_message(
+            purpose_user.username,
+            command_data.expires_at,
+            command_data.reason,
+        )
+    )
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("unban"),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.UnbanCommandDTO,
+    },
+)
+async def unban_handler(
+    message: Message,
+    command_data: dtos.UnbanCommandDTO,
+    user_actions: UserActions,
+    moderation_actions: ModerationActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    await moderation_actions.unban_user(purpose_user.id, message.chat.id)
+    await message.answer(text.UNBAN_USER_SUCCESS.format(escape(command_data.username)))
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("mute"),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.MuteCommandDTO,
+    },
+)
+async def mute_handler(
+    message: Message,
+    command_data: dtos.MuteCommandDTO,
+    user: entities.UserEntity,
+    user_actions: UserActions,
+    moderation_actions: ModerationActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.MuteUserDTO(
+        user_id=purpose_user.id,
+        reason=command_data.reason,
+        applied_by_user_id=user.id,
+        telegram_chat_id=message.chat.id,
+        expires_at=command_data.expires_at,
+    )
+    await moderation_actions.mute_user(dto)
+    await message.answer(
+        text.get_mute_user_success_message(
+            purpose_user.username,
+            command_data.expires_at,
+            command_data.reason,
+        )
+    )
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("unmute"),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.UnmuteCommandDTO,
+    },
+)
+async def unmute_handler(
+    message: Message,
+    command_data: dtos.UnmuteCommandDTO,
+    user_actions: UserActions,
+    moderation_actions: ModerationActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    await moderation_actions.unmute_user(purpose_user.id, message.chat.id)
+    await message.answer(text.UNMUTE_USER_SUCCESS.format(escape(command_data.username)))
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("warn"),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.WarnCommandDTO,
+    },
+)
+async def warn_handler(
+    message: Message,
+    command_data: dtos.WarnCommandDTO,
+    user: entities.UserEntity,
+    user_actions: UserActions,
+    moderation_service: ModerationService,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.WarnUserDTO(
+        user_id=purpose_user.id,
+        reason=command_data.reason,
+        applied_by_user_id=user.id,
+        telegram_chat_id=message.chat.id,
+        expires_at=command_data.expires_at,
+    )
+    await moderation_service.warn_user(dto)
+    await message.answer(
+        text.get_warn_user_success_message(
+            purpose_user.username,
+            command_data.expires_at,
+            command_data.reason,
+        )
+    )
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("unwarn"),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.UnwarnCommandDTO,
+    },
+)
+async def unwarn_handler(
+    message: Message,
+    command_data: dtos.UnwarnCommandDTO,
+    moderation_service: ModerationService,
+):
+    await moderation_service.unwarn_user(command_data.id)
+    await message.answer(text.UNWARN_USER_SUCCESS)
+
+
+@moderation_router.message(
+    Command("violations"),
+    flags={
+        "command_model": dtos.ViolationsCommandDTO,
+    },
+)
+async def violations_handler(
+    message: Message,
+    command_data: dtos.ViolationsCommandDTO,
+    user: entities.UserEntity,
+    user_actions: UserActions,
+    moderation_service: ModerationService,
+):
+    if command_data.username:
+        if user.role == UserRole.USER:
+            raise exceptions.UserNotAllowedToActionException(
+                user.id, message.chat.id, "view violations"
+            )
+
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    else:
+        purpose_user = user
+
+    violations = await moderation_service.get_violations(purpose_user.id)
+    await message.answer(text.get_violations_message(violations))
+
+
+@moderation_router.message(
+    Command("getid"),
+)
+async def getid_handler(
+    message: Message,
+):
+    if not message.reply_to_message:
+        return await message.answer(text.GET_MY_ID_SUCCESS.format(message.from_user.id))
+
+    await message.answer(
+        text.GET_USER_ID_SUCCESS.format(
+            escape(message.reply_to_message.from_user.username),
+            message.reply_to_message.from_user.id,
+        )
+    )
+
+
+@moderation_router.message(
+    Command("addmoderator"),
+    flags={
+        "user_role": [UserRole.ADMIN],
+        "command_model": dtos.AddModeratorCommandDTO,
+    },
+)
+async def addmoderator_handler(
+    message: Message,
+    command_data: dtos.AddModeratorCommandDTO,
+    user_actions: UserActions,
+    user_service: UserService,
+):
+    user = await user_actions.get_telegram_user(command_data.username)
+    await user_service.update_role(user.id, UserRole.MODERATOR)
+    await message.answer(text.ADD_MODERATOR_SUCCESS.format(escape(user.username)))
+
+
+@moderation_router.message(
+    Command("removemoderator"),
+    flags={
+        "user_role": [UserRole.ADMIN],
+        "command_model": dtos.RemoveModeratorCommandDTO,
+    },
+)
+async def removemoderator_handler(
+    message: Message,
+    command_data: dtos.RemoveModeratorCommandDTO,
+    user_service: UserService,
+    user_actions: UserActions,
+):
+    user = await user_actions.get_telegram_user(command_data.username)
+    await user_service.update_role(user.id, UserRole.USER)
+    await message.answer(text.REMOVE_MODERATOR_SUCCESS.format(escape(user.username)))
+
+
+@moderation_router.message(Command("rules"))
+async def rules_handler(
+    message: Message,
+    config_service: ConfigService,
+):
+    rules = await config_service.get("rules", "Правила не установлены")
+    await message.answer(rules)
+
+
+@moderation_router.message(Command("moderators"))
+async def moderators_handler(
+    message: Message,
+    user_service: UserService,
+):
+    moderators = await user_service.get_by_role(UserRole.MODERATOR)
+    await message.answer(text.get_moderators_message(moderators))
