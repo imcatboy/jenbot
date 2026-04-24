@@ -23,6 +23,7 @@ class CategoryModel(EntityModel):
     fk_name = "category_id"
 
     name: Mapped[str] = mapped_column(String(100))
+    is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
     parent_category_id: Mapped[Optional[int]] = mapped_column(
         "parent_category", ForeignKey("categories.id")
     )
@@ -39,11 +40,16 @@ class ProductModel(EntityModel):
     image_urls: Mapped[List[str]] = mapped_column(ARRAY(String(100)))
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     category: Mapped[CategoryModel] = relationship(back_populates="products")
+    is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
     product_types: Mapped[List[ProductTypeModel]] = relationship(
         secondary=product_types_products,
         back_populates="products",
     )
     advertisements: Mapped[List[AdvertisementModel]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan",
+    )
+    trades: Mapped[List[TradeModel]] = relationship(
         back_populates="product",
         cascade="all, delete-orphan",
     )

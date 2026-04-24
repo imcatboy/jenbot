@@ -9,11 +9,13 @@ from .base import EntityWithMetadata
 class CategoryEntity(EntityWithMetadata):
     name: str
     parent_category_id: Optional[int] = None
+    is_draft: bool
 
 
 class ProductEntity(EntityWithMetadata):
     name: str
-    images: List[str]
+    image_urls: List[str]
+    is_draft: bool
     category_id: int
 
 

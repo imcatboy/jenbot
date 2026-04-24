@@ -47,8 +47,8 @@ class UserRepository(BaseRepository):
         users = await self.get_all_by_data(models.UserModel, role=role)
         return [entities.UserEntity.model_validate(user) for user in users]
 
-    async def create_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.UserReputationEntity:
-        user_reputation = models.UserReputationModel(
+    async def create_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.ReputationUserEntity:
+        user_reputation = models.ReputationUserModel(
             description=dto.description,
             role=dto.role,
         )
@@ -56,10 +56,10 @@ class UserRepository(BaseRepository):
         await self.create_relation(user_reputation, models.UserModel, dto.added_by_user_id, "added_by_user_id")
         self.session.add(user_reputation)
         await self.session.flush()
-        return entities.UserReputationEntity.model_validate(user_reputation)
+        return entities.ReputationUserEntity.model_validate(user_reputation)
     
     async def update_user_reputation(self, user_id: int, dto: dtos.UpdateUserReputationDTO) -> None:
-        user_reputation = await self.get_one_by_data(models.UserReputationModel, user_id=user_id)
+        user_reputation = await self.get_one_by_data(models.ReputationUserModel, user_id=user_id)
 
         if dto.description is not None:
             user_reputation.description = dto.description
@@ -69,6 +69,6 @@ class UserRepository(BaseRepository):
         await self.update_relation(user_reputation, models.UserModel, dto.added_by_user_id, "added_by_user_id")
         await self.session.flush()
     
-    async def get_user_reputation(self, user_id: int) -> entities.UserReputationWithUserEntity:
-        user_reputation = await self.get_one_by_data(models.UserReputationModel, user_id=user_id, options=get_user_reputation_relations())
-        return entities.UserReputationWithUserEntity.model_validate(user_reputation)
+    async def get_user_reputation(self, user_id: int) -> entities.ReputationUserWithUserEntity:
+        user_reputation = await self.get_one_by_data(models.ReputationUserModel, user_id=user_id, options=get_user_reputation_relations())
+        return entities.ReputationUserWithUserEntity.model_validate(user_reputation)

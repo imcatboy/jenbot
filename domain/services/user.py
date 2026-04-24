@@ -30,16 +30,16 @@ class UserService:
     async def get_by_role(self, role: UserRole) -> List[entities.UserEntity]:
         return await self.user_repository.get_by_role(role)
     
-    async def create_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.UserReputationEntity:
+    async def create_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.ReputationUserEntity:
         return await self.user_repository.create_user_reputation(dto)
     
     async def update_user_reputation(self, user_id: int, dto: dtos.UpdateUserReputationDTO) -> None:
         return await self.user_repository.update_user_reputation(user_id, dto)
     
-    async def get_user_reputation(self, user_id: int) -> entities.UserReputationWithUserEntity:
+    async def get_user_reputation(self, user_id: int) -> entities.ReputationUserWithUserEntity:
         return await self.user_repository.get_user_reputation(user_id)
     
-    async def create_or_update_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.UserReputationEntity:
+    async def create_or_update_user_reputation(self, dto: dtos.CreateUserReputationDTO) -> entities.ReputationUserEntity:
         try:
             await self.get_user_reputation(dto.user_id)
         except exceptions.ObjectNotFoundException:

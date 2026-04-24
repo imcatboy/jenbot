@@ -1,4 +1,4 @@
-from objects.types import UsernameOrID, Reason, RelativeDateTime, ID, Text, Name, Word
+from objects.types import UsernameOrID, Reason, RelativeDateTime, ID, Text, SettingName, Word
 from typing import Optional
 from .base import BaseDTO
 
@@ -38,7 +38,7 @@ class ViolationsCommandDTO(BaseDTO):
 
 
 class SetSettingCommandDTO(BaseDTO):
-    name: Name
+    name: SettingName
     value: Text
 
 

@@ -1,58 +1,15 @@
-from typing import List, Optional
+from typing import Dict, List, Optional, Set
 
-from domain.objects import UserRole
-from .base import BaseResponse
+from .base import BaseRequest, BaseResponse
+from domain.objects.types import ID, NoZeroFloat, NoZeroInt
 
 
 class MarketplaceUserResponse(BaseResponse):
     name: Optional[str]
-    description: Optional[str]
+    username: Optional[str]
     rating: float
     advertisement_count: int
-    deals_count: int
     reviews_count: int
-
-
-class UserResponse(BaseResponse):
-    telegram_id: int
-    username: Optional[str]
-    role: UserRole
-    marketplace_user: Optional[MarketplaceUserResponse]
-
-
-class ParentCategoryResponse(BaseResponse):
-    id: int
-    name: str
-
-
-class CategoryResponse(BaseResponse):
-    id: int
-    name: str
-    parent_category: Optional[ParentCategoryResponse]
-
-
-class ProductResponse(BaseResponse):
-    id: int
-    name: str
-    image_urls: List[str]
-    category: CategoryResponse
-
-
-class AdvertisementResponse(BaseResponse):
-    id: int
-    user: UserResponse
-    product: ProductResponse
-
-
-class CurrencyResponse(BaseResponse):
-    id: int
-    name: str
-    sign: str
-    description: Optional[str]
-
-
-class TradeResponse(BaseResponse):
-    id: int
 
 
 class ProductOptionResponse(BaseResponse):
@@ -60,19 +17,48 @@ class ProductOptionResponse(BaseResponse):
     name: str
 
 
+class ProductTypeResponse(BaseResponse):
+    id: int
+    name: str
+    can_many: bool
+    options: List[ProductOptionResponse]
+
+
 class AdvertisementOptionPriceResponse(BaseResponse):
     id: int
     amount: float
-    currency: CurrencyResponse
+    currency_sign: str
+
+
+class ProductResponse(BaseResponse):
+    id: int
+    name: str
+    image_url: str
+    category_path: str
+
+
+class TradeResponse(BaseResponse):
+    id: int
+    count: int
+    product: ProductResponse
+    product_options: List[ProductOptionResponse]
 
 
 class AdvertisementOptionResponse(BaseResponse):
     id: int
     count: int
-    advertisement: AdvertisementResponse
     prices: List[AdvertisementOptionPriceResponse]
     product_options: List[ProductOptionResponse]
     trades: List[TradeResponse]
+
+
+class AdvertisementResponse(BaseResponse):
+    id: int
+    name: str
+    category_path: str
+    user: MarketplaceUserResponse
+    product_types: List[ProductTypeResponse]
+    options: Dict[str, AdvertisementOptionResponse]
 
 
 class UserShortResponse(BaseResponse):
@@ -95,3 +81,65 @@ class AdvertisementOptionShortResponse(BaseResponse):
 class CatalogResponse(BaseResponse):
     items: List[AdvertisementOptionShortResponse]
     has_more: bool
+
+
+class AdvertisementShortResponse(BaseResponse):
+    id: int
+    name: str
+    category_path: str
+    image_url: str
+
+
+class AdvertisementsResponse(BaseResponse):
+    items: List[AdvertisementShortResponse]
+    has_more: bool
+
+
+class BuyAdvertisementRequest(BaseRequest):
+    advertisement_option_id: ID
+    count: NoZeroInt
+    option_price_id: Optional[ID] = None
+    trade_id: Optional[ID] = None
+
+
+class CreateAdvertisementOptionPriceRequest(BaseRequest):
+    amount: NoZeroFloat
+    currency_id: ID
+
+
+class CreateTradeRequest(BaseRequest):
+    product_id: ID
+    product_option_ids: Set[ID]
+    count: NoZeroInt
+
+
+class CreateAdvertisementOptionRequest(BaseRequest):
+    product_option_ids: Set[ID]
+    count: NoZeroInt
+    prices: List[CreateAdvertisementOptionPriceRequest]
+    trades: List[CreateTradeRequest]
+
+
+class CreateAdvertisementRequest(BaseRequest):
+    product_id: ID
+    options: List[CreateAdvertisementOptionRequest]
+
+
+class UpdateAdvertisementOptionPriceRequest(BaseRequest):
+    id: Optional[ID] = None
+    amount: NoZeroFloat
+    currency_id: ID
+
+
+class UpdateTradeRequest(BaseRequest):
+    id: Optional[ID] = None
+    count: NoZeroInt
+    product_option_ids: Set[ID]
+
+
+class UpdateAdvertisementOptionRequest(BaseRequest):
+    id: Optional[ID] = None
+    count: NoZeroInt
+    product_option_ids: Set[ID]
+    prices: List[UpdateAdvertisementOptionPriceRequest]
+    trades: List[UpdateTradeRequest]

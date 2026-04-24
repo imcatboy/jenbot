@@ -13,8 +13,8 @@ def get_report_relations() -> List[Any]:
 
 def get_user_reputation_relations() -> List[Any]:
     return [
-        joinedload(models.UserReputationModel.user),
-        joinedload(models.UserReputationModel.added_by_user),
+        joinedload(models.ReputationUserModel.user),
+        joinedload(models.ReputationUserModel.added_by_user),
     ]
 
 def get_violation_relations() -> List[Any]:

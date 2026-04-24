@@ -49,7 +49,7 @@ class MessageModel(EntityModel):
     chat: Mapped[ChatModel] = relationship(
         back_populates="messages",
     )
-    files: Mapped[List[MessageFileModel]] = relationship(
+    files: Mapped[List[FileModel]] = relationship(
         back_populates="message",
         cascade="all, delete-orphan",
     )
@@ -81,7 +81,7 @@ class ChatParticipantModel(EntityModel):
     )
 
 
-class MessageFileModel(EntityModel):
+class FileModel(EntityModel):
     __tablename__ = "files"
     fk_name = "file_id"
 

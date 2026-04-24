@@ -3,20 +3,19 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
-
 from objects.types import DealStatus
 from .base import BaseEntity, EntityWithMetadata
 
 
 class TradeProductOptionEntity(BaseEntity):
-    count: int
     trade_id: int
     product_option_id: int
 
 
 class TradeEntity(EntityWithMetadata):
+    count: int
     advertisement_option_id: int
+    product_id: int
 
 
 class DealEntity(EntityWithMetadata):

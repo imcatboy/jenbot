@@ -2,7 +2,8 @@ from typing import Optional, List
 from datetime import datetime
 
 from domain.objects import UserRole, UserReputationRole, ViolationType
-from .base import BaseResponse
+from .base import BaseRequest, BaseResponse
+from domain.objects.types import ID
 
 
 class MarketplaceUserResponse(BaseResponse):
@@ -47,3 +48,14 @@ class ReviewResponse(BaseResponse):
     rating: int
     created_at: datetime
     author: UserResponse
+
+
+class ReviewsResponse(BaseResponse):
+    items: List[ReviewResponse]
+    has_more: bool
+
+
+class CreateReviewRequest(BaseRequest):
+    message: str
+    rating: int
+    deal_id: ID

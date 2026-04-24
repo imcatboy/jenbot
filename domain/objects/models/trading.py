@@ -11,7 +11,7 @@ from .base import BaseModel, EntityModel
 from .marketplace import AdvertisementOptionModel, ProductOptionModel
 
 if TYPE_CHECKING:
-    from .marketplace import AdvertisementOptionPriceModel
+    from .marketplace import AdvertisementOptionPriceModel, ProductModel
     from .economy import ReviewModel
     from .messaging import ChatModel
     from .user import UserModel
@@ -21,10 +21,15 @@ class TradeModel(EntityModel):
     __tablename__ = "trades"
     fk_name = "trade_id"
 
+    count: Mapped[int] = mapped_column(default=1)
     advertisement_option_id: Mapped[int] = mapped_column(
         ForeignKey("advertisement_options.id")
     )
     advertisement_option: Mapped[AdvertisementOptionModel] = relationship(
+        back_populates="trades",
+    )
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    product: Mapped[ProductModel] = relationship(
         back_populates="trades",
     )
     product_options: Mapped[List[TradeProductOptionModel]] = relationship(
@@ -42,7 +47,6 @@ class TradeProductOptionModel(BaseModel):
     __table_args__ = (PrimaryKeyConstraint("trade_id", "product_option_id"),)
     fk_name = "trade_id"
 
-    count: Mapped[int]
     trade_id: Mapped[int] = mapped_column(ForeignKey("trades.id"), primary_key=True)
     trade: Mapped[TradeModel] = relationship(back_populates="product_options")
     product_option_id: Mapped[int] = mapped_column(
