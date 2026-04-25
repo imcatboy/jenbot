@@ -1,20 +1,27 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import TYPE_CHECKING, List, Optional
-
-from sqlalchemy import ARRAY, Boolean, ForeignKey, Numeric, String
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import TYPE_CHECKING, List, Optional
 
 from .associate_tables import (
     advertisement_options_product_options,
     product_types_products,
+    trades_product_options,
 )
 from .base import EntityModel
 
 if TYPE_CHECKING:
     from .user import UserModel
-    from .trading import TradeModel, DealModel, TradeProductOptionModel
+    from .trading import TradeModel, DealModel
     from .marketplace import AdvertisementOptionPriceModel, AdvertisementOptionModel
 
 
@@ -22,23 +29,22 @@ class CategoryModel(EntityModel):
     __tablename__ = "categories"
     fk_name = "category_id"
 
-    name: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(100), index=True)
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
     parent_category_id: Mapped[Optional[int]] = mapped_column(
-        "parent_category", ForeignKey("categories.id")
+        "parent_category", ForeignKey("categories.id"), index=True
     )
-    products: Mapped[List[ProductModel]] = relationship(
-        back_populates="category"
-    )
+    products: Mapped[List[ProductModel]] = relationship(back_populates="category")
 
 
 class ProductModel(EntityModel):
     __tablename__ = "products"
     fk_name = "product_id"
+    __table_args__ = (Index("ix_products_category_id", "category_id", "is_draft"),)
 
-    name: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(100), index=True)
     image_urls: Mapped[List[str]] = mapped_column(ARRAY(String(100)))
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
     category: Mapped[CategoryModel] = relationship(back_populates="products")
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
     product_types: Mapped[List[ProductTypeModel]] = relationship(
@@ -59,7 +65,7 @@ class ProductTypeModel(EntityModel):
     __tablename__ = "product_types"
     fk_name = "product_type_id"
 
-    name: Mapped[str] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255), index=True)
     can_many: Mapped[bool] = mapped_column(Boolean)
     products: Mapped[List[ProductModel]] = relationship(
         secondary=product_types_products,
@@ -75,18 +81,18 @@ class ProductOptionModel(EntityModel):
     __tablename__ = "product_options"
     fk_name = "product_option_id"
 
-    name: Mapped[str] = mapped_column(String(100))
-    product_type_id: Mapped[int] = mapped_column(ForeignKey("product_types.id"))
-    product_type: Mapped[ProductTypeModel] = relationship(
-        back_populates="options"
+    name: Mapped[str] = mapped_column(String(100), index=True)
+    product_type_id: Mapped[int] = mapped_column(
+        ForeignKey("product_types.id"), index=True
     )
+    product_type: Mapped[ProductTypeModel] = relationship(back_populates="options")
     advertisement_options: Mapped[List[AdvertisementOptionModel]] = relationship(
         secondary=advertisement_options_product_options,
         back_populates="product_options",
     )
-    trade_product_options: Mapped[List[TradeProductOptionModel]] = relationship(
+    trade_product_options: Mapped[List[ProductOptionModel]] = relationship(
+        secondary=trades_product_options,
         back_populates="product_option",
-        cascade="all, delete-orphan",
     )
 
 
@@ -94,7 +100,7 @@ class CurrencyModel(EntityModel):
     __tablename__ = "currencies"
     fk_name = "currency_id"
 
-    name: Mapped[str] = mapped_column(String(50))
+    name: Mapped[str] = mapped_column(String(50), index=True)
     sign: Mapped[str] = mapped_column(String(5))
     description: Mapped[Optional[str]] = mapped_column(String(255))
     option_prices: Mapped[List[AdvertisementOptionPriceModel]] = relationship(
@@ -107,14 +113,12 @@ class AdvertisementModel(EntityModel):
     __tablename__ = "advertisements"
     fk_name = "advertisement_id"
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="advertisements", foreign_keys=[user_id]
     )
-    product: Mapped[ProductModel] = relationship(
-        back_populates="advertisements"
-    )
+    product: Mapped[ProductModel] = relationship(back_populates="advertisements")
     options: Mapped[List[AdvertisementOptionModel]] = relationship(
         back_populates="advertisement",
         cascade="all, delete-orphan",
@@ -124,13 +128,23 @@ class AdvertisementModel(EntityModel):
 class AdvertisementOptionModel(EntityModel):
     __tablename__ = "advertisement_options"
     fk_name = "advertisement_option_id"
+    __table_args__ = (
+        CheckConstraint(
+            "count >= 0",
+            name="ck_advertisement_option_count_positive",
+        ),
+        CheckConstraint(
+            "sold_count >= 0",
+            name="ck_advertisement_option_sold_count_positive",
+        ),
+    )
 
     count: Mapped[int]
     sold_count: Mapped[int] = mapped_column(default=0)
-    advertisement_id: Mapped[int] = mapped_column(ForeignKey("advertisements.id"))
-    advertisement: Mapped[AdvertisementModel] = relationship(
-        back_populates="options"
+    advertisement_id: Mapped[int] = mapped_column(
+        ForeignKey("advertisements.id"), index=True
     )
+    advertisement: Mapped[AdvertisementModel] = relationship(back_populates="options")
     prices: Mapped[List[AdvertisementOptionPriceModel]] = relationship(
         back_populates="advertisement_option",
         cascade="all, delete-orphan",
@@ -152,11 +166,17 @@ class AdvertisementOptionModel(EntityModel):
 class AdvertisementOptionPriceModel(EntityModel):
     __tablename__ = "advertisement_option_prices"
     fk_name = "advertisement_option_price_id"
+    __table_args__ = (
+        CheckConstraint(
+            "amount > 0",
+            name="ck_advertisement_option_price_amount_positive",
+        ),
+    )
 
-    amount: Mapped[Decimal] = mapped_column(Numeric)
-    currency_id: Mapped[int] = mapped_column(ForeignKey("currencies.id"))
+    amount: Mapped[float] = mapped_column(Numeric(precision=10, scale=2))
+    currency_id: Mapped[int] = mapped_column(ForeignKey("currencies.id"), index=True)
     advertisement_option_id: Mapped[int] = mapped_column(
-        ForeignKey("advertisement_options.id")
+        ForeignKey("advertisement_options.id"), index=True
     )
     currency: Mapped[CurrencyModel] = relationship(back_populates="option_prices")
     advertisement_option: Mapped[AdvertisementOptionModel] = relationship(

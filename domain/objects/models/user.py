@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, String, BigInteger, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum, ForeignKey, String, BigInteger
 from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime
 
@@ -9,20 +9,20 @@ from objects.types import UserReputationRole, UserRole
 from .base import EntityModel, BaseModel, MetadataModel
 
 if TYPE_CHECKING:
+    from .messaging import ChatModel, ChatParticipantModel, MessageModel, FileModel
     from .moderation import ChatViolationModel, ViolationModel, ReportModel
     from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
     from .marketplace import AdvertisementModel
     from .trading import DealModel
-    from .messaging import ChatModel, ChatParticipantModel, MessageModel, MessageFileModel
 
 
 class UserModel(EntityModel):
     __tablename__ = "users"
     fk_name = "user_id"
 
-    telegram_id: Mapped[int] = mapped_column(BigInteger)
-    username: Mapped[Optional[str]] = mapped_column(String(32))
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"))
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    username: Mapped[Optional[str]] = mapped_column(String(32), unique=True)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"), index=True)
     user_reputation: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="user",
         foreign_keys="ReputationUserModel.user_id",
@@ -113,7 +113,7 @@ class UserModel(EntityModel):
         back_populates="author",
     )
     reviews_received: Mapped[List[ReviewModel]] = relationship(
-        foreign_keys="ReviewModel.for_user_id",
+        foreign_keys="ReviewModel.subject_id",
         back_populates="subject",
     )
     chat_participants: Mapped[List[ChatParticipantModel]] = relationship(
@@ -130,12 +130,11 @@ class UserModel(EntityModel):
         foreign_keys="MessageModel.user_id",
         cascade="all, delete-orphan",
     )
-    files: Mapped[List[MessageFileModel]] = relationship(
+    files: Mapped[List[FileModel]] = relationship(
         back_populates="user",
-        foreign_keys="MessageFileModel.user_id",
+        foreign_keys="FileModel.user_id",
         cascade="all, delete-orphan",
     )
-
 
 
 class ReputationUserModel(BaseModel, MetadataModel):
@@ -164,13 +163,29 @@ class ReputationUserModel(BaseModel, MetadataModel):
 class ChatUserModel(BaseModel, MetadataModel):
     __tablename__ = "chat_users"
     fk_name = "chat_user_id"
+    __table_args__ = (
+        CheckConstraint(
+            "experience >= 0",
+            name="ck_chat_user_experience_positive",
+        ),
+        CheckConstraint(
+            "message_count >= 0",
+            name="ck_chat_user_message_count_positive",
+        ),
+        CheckConstraint(
+            "balance >= 0",
+            name="ck_chat_user_balance_positive",
+        ),
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    balance: Mapped[int]
-    experience: Mapped[int]
-    message_count: Mapped[int]
-    is_active: Mapped[bool]
-    last_activity_at: Mapped[datetime]
+    balance: Mapped[int] = mapped_column(default=0)
+    experience: Mapped[int] = mapped_column(default=0)
+    message_count: Mapped[int] = mapped_column(default=0)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    last_activity_at: Mapped[datetime] = mapped_column(
+        default=datetime.now, index=True
+    )
     user: Mapped[UserModel] = relationship(
         back_populates="chat_user",
         foreign_keys=[user_id],
@@ -180,12 +195,21 @@ class ChatUserModel(BaseModel, MetadataModel):
 class MarketplaceUserModel(BaseModel, MetadataModel):
     __tablename__ = "marketplace_users"
     fk_name = "marketplace_user_id"
+    __table_args__ = (
+        CheckConstraint(
+            "rating >= 0.0 and rating <= 5.0",
+            name="ck_marketplace_user_rating_range",
+        ),
+        Index("ix_marketplace_users_rating", "rating", "deals_count"),
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(32))
     description: Mapped[Optional[str]] = mapped_column(String(255))
     avatar_url: Mapped[Optional[str]] = mapped_column(String(255))
-    rating: Mapped[float] = mapped_column(default=0.0)
+    rating: Mapped[float] = mapped_column(
+        Numeric(precision=10, scale=2), default=0.0, index=True
+    )
     advertisement_count: Mapped[int] = mapped_column(default=0)
     deals_count: Mapped[int] = mapped_column(default=0)
     reviews_count: Mapped[int] = mapped_column(default=0)

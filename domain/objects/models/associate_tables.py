@@ -40,3 +40,23 @@ advertisement_options_product_options = Table(
         primary_key=True,
     ),
 )
+
+
+trades_product_options = Table(
+    "trades_product_options",
+    BaseModel.metadata,
+    Column(
+        "trade_id",
+        Integer,
+        ForeignKey("trades.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
+    Column(
+        "product_option_id",
+        Integer,
+        ForeignKey("product_options.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
+)

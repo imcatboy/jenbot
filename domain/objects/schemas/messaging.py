@@ -5,11 +5,10 @@ from domain.objects.types import ID, DealStatus, Text
 from .base import BaseRequest, BaseResponse
 
 
-class UserResponse(BaseResponse):
+class MessageUserResponse(BaseResponse):
     id: int
     avatar_url: Optional[str]
     username: Optional[str]
-    rating: float
 
 
 class FileResponse(BaseResponse):
@@ -23,14 +22,14 @@ class MessageResponse(BaseResponse):
     id: int
     body: Optional[str] = None
     files: List[FileResponse]
-    user: UserResponse
+    user: MessageUserResponse
     created_at: datetime
 
 
 class ChatListItemResponse(BaseResponse):
     id: int
     name: str
-    author: UserResponse
+    author: MessageUserResponse
     last_message: Optional[MessageResponse] = None
     unread_count: int
 
@@ -85,7 +84,7 @@ class ChatResponse(BaseResponse):
     id: int
     name: str
     deal: DealResponse
-    participants: List[UserResponse]
+    participants: List[MessageUserResponse]
     messages: List[MessageResponse]
 
 

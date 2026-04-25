@@ -88,6 +88,8 @@ NoZeroFloat = Annotated[float, Field(ge=0.01, le=2147483647, description="Чис
 
 Text = Annotated[str, Field(max_length=1024, description="Текст (до 1024 символов)")]
 
+Rating = Annotated[int, Field(ge=1, le=5, description="Оценка (от 1 до 5)")]
+
 ImageURL = Annotated[str, Field(max_length=100, pattern=r"^https:\/\/[a-zA-Z_\/]+\.[a-zA-Z]+$", description="URL изображения")]
 
 Word = Annotated[str, Field(max_length=30, pattern=r"^[a-zA-ZА-Яа-я0-9_]+$", description="Слово (до 30 символов)")]

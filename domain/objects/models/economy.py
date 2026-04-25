@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from sqlalchemy import Enum, ForeignKey, String, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum, ForeignKey, String
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 
@@ -16,13 +16,19 @@ if TYPE_CHECKING:
 class TransactionModel(EntityModel):
     __tablename__ = "transactions"
     fk_name = "transaction_id"
+    __table_args__ = (
+        CheckConstraint(
+            "amount > 0",
+            name="ck_transaction_amount_positive",
+        ),
+    )
 
     amount: Mapped[int]
     type: Mapped[TransactionType] = mapped_column(
         Enum(TransactionType, name="TRANSACTION_TYPE"),
     )
     description: Mapped[str] = mapped_column(String(255))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="transactions",
         foreign_keys=[user_id],
@@ -37,6 +43,12 @@ class TransactionModel(EntityModel):
 class ChatProductModel(EntityModel):
     __tablename__ = "chat_products"
     fk_name = "chat_product_id"
+    __table_args__ = (
+        CheckConstraint(
+            "price > 0",
+            name="ck_chat_product_price_positive",
+        ),
+    )
 
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(String(255))
@@ -51,13 +63,18 @@ class ChatProductModel(EntityModel):
 class ChatPurchaseModel(EntityModel):
     __tablename__ = "chat_purchases"
     fk_name = "chat_purchase_id"
-
+    __table_args__ = (
+        CheckConstraint(
+            "price > 0",
+            name="ck_chat_purchase_price_positive",
+        ),
+    )
     is_used: Mapped[bool]
-    expires_at: Mapped[Optional[datetime]]
+    expires_at: Mapped[Optional[datetime]] = mapped_column(index=True)
     price: Mapped[int]
     product_id: Mapped[int] = mapped_column(ForeignKey("chat_products.id"))
     product: Mapped[ChatProductModel] = relationship(back_populates="purchases")
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="purchases", foreign_keys=[user_id]
     )
@@ -66,12 +83,17 @@ class ChatPurchaseModel(EntityModel):
 class ReviewModel(EntityModel):
     __tablename__ = "reviews"
     fk_name = "review_id"
-
+    __table_args__ = (
+        CheckConstraint(
+            "rating >= 1 and rating <= 5",
+            name="ck_rating_range",
+        ),
+    )
     message: Mapped[str] = mapped_column(String(255))
     rating: Mapped[int]
-    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    subject_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    deal_id: Mapped[int] = mapped_column(ForeignKey("deals.id"))
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    subject_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    deal_id: Mapped[int] = mapped_column(ForeignKey("deals.id"), index=True)
     author: Mapped[UserModel] = relationship(
         foreign_keys=[author_id],
         back_populates="reviews_written",

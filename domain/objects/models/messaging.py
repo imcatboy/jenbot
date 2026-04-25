@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List, Optional
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, Index
 
 from .base import EntityModel
-from .trading import DealModel
 
 if TYPE_CHECKING:
+    from .trading import DealModel
     from .user import UserModel
 
 
@@ -15,7 +15,7 @@ class ChatModel(EntityModel):
     __tablename__ = "chats"
     fk_name = "chat_id"
 
-    name: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(100), index=True)
     author_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
     author: Mapped[Optional[UserModel]] = relationship(
         back_populates="authored_chats",
@@ -38,6 +38,9 @@ class ChatModel(EntityModel):
 class MessageModel(EntityModel):
     __tablename__ = "messages"
     fk_name = "message_id"
+    __table_args__ = (
+        Index("ix_messages_user_id", "chat_id", "created_at"),
+    )
 
     body: Mapped[Optional[str]] = mapped_column(String(1024))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -45,7 +48,7 @@ class MessageModel(EntityModel):
         back_populates="messages",
         foreign_keys=[user_id],
     )
-    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"))
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"), index=True)
     chat: Mapped[ChatModel] = relationship(
         back_populates="messages",
     )
@@ -62,13 +65,16 @@ class MessageModel(EntityModel):
 class ChatParticipantModel(EntityModel):
     __tablename__ = "chat_participiants"
     fk_name = "chat_participant_id"
+    __table_args__ = (
+        Index("ix_chat_participants_user_id", "user_id", "chat_id", unique=True),
+    )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[UserModel] = relationship(
         back_populates="chat_participants",
         foreign_keys=[user_id],
     )
-    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"))
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"), index=True)
     chat: Mapped[ChatModel] = relationship(
         back_populates="participants",
     )
@@ -86,9 +92,9 @@ class FileModel(EntityModel):
     fk_name = "file_id"
 
     name: Mapped[str] = mapped_column(String(100))
-    display_name: Mapped[str] = mapped_column(String(100))
+    display_name: Mapped[str] = mapped_column(String(100), index=True)
     extension: Mapped[str] = mapped_column(String(10))
-    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"))
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"), index=True)
     message: Mapped[MessageModel] = relationship(
         back_populates="files",
     )
