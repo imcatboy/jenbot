@@ -48,7 +48,7 @@ redis = Redis(
 )
 
 fsm_storage = RedisStorage(redis)
-bot = Bot(token=settings.TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=fsm_storage)
 
 scheduler_service = SchedulerService(

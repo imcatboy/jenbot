@@ -3,9 +3,9 @@ from typing import Any, List, Optional, Type, TypeVar
 from sqlalchemy import Table, and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from objects.models import BaseModel
+from domain.objects.models import BaseModel
 from .validation import EntityValidator
-from objects import exceptions
+from domain.objects import exceptions
 
 
 T = TypeVar("T", bound=BaseModel)

@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from objects.models import BaseModel
-from core.settings import Settings
+from domain.objects.models import BaseModel
+from api.core.settings import Settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

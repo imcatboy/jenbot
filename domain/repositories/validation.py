@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Type
 from sqlalchemy import select
 
-from objects import exceptions, BaseModel
+from domain.objects import exceptions, BaseModel
 
 
 class EntityValidator:

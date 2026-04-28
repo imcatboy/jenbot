@@ -5,7 +5,7 @@ from redis.asyncio import Redis
 from sqlalchemy import select
 from typing import Any
 
-from objects import ConfigModel
+from domain.objects.models import ConfigModel
 from .base import BaseRepository
 
 class ConfigRepository(BaseRepository):

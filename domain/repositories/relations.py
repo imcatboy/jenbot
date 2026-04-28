@@ -1,7 +1,7 @@
 from sqlalchemy.orm import joinedload
 from typing import List, Any
 
-from objects import models
+from domain.objects import models
 
 
 def get_report_relations() -> List[Any]:

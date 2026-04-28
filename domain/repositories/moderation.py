@@ -3,9 +3,9 @@ from sqlalchemy import select
 from sqlalchemy import update
 from typing import List
 
-from objects.types import ViolationType
+from domain.objects.types import ViolationType
 from .relations import get_report_relations, get_violation_relations
-from objects import models, dtos, entities, exceptions
+from domain.objects import models, dtos, entities, exceptions
 from .base import BaseRepository
 
 

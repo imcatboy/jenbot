@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 
-from objects.types import TransactionType
+from domain.objects.types import TransactionType
 from .base import EntityModel
 
 if TYPE_CHECKING:

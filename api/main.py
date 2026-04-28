@@ -4,21 +4,22 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.container import AppContainer
-from core.settings import Settings
-from core.openapi import API_METADATA
+from api.core.container import AppContainer
+from api.core.settings import Settings
+from api.core.openapi import API_METADATA
+from api.endpoints import api_router
 
 
 logger = logging.getLogger(__name__)
 container = AppContainer()
 settings = Settings()
 
+container.wire(packages=["api.dependencies", "api.endpoints"])
 
 app = FastAPI(
     **API_METADATA,
     docs_url="/docs",
     redoc_url="/redoc",
-    dependencies=[container.wire(packages=["api.dependencies", "api.endpoints"])],
 )
 app.add_middleware(
     CORSMiddleware,
@@ -27,11 +28,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_credentials=True,
 )
+app.include_router(api_router)
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        app="api.main:app",
+        app=app,
         host=settings.PROJECT_HOST,
         port=settings.PROJECT_PORT,
         log_config="log.ini",

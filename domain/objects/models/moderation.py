@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 
-from objects.types import ViolationType, ReportType, ReportStatus
+from domain.objects.types import ViolationType, ReportType, ReportStatus
 from .base import EntityModel
 
 if TYPE_CHECKING:

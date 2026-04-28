@@ -1,0 +1,31 @@
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from dependency_injector.wiring import inject, Provide
+from typing import AsyncGenerator
+from redis.asyncio import Redis
+from fastapi import Depends
+
+from api.core.container import AppContainer
+from domain import SQLAlchemyUnitOfWork
+from domain.repositories import UserRepository
+from domain.services import UserService
+
+
+@inject
+async def get_uow(
+    session_factory: async_sessionmaker[AsyncSession] = Depends(
+        Provide[AppContainer.session_factory]
+    ),
+) -> AsyncGenerator[SQLAlchemyUnitOfWork, None]:
+    uow = SQLAlchemyUnitOfWork(session_factory=session_factory)
+
+    async with uow:
+        yield uow
+
+
+@inject
+async def get_user_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+    redis: Redis = Depends(Provide[AppContainer.redis]),
+) -> UserService:
+    user_repository = UserRepository(session=uow.session, redis=redis)
+    return UserService(user_repository=user_repository)

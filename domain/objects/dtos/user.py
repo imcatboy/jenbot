@@ -1,4 +1,4 @@
-from objects.types import UserReputationRole
+from domain.objects.types import UserReputationRole
 from typing import Optional
 from .base import BaseDTO
 

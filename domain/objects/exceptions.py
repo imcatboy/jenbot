@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from objects.types import ViolationType
+from domain.objects.types import ViolationType
 
 
 class DomainException(Exception): ...

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 
-from objects.types import TransactionType
+from domain.objects.types import TransactionType
 from .base import EntityWithMetadata
 
 

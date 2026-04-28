@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
 
 from .associate_tables import trades_product_options
-from objects.types import DealStatus
+from domain.objects.types import DealStatus
 from .base import EntityModel
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class TradeModel(EntityModel):
     )
     product_options: Mapped[List[ProductOptionModel]] = relationship(
         secondary=trades_product_options,
-        back_populates="trade",
+        back_populates="trades",
     )
     deals: Mapped[List[DealModel]] = relationship(
         back_populates="trade",

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from objects import entities, exceptions, dtos
+from domain.objects import entities, exceptions, dtos
 from domain.repositories import UserRepository
 from domain.objects.types import UserRole
 
@@ -13,7 +13,7 @@ class UserService:
     async def get_or_create(
         self, telegram_id: int, username: Optional[str]
     ) -> entities.UserEntity:
-        return await self.user_repository.get_or_create(telegram_id, username)
+        return await self.user_repository.get_or_create_cached(telegram_id, username)
 
     async def get_by_id(self, id: int) -> entities.UserEntity:
         return await self.user_repository.get(id)
@@ -55,9 +55,5 @@ class UserService:
 
         return await self.update_user_reputation(dto.user_id, dto)
 
-    async def get_or_create_cached(
-        self, telegram_id: int, username: Optional[str]
-    ) -> entities.UserEntity:
-        return await self.user_repository.get_or_create_cached(
-            telegram_id, username
-        )
+    async def get_or_create_marketplace_user(self, user_id: int) -> entities.UserWithMarketplaceUserEntity:
+        return await self.user_repository.get_or_create_marketplace_user_cached(user_id)

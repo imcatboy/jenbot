@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from objects.types import DealStatus
+from domain.objects.types import DealStatus
 from .base import BaseEntity, EntityWithMetadata
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 from datetime import datetime
 
-from objects.types import ViolationType, ReportStatus, ReportType
+from domain.objects.types import ViolationType, ReportStatus, ReportType
 from .base import EntityWithMetadata
 from .user import UserEntity
 

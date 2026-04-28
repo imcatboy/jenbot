@@ -4,13 +4,16 @@ from redis.asyncio import Redis
 from sqlalchemy.orm import joinedload
 
 from .relations import get_user_reputation_relations
-from objects import models, entities, dtos
-from objects.types import UserRole
+from domain.objects import models, entities, dtos
+from domain.objects.types import UserRole
 from .base import BaseRepository
 
 
 class UserRepository(BaseRepository):
-    def __init__(self, session: AsyncSession, redis: Redis, cache_ttl: int) -> None:
+
+    def __init__(
+        self, session: AsyncSession, redis: Redis, cache_ttl: int = 60 * 60
+    ) -> None:
         super().__init__(session)
         self.redis = redis
         self.cache_ttl = cache_ttl
@@ -111,43 +114,38 @@ class UserRepository(BaseRepository):
 
     async def get_or_create_marketplace_user(
         self, user_id: int
-    ) -> entities.MarketplaceUserWithUserEntity:
-        marketplace_user = await self.get_one_by_data_or_none(
-            models.MarketplaceUserModel,
-            user_id=user_id,
-            options=[joinedload(models.MarketplaceUserModel.user)],
+    ) -> entities.UserWithMarketplaceUserEntity:
+        user = await self.get_one_by_data_or_none(
+            models.UserModel,
+            id=user_id,
+            options=[joinedload(models.UserModel.marketplace_user)],
         )
 
-        if marketplace_user:
-            return entities.MarketplaceUserWithUserEntity.model_validate(
-                marketplace_user
-            )
+        if user and user.marketplace_user:
+            return entities.UserWithMarketplaceUserEntity.model_validate(user)
 
-        marketplace_user = models.MarketplaceUserModel()
-        await self.create_relation(marketplace_user, models.UserModel, user_id)
+        marketplace_user = models.MarketplaceUserModel(user_id=user_id)
         self.session.add(marketplace_user)
         await self.session.flush()
-        marketplace_user = await self.get_one_by_data(
-            models.MarketplaceUserModel,
-            user_id=user_id,
-            options=[joinedload(models.MarketplaceUserModel.user)],
+        marketplace_user = await self.get_by_id(
+            models.UserModel,
+            id=user_id,
+            options=[joinedload(models.UserModel.marketplace_user)],
         )
-        return entities.MarketplaceUserWithUserEntity.model_validate(marketplace_user)
+        return entities.UserWithMarketplaceUserEntity.model_validate(user)
 
     async def get_or_create_marketplace_user_cached(
         self, user_id: int
-    ) -> entities.MarketplaceUserWithUserEntity:
-        marketplace_user = await self.redis.get(f"marketplace_user:{user_id}")
+    ) -> entities.UserWithMarketplaceUserEntity:
+        user = await self.redis.get(f"user_with_marketplace_user:{user_id}")
 
-        if marketplace_user:
-            return entities.MarketplaceUserWithUserEntity.model_validate_json(
-                marketplace_user
-            )
+        if user:
+            return entities.UserWithMarketplaceUserEntity.model_validate_json(user)
 
-        marketplace_user = await self.get_or_create_marketplace_user(user_id)
+        user = await self.get_or_create_marketplace_user(user_id)
         await self.redis.set(
-            f"marketplace_user:{user_id}",
-            marketplace_user.model_dump_json(),
+            f"user_with_marketplace_user:{user_id}",
+            user.model_dump_json(),
             ex=self.cache_ttl,
         )
-        return marketplace_user
+        return user

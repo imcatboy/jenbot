@@ -1,4 +1,4 @@
-from objects.types import UsernameOrID, Reason, RelativeDateTime, ID, Text, SettingName, Word
+from domain.objects.types import UsernameOrID, Reason, RelativeDateTime, ID, Text, SettingName, Word
 from typing import Optional
 from .base import BaseDTO
 

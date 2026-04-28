@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime
 
-from objects.types import UserReputationRole, UserRole
+from domain.objects.types import UserReputationRole, UserRole
 from .base import EntityModel, BaseModel, MetadataModel
 
 if TYPE_CHECKING:
@@ -22,7 +22,7 @@ class UserModel(EntityModel):
 
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     username: Mapped[Optional[str]] = mapped_column(String(32), unique=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"), index=True)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"), default=UserRole.USER, index=True)
     user_reputation: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="user",
         foreign_keys="ReputationUserModel.user_id",
@@ -109,7 +109,7 @@ class UserModel(EntityModel):
         back_populates="agent",
     )
     reviews_written: Mapped[List[ReviewModel]] = relationship(
-        foreign_keys="ReviewModel.user_id",
+        foreign_keys="ReviewModel.author_id",
         back_populates="author",
     )
     reviews_received: Mapped[List[ReviewModel]] = relationship(

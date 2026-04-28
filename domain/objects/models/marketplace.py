@@ -90,9 +90,9 @@ class ProductOptionModel(EntityModel):
         secondary=advertisement_options_product_options,
         back_populates="product_options",
     )
-    trade_product_options: Mapped[List[ProductOptionModel]] = relationship(
+    trades: Mapped[List[TradeModel]] = relationship(
         secondary=trades_product_options,
-        back_populates="product_option",
+        back_populates="product_options",
     )
 
 

@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from objects.types import UserReputationRole, UserRole
-from .base import BaseEntity, MetadataEntity
+from domain.objects.types import UserReputationRole, UserRole
+from .base import EntityWithMetadata, MetadataEntity
 
 
-class UserEntity(BaseEntity):
+class UserEntity(EntityWithMetadata):
     telegram_id: int
     username: Optional[str]
     role: UserRole
@@ -47,3 +47,7 @@ class MarketplaceUserEntity(MetadataEntity):
 
 class MarketplaceUserWithUserEntity(MarketplaceUserEntity):
     user: UserEntity
+
+
+class UserWithMarketplaceUserEntity(UserEntity):
+    marketplace_user: Optional[MarketplaceUserEntity] = None
