@@ -1,7 +1,7 @@
 from domain.objects import entities
 
 
-NAMESPACE = "jenbot"
+NAMESPACE = "jenbot:v1"
 USER_PREFIX = "user"
 
 
