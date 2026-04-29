@@ -38,6 +38,7 @@ class CurrencyEntity(EntityWithMetadata):
 class AdvertisementEntity(EntityWithMetadata):
     user_id: int
     product_id: int
+    is_draft: bool
 
 
 class AdvertisementOptionEntity(EntityWithMetadata):

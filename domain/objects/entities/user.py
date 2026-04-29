@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, TYPE_CHECKING
 
 from domain.objects.types import UserReputationRole, UserRole
 from .base import EntityWithMetadata, MetadataEntity
+
+if TYPE_CHECKING:
+    from .moderation import ViolationEntity
 
 
 class UserEntity(EntityWithMetadata):
@@ -42,7 +45,11 @@ class MarketplaceUserEntity(MetadataEntity):
     user_id: int
     name: Optional[str]
     description: Optional[str]
+    avatar_url: Optional[str]
     rating: float
+    advertisement_count: int
+    deal_count: int
+    review_count: int
 
 
 class MarketplaceUserWithUserEntity(MarketplaceUserEntity):
@@ -51,3 +58,9 @@ class MarketplaceUserWithUserEntity(MarketplaceUserEntity):
 
 class UserWithMarketplaceUserEntity(UserEntity):
     marketplace_user: Optional[MarketplaceUserEntity] = None
+
+
+class ProfileEntity(UserEntity):
+    violations: List[ViolationEntity]
+    reputation_user: Optional[ReputationUserEntity]
+    marketplace_user: Optional[MarketplaceUserEntity]

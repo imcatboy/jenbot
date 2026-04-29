@@ -114,10 +114,11 @@ class AdvertisementModel(EntityModel):
     fk_name = "advertisement_id"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="advertisements", foreign_keys=[user_id]
     )
+    is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped[ProductModel] = relationship(back_populates="advertisements")
     options: Mapped[List[AdvertisementOptionModel]] = relationship(
         back_populates="advertisement",

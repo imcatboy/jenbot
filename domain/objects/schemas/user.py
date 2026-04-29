@@ -10,6 +10,10 @@ class MarketplaceUserResponse(BaseResponse):
     name: Optional[str]
     description: Optional[str]
     rating: float
+    avatar_url: Optional[str]
+    review_count: int
+    deal_count: int
+    advertisement_count: int
 
 
 class ReputationUserResponse(BaseResponse):
@@ -27,9 +31,6 @@ class ProfileResponse(BaseResponse):
     telegram_id: int
     username: Optional[str]
     role: UserRole
-    review_count: int
-    deal_count: int
-    advertisement_count: int
     violations: List[ViolationResponse]
     reputation_user: Optional[ReputationUserResponse]
     marketplace_user: Optional[MarketplaceUserResponse]

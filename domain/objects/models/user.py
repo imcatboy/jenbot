@@ -23,7 +23,7 @@ class UserModel(EntityModel):
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     username: Mapped[Optional[str]] = mapped_column(String(32), unique=True)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"), default=UserRole.USER, index=True)
-    user_reputation: Mapped[Optional[ReputationUserModel]] = relationship(
+    reputation_user: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="user",
         foreign_keys="ReputationUserModel.user_id",
         cascade="all, delete-orphan",
@@ -155,7 +155,7 @@ class ReputationUserModel(BaseModel, MetadataModel):
         foreign_keys=[added_by_user_id],
     )
     user: Mapped[UserModel] = relationship(
-        back_populates="user_reputation",
+        back_populates="reputation_user",
         foreign_keys=[user_id],
     )
 
@@ -200,7 +200,19 @@ class MarketplaceUserModel(BaseModel, MetadataModel):
             "rating >= 0.0 and rating <= 5.0",
             name="ck_marketplace_user_rating_range",
         ),
-        Index("ix_marketplace_users_rating", "rating", "deals_count"),
+        CheckConstraint(
+            "advertisement_count >= 0",
+            name="ck_marketplace_user_advertisement_count_positive",
+        ),
+        CheckConstraint(
+            "deal_count >= 0",
+            name="ck_marketplace_user_deal_count_positive",
+        ),
+        CheckConstraint(
+            "review_count >= 0",
+            name="ck_marketplace_user_review_count_positive",
+        ),
+        Index("ix_marketplace_users_rating", "rating", "deal_count"),
     )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
@@ -211,8 +223,8 @@ class MarketplaceUserModel(BaseModel, MetadataModel):
         Numeric(precision=10, scale=2), default=0.0, index=True
     )
     advertisement_count: Mapped[int] = mapped_column(default=0)
-    deals_count: Mapped[int] = mapped_column(default=0)
-    reviews_count: Mapped[int] = mapped_column(default=0)
+    deal_count: Mapped[int] = mapped_column(default=0)
+    review_count: Mapped[int] = mapped_column(default=0)
     user: Mapped[UserModel] = relationship(
         back_populates="marketplace_user",
         foreign_keys=[user_id],

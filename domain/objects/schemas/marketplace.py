@@ -8,8 +8,10 @@ class MarketplaceUserResponse(BaseResponse):
     name: Optional[str]
     username: Optional[str]
     rating: float
+    avatar_url: Optional[str]
     advertisement_count: int
-    reviews_count: int
+    review_count: int
+    deal_count: int
 
 
 class ProductOptionResponse(BaseResponse):

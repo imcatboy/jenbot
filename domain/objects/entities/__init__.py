@@ -5,3 +5,7 @@ from .economy import *
 from .marketplace import *
 from .trading import *
 from .messaging import *
+
+
+
+ProfileEntity.model_rebuild()

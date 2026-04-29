@@ -1,9 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
-from redis.asyncio import Redis
 from sqlalchemy.orm import joinedload
+from typing import List, Optional
 
-from .relations import get_user_reputation_relations
+from .relations import get_user_reputation_relations, get_profile_relations
 from domain.objects import models, entities, dtos
 from domain.objects.types import UserRole
 from .base import BaseRepository
@@ -11,12 +10,8 @@ from .base import BaseRepository
 
 class UserRepository(BaseRepository):
 
-    def __init__(
-        self, session: AsyncSession, redis: Redis, cache_ttl: int = 60 * 60
-    ) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
-        self.redis = redis
-        self.cache_ttl = cache_ttl
 
     async def get_or_create(
         self, telegram_id: int, username: Optional[str]
@@ -73,7 +68,7 @@ class UserRepository(BaseRepository):
 
     async def update_user_reputation(
         self, user_id: int, dto: dtos.UpdateUserReputationDTO
-    ) -> None:
+    ) -> entities.ReputationUserEntity:
         user_reputation = await self.get_one_by_data(
             models.ReputationUserModel, user_id=user_id
         )
@@ -87,6 +82,7 @@ class UserRepository(BaseRepository):
             user_reputation, models.UserModel, dto.added_by_user_id, "added_by_user_id"
         )
         await self.session.flush()
+        return entities.ReputationUserEntity.model_validate(user_reputation)
 
     async def get_user_reputation(
         self, user_id: int
@@ -97,20 +93,6 @@ class UserRepository(BaseRepository):
             options=get_user_reputation_relations(),
         )
         return entities.ReputationUserWithUserEntity.model_validate(user_reputation)
-
-    async def get_or_create_cached(
-        self, telegram_id: int, username: Optional[str]
-    ) -> entities.UserEntity:
-        user = await self.redis.get(f"user:{telegram_id}")
-
-        if user:
-            return entities.UserEntity.model_validate_json(user)
-
-        user = await self.get_or_create(telegram_id, username)
-        await self.redis.set(
-            f"user:{telegram_id}", user.model_dump_json(), ex=self.cache_ttl
-        )
-        return user
 
     async def get_or_create_marketplace_user(
         self, user_id: int
@@ -134,18 +116,10 @@ class UserRepository(BaseRepository):
         )
         return entities.UserWithMarketplaceUserEntity.model_validate(user)
 
-    async def get_or_create_marketplace_user_cached(
-        self, user_id: int
-    ) -> entities.UserWithMarketplaceUserEntity:
-        user = await self.redis.get(f"user_with_marketplace_user:{user_id}")
-
-        if user:
-            return entities.UserWithMarketplaceUserEntity.model_validate_json(user)
-
-        user = await self.get_or_create_marketplace_user(user_id)
-        await self.redis.set(
-            f"user_with_marketplace_user:{user_id}",
-            user.model_dump_json(),
-            ex=self.cache_ttl,
+    async def get_profile(self, user_id: int) -> entities.ProfileEntity:
+        user = await self.get_by_id(
+            models.UserModel,
+            user_id,
+            options=get_profile_relations(),
         )
-        return user
+        return entities.ProfileEntity.model_validate(user)
