@@ -23,9 +23,10 @@ class ChatParticipantEntity(EntityWithMetadata):
     last_read_message_id: Optional[int] = None
 
 
-class MessageFileEntity(EntityWithMetadata):
+class FileEntity(EntityWithMetadata):
     name: str
     display_name: str
     extension: str
-    message_id: int
-    user_id: int
+    message_id: Optional[int] = None
+    product_id: Optional[int] = None
+    uploaded_by_user_id: int

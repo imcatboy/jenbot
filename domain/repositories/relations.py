@@ -1,4 +1,4 @@
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from typing import List, Any
 
 from domain.objects import models
@@ -30,5 +30,14 @@ def get_profile_relations() -> List[Any]:
     return [
         joinedload(models.UserModel.marketplace_user),
         joinedload(models.UserModel.reputation_user),
-        joinedload(models.UserModel.violations),
+        selectinload(models.UserModel.violations),
+    ]
+
+
+def get_product_relations() -> List[Any]:
+    return [
+        joinedload(models.ProductModel.category),
+        selectinload(models.ProductModel.product_types).selectinload(
+            models.ProductTypeModel.options
+        ),
     ]

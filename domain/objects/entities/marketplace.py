@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from .base import EntityWithMetadata
+
+if TYPE_CHECKING:
+    from .messaging import FileEntity
 
 
 class CategoryEntity(EntityWithMetadata):
@@ -14,7 +16,7 @@ class CategoryEntity(EntityWithMetadata):
 
 class ProductEntity(EntityWithMetadata):
     name: str
-    image_urls: List[str]
+    images: List[FileEntity]
     is_draft: bool
     category_id: int
 
@@ -22,6 +24,12 @@ class ProductEntity(EntityWithMetadata):
 class ProductTypeEntity(EntityWithMetadata):
     name: str
     can_many: bool
+
+
+class ProductTypeWithOptionsEntity(EntityWithMetadata):
+    name: str
+    can_many: bool
+    options: List[ProductOptionEntity]
 
 
 class ProductOptionEntity(EntityWithMetadata):
@@ -48,6 +56,6 @@ class AdvertisementOptionEntity(EntityWithMetadata):
 
 
 class AdvertisementOptionPriceEntity(EntityWithMetadata):
-    amount: Decimal
+    amount: float
     currency_id: int
     advertisement_option_id: int

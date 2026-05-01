@@ -2,17 +2,15 @@ import hmac
 import hashlib
 import json
 
-from dependency_injector.wiring import Provide, inject
 from fastapi import Depends, Header, HTTPException
 from urllib.parse import parse_qsl, unquote
 from datetime import datetime, timezone
+from typing import List, Optional
 from pydantic import BaseModel
-from redis.asyncio import Redis
 
-from api.core.container import AppContainer
-from api.core.settings import Settings
-from domain.objects import entities
+from domain.objects import entities, types
 from domain.services import UserService
+from api.core.settings import Settings
 from .uow import get_user_service
 
 
@@ -80,20 +78,33 @@ async def get_current_user(
     return await resolve_current_user(init_data, user_service)
 
 
-@inject
 async def get_current_user_cached(
     init_data: str = Header(
         ..., alias="X-Telegram-Init-Data", description="Telegram init data"
     ),
     user_service: UserService = Depends(get_user_service),
-    redis: Redis = Depends(Provide[AppContainer.redis]),
 ) -> entities.UserEntity:
-    cache_key = "auth:" + hashlib.sha256(init_data.encode()).hexdigest()
-    cached = await redis.get(cache_key)
+    cache_key = hashlib.sha256(init_data.encode()).hexdigest()
+    user = await user_service.get_auth(cache_key)
 
-    if cached:
-        return entities.UserEntity.model_validate_json(cached)
+    if user:
+        return user
 
     user = await resolve_current_user(init_data, user_service)
-    await redis.setex(cache_key, 900, user.model_dump_json())
+    await user_service.set_auth(cache_key, user)
     return user
+
+
+class Authorize:
+
+    def __init__(self, allowed_roles: Optional[List[types.UserRole]] = None):
+        self.allowed_roles = allowed_roles
+
+    async def __call__(
+        self, user: entities.UserEntity = Depends(get_current_user_cached)
+    ) -> entities.UserEntity:
+
+        if self.allowed_roles and user.role not in self.allowed_roles:
+            raise HTTPException(403, "You are not authorized to access this resource")
+
+        return user

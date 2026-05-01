@@ -26,6 +26,9 @@ def get_marketplace_user_key(user_id: int) -> str:
 def get_reputation_user_key(user_id: int) -> str:
     return get_user_key(f"reputation_user:{user_id}")
 
+def get_auth_key(hash: str) -> str:
+    return get_key(f"auth:{hash}")
+
 def get_user_keys(user: entities.UserEntity) -> list[str]:
     return [
         get_user_by_id_key(user.id),

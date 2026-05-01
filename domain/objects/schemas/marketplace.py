@@ -4,11 +4,18 @@ from .base import BaseRequest, BaseResponse
 from domain.objects.types import ID, NoZeroFloat, NoZeroInt
 
 
-class MarketplaceUserResponse(BaseResponse):
+class ProductImageResponse(BaseResponse):
+    id: int
+    name: str
+    display_name: str
+    extension: str
+
+
+class SellerResponse(BaseResponse):
     name: Optional[str]
     username: Optional[str]
     rating: float
-    avatar_url: Optional[str]
+    avatar_id: Optional[ID] = None
     advertisement_count: int
     review_count: int
     deal_count: int
@@ -35,7 +42,7 @@ class AdvertisementOptionPriceResponse(BaseResponse):
 class ProductResponse(BaseResponse):
     id: int
     name: str
-    image_url: str
+    images: List[ProductImageResponse]
     category_path: str
 
 
@@ -58,7 +65,7 @@ class AdvertisementResponse(BaseResponse):
     id: int
     name: str
     category_path: str
-    user: MarketplaceUserResponse
+    user: SellerResponse
     product_types: List[ProductTypeResponse]
     options: Dict[str, AdvertisementOptionResponse]
 

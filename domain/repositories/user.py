@@ -123,3 +123,17 @@ class UserRepository(BaseRepository):
             options=get_profile_relations(),
         )
         return entities.ProfileEntity.model_validate(user)
+
+    async def update_marketplace_user(
+        self, user_id: int, dto: dtos.UpdateMarketplaceUserDTO
+    ) -> entities.MarketplaceUserEntity:
+        marketplace_user = await self.get_one_by_data(models.MarketplaceUserModel, user_id=user_id)
+
+        if dto.name is not None:
+            marketplace_user.name = dto.name
+        if dto.description is not None:
+            marketplace_user.description = dto.description
+        
+        await self.update_relation
+        await self.session.flush()
+        return entities.MarketplaceUserEntity.model_validate(marketplace_user)

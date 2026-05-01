@@ -7,9 +7,10 @@ from domain.objects import entities
 
 class UserCache(BaseCache):
 
-    def __init__(self, redis: Redis, ttl: int = 60 * 60):
+    def __init__(self, redis: Redis, user_ttl: int = 60 * 60, auth_ttl: int = 900):
         super().__init__(redis)
-        self.ttl = ttl
+        self.user_ttl = user_ttl
+        self.auth_ttl = auth_ttl
 
     async def get_user_by_id(self, user_id: int) -> entities.UserEntity | None:
         user = await self.get(keys.get_user_by_id_key(user_id))
@@ -31,12 +32,12 @@ class UserCache(BaseCache):
 
     async def set_user(self, user: entities.UserEntity) -> None:
         await self.set(
-            keys.get_user_by_id_key(user.id), user.model_dump_json(), expire=self.ttl
+            keys.get_user_by_id_key(user.id), user.model_dump_json(), expire=self.user_ttl
         )
         await self.set(
             keys.get_user_by_telegram_id_key(user.telegram_id),
             user.model_dump_json(),
-            expire=self.ttl,
+            expire=self.user_ttl,
         )
 
     async def get_profile(self, user_id: int) -> entities.ProfileEntity | None:
@@ -49,7 +50,7 @@ class UserCache(BaseCache):
 
     async def set_profile(self, user_id: int, profile: entities.ProfileEntity) -> None:
         await self.set(
-            keys.get_profile_key(user_id), profile.model_dump_json(), expire=self.ttl
+            keys.get_profile_key(user_id), profile.model_dump_json(), expire=self.user_ttl
         )
 
     async def get_marketplace_user(
@@ -70,7 +71,7 @@ class UserCache(BaseCache):
         await self.set(
             keys.get_marketplace_user_key(user_id),
             marketplace_user.model_dump_json(),
-            expire=self.ttl,
+            expire=self.user_ttl,
         )
 
     async def get_user_reputation(
@@ -91,8 +92,21 @@ class UserCache(BaseCache):
         await self.set(
             keys.get_reputation_user_key(user_id),
             user_reputation.model_dump_json(),
-            expire=self.ttl,
+            expire=self.user_ttl,
         )
 
     async def invalidate_user(self, user: entities.UserEntity) -> None:
         await self.delete(*keys.get_user_keys(user))
+
+    async def set_auth(self, hash: str, user: entities.UserEntity) -> None:
+        await self.set(
+            keys.get_auth_key(hash),
+            user.model_dump_json(),
+            expire=self.auth_ttl,
+        )
+
+    async def get_auth(self, hash: str) -> entities.UserEntity | None:
+        user = await self.get(keys.get_auth_key(hash))
+
+        if user:
+            return entities.UserEntity.model_validate_json(user)

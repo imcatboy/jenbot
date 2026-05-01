@@ -7,7 +7,7 @@ from .base import BaseRequest, BaseResponse
 
 class MessageUserResponse(BaseResponse):
     id: int
-    avatar_url: Optional[str]
+    avatar_id: Optional[int] = None
     username: Optional[str]
 
 
@@ -39,10 +39,17 @@ class ChatsResponse(BaseResponse):
     has_more: bool
 
 
+class MessageImageResponse(BaseResponse):
+    id: int
+    name: str
+    display_name: str
+    extension: str
+
+
 class ProductResponse(BaseResponse):
     id: int
     name: str
-    image_url: str
+    images: List[MessageImageResponse]
     category_path: str
 
 
@@ -86,6 +93,13 @@ class ChatResponse(BaseResponse):
     deal: DealResponse
     participants: List[MessageUserResponse]
     messages: List[MessageResponse]
+
+
+class MediaResponse(BaseResponse):
+    id: int
+    name: str
+    display_name: str
+    extension: str
 
 
 class CreateChatRequest(BaseRequest):

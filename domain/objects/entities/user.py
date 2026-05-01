@@ -43,9 +43,9 @@ class ChatUserWithUserEntity(ChatUserEntity):
 
 class MarketplaceUserEntity(MetadataEntity):
     user_id: int
-    name: Optional[str]
-    description: Optional[str]
-    avatar_url: Optional[str]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    avatar_id: Optional[int] = None
     rating: float
     advertisement_count: int
     deal_count: int

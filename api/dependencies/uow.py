@@ -6,8 +6,9 @@ from fastapi import Depends
 
 from api.core.container import AppContainer
 from domain import SQLAlchemyUnitOfWork
-from domain.repositories import UserRepository
-from domain.services import UserService
+from domain.cache import *
+from domain.repositories import *
+from domain.services import *
 
 
 @inject
@@ -27,5 +28,21 @@ async def get_user_service(
     uow: SQLAlchemyUnitOfWork = Depends(get_uow),
     redis: Redis = Depends(Provide[AppContainer.redis]),
 ) -> UserService:
-    user_repository = UserRepository(session=uow.session, redis=redis)
-    return UserService(user_repository=user_repository)
+    user_repository = UserRepository(session=uow.session)
+    user_cache = UserCache(redis=redis)
+    media_repository = MediaRepository(session=uow.session)
+    return UserService(user_repository=user_repository, user_cache=user_cache, media_repository=media_repository)
+
+
+async def get_product_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+) -> ProductService:
+    product_repository = ProductRepository(session=uow.session)
+    return ProductService(product_repository=product_repository)
+
+
+async def get_media_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+) -> MediaService:
+    media_repository = MediaRepository(session=uow.session)
+    return MediaService(media_repository=media_repository)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from sqlalchemy import (
-    ARRAY,
     Boolean,
     CheckConstraint,
     ForeignKey,
@@ -21,6 +20,7 @@ from .base import EntityModel
 
 if TYPE_CHECKING:
     from .user import UserModel
+    from .messaging import FileModel
     from .trading import TradeModel, DealModel
     from .marketplace import AdvertisementOptionPriceModel, AdvertisementOptionModel
 
@@ -43,7 +43,10 @@ class ProductModel(EntityModel):
     __table_args__ = (Index("ix_products_category_id", "category_id", "is_draft"),)
 
     name: Mapped[str] = mapped_column(String(100), index=True)
-    image_urls: Mapped[List[str]] = mapped_column(ARRAY(String(100)))
+    images: Mapped[List[FileModel]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan",
+    )
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
     category: Mapped[CategoryModel] = relationship(back_populates="products")
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)

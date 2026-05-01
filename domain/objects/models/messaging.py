@@ -8,7 +8,8 @@ from .base import EntityModel
 
 if TYPE_CHECKING:
     from .trading import DealModel
-    from .user import UserModel
+    from .marketplace import ProductModel
+    from .user import UserModel, MarketplaceUserModel
 
 
 class ChatModel(EntityModel):
@@ -91,15 +92,24 @@ class FileModel(EntityModel):
     __tablename__ = "files"
     fk_name = "file_id"
 
-    name: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(100), index=True)
     display_name: Mapped[str] = mapped_column(String(100), index=True)
     extension: Mapped[str] = mapped_column(String(10))
-    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"), index=True)
-    message: Mapped[MessageModel] = relationship(
+    message_id: Mapped[Optional[int]] = mapped_column(ForeignKey("messages.id"), index=True)
+    message: Mapped[Optional[MessageModel]] = relationship(
+        foreign_keys=[message_id],
         back_populates="files",
     )
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    user: Mapped[UserModel] = relationship(
+    marketplace_user: Mapped[Optional[MarketplaceUserModel]] = relationship(
+        back_populates="avatar",
+    )
+    product_id: Mapped[Optional[int]] = mapped_column(ForeignKey("products.id"))
+    product: Mapped[Optional[ProductModel]] = relationship(
+        foreign_keys=[product_id],
+        back_populates="images",
+    )
+    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    uploaded_by_user: Mapped[UserModel] = relationship(
         back_populates="files",
-        foreign_keys=[user_id],
+        foreign_keys=[uploaded_by_user_id],
     )

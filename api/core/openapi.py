@@ -166,7 +166,7 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
     "upload_attachments": {
         "summary": "Upload attachments",
         "description": "Upload attachments",
-        "tags": ["Messaging"],
+        "tags": ["Messaging", "Media"],
     },
     "get_message": {
         "summary": "Get message by ID",
@@ -198,6 +198,11 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "description": "Delete product by ID",
         "tags": ["Product"],
     },
+    "create_product_type": {
+        "summary": "Create a product type",
+        "description": "Create a product type",
+        "tags": ["Product"],
+    },
     "get_categories": {
         "summary": "Get categories",
         "description": "Get categories",
@@ -223,15 +228,15 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "description": "Delete category by ID",
         "tags": ["Product"],
     },
-    "upload_media": {
-        "summary": "Upload media",
-        "description": "Upload media",
-        "tags": ["Media"],
+    "upload_avatar": {
+        "summary": "Upload avatar",
+        "description": "Upload avatar",
+        "tags": ["User", "Media"],
     },
-    "get_media": {
-        "summary": "Get media by ID",
-        "description": "Get media by ID",
-        "tags": ["Media"],
+    "get_avatar": {
+        "summary": "Get avatar by user ID",
+        "description": "Get avatar by user ID",
+        "tags": ["User", "Media"],
     },
 }
 

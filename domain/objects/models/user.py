@@ -131,8 +131,8 @@ class UserModel(EntityModel):
         cascade="all, delete-orphan",
     )
     files: Mapped[List[FileModel]] = relationship(
-        back_populates="user",
-        foreign_keys="FileModel.user_id",
+        back_populates="uploaded_by_user",
+        foreign_keys="FileModel.uploaded_by_user_id",
         cascade="all, delete-orphan",
     )
 
@@ -218,7 +218,10 @@ class MarketplaceUserModel(BaseModel, MetadataModel):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(32))
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    avatar_url: Mapped[Optional[str]] = mapped_column(String(255))
+    avatar_id: Mapped[Optional[int]] = mapped_column(ForeignKey("files.id"))
+    avatar: Mapped[Optional[FileModel]] = relationship(
+        back_populates="marketplace_user",
+    )
     rating: Mapped[float] = mapped_column(
         Numeric(precision=10, scale=2), default=0.0, index=True
     )

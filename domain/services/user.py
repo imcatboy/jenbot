@@ -1,16 +1,17 @@
 from typing import List, Optional
 
 from domain.objects import entities, exceptions, dtos
-from domain.repositories import UserRepository
+from domain.repositories import UserRepository, MediaRepository
 from domain.objects.types import UserRole
 from domain.cache import UserCache
 
 
 class UserService:
 
-    def __init__(self, user_repository: UserRepository, user_cache: UserCache) -> None:
+    def __init__(self, user_repository: UserRepository, user_cache: UserCache, media_repository: MediaRepository) -> None:
         self.user_repository = user_repository
         self.user_cache = user_cache
+        self.media_repository = media_repository
 
     async def get_or_create(
         self, telegram_id: int, username: Optional[str]
@@ -114,3 +115,25 @@ class UserService:
         profile = await self.user_repository.get_profile(user_id)
         await self.user_cache.set_profile(user_id, profile)
         return profile
+
+    async def get_auth(self, hash: str) -> entities.UserEntity | None:
+        return await self.user_cache.get_auth(hash)
+    
+    async def set_auth(self, hash: str, user: entities.UserEntity) -> None:
+        await self.user_cache.set_auth(hash, user)
+    
+    async def update_marketplace_user(
+        self, user_id: int, dto: dtos.UpdateMarketplaceUserDTO
+    ) -> entities.MarketplaceUserEntity:
+        marketplace_user = await self.user_repository.update_marketplace_user(user_id, dto)
+        user = await self.get_by_id(user_id)
+        await self.user_cache.invalidate_user(user)
+        return marketplace_user
+    
+    async def get_avatar(self, user_id: int) -> entities.FileEntity:
+        user = await self.get_or_create_marketplace_user(user_id)
+
+        if not user.marketplace_user or not user.marketplace_user.avatar_id:
+            raise exceptions.ObjectNotFoundException("FileModel", user_id=user_id)
+        
+        return await self.media_repository.get_file(user.marketplace_user.avatar_id)

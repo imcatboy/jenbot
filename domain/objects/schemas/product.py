@@ -1,7 +1,7 @@
 from typing import List, Optional, Set
 
-from domain.objects.types import Name, ID, ImageURL
-from .base import BaseRequest
+from domain.objects.types import Name, ID
+from .base import BaseRequest, BaseResponse
 
 
 class CreateProductTypeRequest(BaseRequest):
@@ -12,7 +12,45 @@ class CreateProductTypeRequest(BaseRequest):
 
 class CreateProductRequest(BaseRequest):
     name: Name
-    image_urls: List[ImageURL]
+    image_ids: Set[ID]
     category_id: ID
-    product_types: Optional[List[CreateProductTypeRequest]] = None
-    product_types_ids: Optional[Set[ID]] = None
+    product_type_ids: Optional[Set[ID]] = None
+
+
+class UpdateProductRequest(BaseRequest):
+    name: Optional[Name] = None
+    image_ids: Optional[Set[ID]] = None
+    category_id: Optional[ID] = None
+    product_type_ids: Optional[Set[ID]] = None
+
+
+class CreateCategoryRequest(BaseRequest):
+    name: Name
+    parent_category_id: Optional[ID] = None
+
+
+class UpdateCategoryRequest(BaseRequest):
+    name: Optional[Name] = None
+    parent_category_id: Optional[ID] = None
+
+
+class CategoryResponse(BaseResponse):
+    id: int
+    name: str
+    parent_category_id: Optional[int] = None
+    is_draft: bool
+
+
+class ProductImageResponse(BaseResponse):
+    id: int
+    name: str
+    display_name: str
+    extension: str
+
+
+class ProductResponse(BaseResponse):
+    id: int
+    name: str
+    images: List[ProductImageResponse]
+    is_draft: bool
+    category_id: int
