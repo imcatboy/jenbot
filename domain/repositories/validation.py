@@ -19,6 +19,8 @@ class EntityValidator:
     async def validate_ids_exist(self, model: Type[BaseModel], ids: List[int]) -> None:
         if not ids:
             return
+        
+        ids = list(set(ids))
 
         existing_objects = await self.session.execute(
             select(model.id).where(model.id.in_(ids))

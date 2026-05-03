@@ -1,14 +1,16 @@
-from typing import Any, List, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Set, Type, TypeVar
 
-from sqlalchemy import Table, and_, select, update
+from sqlalchemy import Table, and_, select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.objects.models import BaseModel
+from domain.objects.dtos import BaseDTO
 from .validation import EntityValidator
 from domain.objects import exceptions
 
 
 T = TypeVar("T", bound=BaseModel)
+R = TypeVar("R", bound=BaseDTO)
 
 
 class BaseRepository:
@@ -16,7 +18,6 @@ class BaseRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.validator = EntityValidator(session)
-
 
     async def create_relation(
         self,
@@ -31,7 +32,6 @@ class BaseRepository:
         await self.validator.validate_exists(relation_model, relation_id)
         setattr(entity, relation_name, relation_id)
 
-
     async def update_relation(
         self,
         entity: BaseModel,
@@ -43,7 +43,6 @@ class BaseRepository:
             await self.create_relation(
                 entity, relation_model, relation_id, relation_name
             )
-
 
     async def set_optional_relation(
         self,
@@ -58,7 +57,6 @@ class BaseRepository:
             await self.create_relation(
                 entity, relation_model, relation_id, relation_name
             )
-
 
     async def update_many_to_many_relation(
         self,
@@ -113,7 +111,6 @@ class BaseRepository:
                 )
             )
 
-
     async def create_many_to_many_relation(
         self,
         parent: BaseModel,
@@ -139,7 +136,6 @@ class BaseRepository:
             )
         )
 
-
     async def create_many_to_one_relation(
         self,
         parent: BaseModel,
@@ -158,7 +154,6 @@ class BaseRepository:
 
         for obj in objects:
             setattr(obj, foreign_key_column or parent.fk_name, parent.id)
-
 
     async def update_many_to_one_relation(
         self,
@@ -202,7 +197,6 @@ class BaseRepository:
                 .values({foreign_key_column or parent.fk_name: parent.id})
             )
 
-
     async def get_by_id(
         self, model: Type[T], id: int, options: Optional[List[Any]] = None
     ) -> T:
@@ -219,6 +213,26 @@ class BaseRepository:
 
         return object
 
+    async def get_all_by_id(
+        self, model: Type[T], ids: List[int], options: Optional[List[Any]] = None
+    ) -> List[T]:
+        if not ids:
+            return []
+
+        ids = list(set(ids))
+        query = select(model).where(model.id.in_(ids))
+
+        if options:
+            query = query.options(*options)
+
+        result = await self.session.execute(query)
+        objects = result.scalars().all()
+
+        if len(objects) == len(ids):
+            return objects
+
+        missing_ids = set(ids) - set(object.id for object in objects)
+        raise exceptions.ObjectNotFoundException(model.__name__, missing_ids)
 
     async def get_one_by_data(
         self, model: Type[T], options: Optional[List[Any]] = None, **data: Any
@@ -239,7 +253,6 @@ class BaseRepository:
 
         return objects[0]
 
-
     async def get_one_by_data_or_none(
         self, model: Type[T], options: Optional[List[Any]] = None, **data: Any
     ) -> T | None:
@@ -259,7 +272,6 @@ class BaseRepository:
 
         return objects[0]
 
-
     async def get_all_by_data(
         self, model: Type[T], options: Optional[List[Any]] = None, **data: Any
     ) -> List[T]:
@@ -271,8 +283,38 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
 
-
     async def update_many(self, model: Type[T], ids: List[int], **data: Any) -> None:
         await self.session.execute(
             update(model).where(model.id.in_(ids)).values(**data)
         )
+
+    async def delete_many(self, model: Type[T], ids: List[int]) -> None:
+        if not ids:
+            return
+
+        ids = list(set(ids))
+        await self.session.execute(delete(model).where(model.id.in_(ids)))
+
+    def sync_children(
+        self,
+        collection: List[T],
+        dtos: List[R],
+        create: Callable[[R], T],
+        update: Callable[[T, R], None],
+    ) -> List[T]:
+        existing_by_id: Dict[int, T] = {
+            object.id: object for object in collection if object.id is not None
+        }
+
+        result: List[T] = []
+
+        for dto in dtos:
+            if dto.id is None or dto.id not in existing_by_id:
+                result.append(create(dto))
+            else:
+                obj = existing_by_id[dto.id]
+                update(obj, dto)
+                result.append(obj)
+
+        collection[:] = result
+        return result

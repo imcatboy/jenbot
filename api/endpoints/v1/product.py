@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query, status
-from typing import List, Optional
+from typing import Optional
 
+from domain.objects.types import Name, ID, Reason, UserRole, Limit, Offset
 from api.dependencies import get_product_service, Authorize
-from domain.objects.types import Name, ID, UserRole
 from domain.objects import schemas, dtos, entities
 from api.core.openapi import ENDPOINTS_METADATA
 from domain.services import ProductService
@@ -86,15 +86,25 @@ async def get_category(
 @product_router.get(
     "/categories",
     **ENDPOINTS_METADATA["get_categories"],
-    response_model=List[schemas.CategoryResponse]
+    response_model=schemas.CategoriesResponse
 )
 async def get_categories(
+    limit: Limit = Query(10, description="Limit"),
+    offset: Offset = Query(0, description="Offset"),
     name: Optional[Name] = Query(None, description="Name of the category"),
     parent_category_id: Optional[ID] = Query(None, description="Parent category ID"),
+    search: Optional[Reason] = Query(None, description="Search"),
     product_service: ProductService = Depends(get_product_service),
     user: entities.UserEntity = Depends(Authorize()),
-) -> List[schemas.CategoryResponse]:
-    return await product_service.get_categories(name, parent_category_id)
+) -> schemas.CategoriesResponse:
+    dto = dtos.GetCategoriesDTO(
+        limit=limit,
+        offset=offset,
+        name=name,
+        parent_category_id=parent_category_id,
+        search=search,
+    )
+    return await product_service.get_categories(dto)
 
 
 @product_router.post(
@@ -152,14 +162,18 @@ async def get_product(
 
 
 @product_router.get(
-    "/",
-    **ENDPOINTS_METADATA["get_products"],
-    response_model=List[schemas.ProductResponse]
+    "/", **ENDPOINTS_METADATA["get_products"], response_model=schemas.ProductsResponse
 )
 async def get_products(
     category_id: ID = Query(description="Category ID"),
     name: Optional[Name] = Query(None, description="Name of the product"),
+    limit: Limit = Query(10, description="Limit"),
+    offset: Offset = Query(0, description="Offset"),
+    search: Optional[Reason] = Query(None, description="Search"),
     product_service: ProductService = Depends(get_product_service),
     user: entities.UserEntity = Depends(Authorize()),
-) -> List[schemas.ProductResponse]:
-    return await product_service.get_products(category_id, name)
+) -> schemas.ProductsResponse:
+    dto = dtos.GetProductsDTO(
+        limit=limit, offset=offset, category_id=category_id, name=name, search=search
+    )
+    return await product_service.get_products(dto)

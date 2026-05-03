@@ -2,7 +2,7 @@ import re
 
 from pydantic import Field, BeforeValidator
 from datetime import datetime, timedelta
-from typing import Annotated, Any, Union
+from typing import Annotated, Any, Set, Union
 from enum import StrEnum
 
 
@@ -57,6 +57,17 @@ class DealStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class DealType(StrEnum):
+    MONEY = "money"
+    TRADE = "trade"
+
+
+class SortType(StrEnum):
+    POPULARITY = "popularity"
+    NEW = "new"
+    OLD = "old"
+
+
 def parse_username(v: Any) -> Union[str, int]:
     if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
         return v.replace("@", "")
@@ -72,25 +83,64 @@ UsernameOrID = Annotated[
     BeforeValidator(parse_username),
 ]
 
-SettingName = Annotated[str, Field(description="Название настройки", min_length=3, max_length=255, pattern=r"^[a-zA-Z0-9_]+$")]
+SettingName = Annotated[
+    str,
+    Field(
+        description="Название настройки",
+        min_length=3,
+        max_length=255,
+        pattern=r"^[a-zA-Z0-9_]+$",
+    ),
+]
 
 Name = Annotated[str, Field(description="Название", min_length=3, max_length=100)]
 
-Username = Annotated[str, Field(description="@username", min_length=3, max_length=255, pattern=r"^@[a-zA-Z0-9_]+$")]
+Username = Annotated[
+    str,
+    Field(
+        description="@username",
+        min_length=3,
+        max_length=255,
+        pattern=r"^@[a-zA-Z0-9_]+$",
+    ),
+]
 
 Reason = Annotated[str, Field(max_length=255, description="Причина (до 255 символов)")]
 
 ID = Annotated[int, Field(ge=0, le=2147483647, description="ID")]
 
-NoZeroInt = Annotated[int, Field(ge=1, le=2147483647, description="Целое число не равное 0")]
+IDSet = Annotated[
+    Set[ID],
+    Field(
+        max_length=10,
+        description="Набор ID в запросе (не более 10 значений)",
+    ),
+]
 
-NoZeroFloat = Annotated[float, Field(ge=0.01, le=2147483647, description="Число не равное 0")]
+NoZeroInt = Annotated[
+    int, Field(ge=1, le=2147483647, description="Целое число не равное 0")
+]
+
+NoZeroFloat = Annotated[
+    float, Field(ge=0.01, le=2147483647, description="Число не равное 0")
+]
 
 Text = Annotated[str, Field(max_length=1024, description="Текст (до 1024 символов)")]
 
 Rating = Annotated[int, Field(ge=1, le=5, description="Оценка (от 1 до 5)")]
 
-Word = Annotated[str, Field(max_length=30, pattern=r"^[a-zA-ZА-Яа-я0-9_]+$", description="Слово (до 30 символов)")]
+Word = Annotated[
+    str,
+    Field(
+        max_length=30,
+        pattern=r"^[a-zA-ZА-Яа-я0-9_]+$",
+        description="Слово (до 30 символов)",
+    ),
+]
+
+Limit = Annotated[int, Field(ge=1, le=100, description="Ограничение")]
+
+Offset = Annotated[int, Field(ge=0, description="Сдвиг")]
 
 
 def parse_relative_time(v: Any) -> datetime:

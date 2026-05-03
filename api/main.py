@@ -40,6 +40,15 @@ app.add_exception_handler(
 app.add_exception_handler(
     exceptions.TooManyObjectsFoundException, too_many_objects_found_exception_handler
 )
+app.add_exception_handler(
+    exceptions.DuplicateIdsException, duplicate_ids_exception_handler
+)
+app.add_exception_handler(
+    exceptions.MissingOptionException, missing_option_exception_handler
+)
+app.add_exception_handler(
+    exceptions.InvalidOptionRelationException, invalid_option_relation_exception_handler
+)
 
 if __name__ == "__main__":
     uvicorn.run(

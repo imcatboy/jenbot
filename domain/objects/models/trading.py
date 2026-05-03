@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
 
-from .associate_tables import trades_product_options
-from domain.objects.types import DealStatus
+from .associate_tables import deals_product_options, trades_product_options
+from domain.objects.types import DealStatus, DealType
 from .base import EntityModel
 
 if TYPE_CHECKING:
-    from .marketplace import AdvertisementOptionPriceModel, ProductModel
+    from .marketplace import AdvertisementOptionPriceModel, CurrencyModel, ProductModel
     from .marketplace import AdvertisementOptionModel, ProductOptionModel
     from .economy import ReviewModel
     from .messaging import ChatModel
@@ -56,21 +56,38 @@ class DealModel(EntityModel):
             "count >= 1",
             name="ck_deal_count_positive",
         ),
+        CheckConstraint(
+            """
+            (deal_type = 'money' AND amount IS NOT NULL AND currency_id IS NOT NULL
+             AND amount > 0 AND trade_product_id IS NULL AND trade_count IS NULL)
+            OR
+            (deal_type = 'trade' AND trade_product_id IS NOT NULL
+             AND trade_count IS NOT NULL AND trade_count >= 1
+             AND amount IS NULL AND currency_id IS NULL)
+            """,
+            name="ck_deal_type_matches_money_or_trade_snapshot",
+        ),
         Index("ix_deals_status_expires_at", "status", "expires_at"),
     )
 
     count: Mapped[int]
+    deal_type: Mapped[DealType] = mapped_column(
+        Enum(DealType, name="DEAL_TYPE"),
+        index=True,
+    )
+    amount: Mapped[Optional[float]] = mapped_column(Numeric(precision=10, scale=2))
+    trade_count: Mapped[Optional[int]]
     expires_at: Mapped[datetime]
     status: Mapped[DealStatus] = mapped_column(
         Enum(DealStatus, name="DEAL_STATUS"), index=True
     )
-    trade_id: Mapped[Optional[int]] = mapped_column(ForeignKey("trades.id"), index=True)
-    advertisement_option_id: Mapped[int] = mapped_column(
+    advertisement_option_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("advertisement_options.id"), index=True
     )
-    advertisement_option: Mapped[AdvertisementOptionModel] = relationship(
+    advertisement_option: Mapped[Optional[AdvertisementOptionModel]] = relationship(
         back_populates="deals",
     )
+    trade_id: Mapped[Optional[int]] = mapped_column(ForeignKey("trades.id"), index=True)
     trade: Mapped[Optional[TradeModel]] = relationship(
         back_populates="deals",
     )
@@ -93,6 +110,18 @@ class DealModel(EntityModel):
         relationship(
             back_populates="deals",
         )
+    )
+    currency_id: Mapped[Optional[int]] = mapped_column(ForeignKey("currencies.id"))
+    currency: Mapped[Optional[CurrencyModel]] = relationship(
+        back_populates="deals",
+    )
+    trade_product_id: Mapped[Optional[int]] = mapped_column(ForeignKey("products.id"))
+    trade_product: Mapped[Optional[ProductModel]] = relationship(
+        back_populates="deals",
+    )
+    trade_product_options: Mapped[List[ProductOptionModel]] = relationship(
+        secondary=deals_product_options,
+        back_populates="deals",
     )
     reviews: Mapped[List[ReviewModel]] = relationship(
         back_populates="deal", cascade="all, delete-orphan"

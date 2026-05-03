@@ -1,7 +1,7 @@
-from typing import List, Optional, Set
+from typing import List, Optional
 from datetime import datetime
 
-from domain.objects.types import ID, DealStatus, Text
+from domain.objects.types import ID, IDSet, DealStatus, Text
 from .base import BaseRequest, BaseResponse
 
 
@@ -108,7 +108,7 @@ class CreateChatRequest(BaseRequest):
 
 
 class CreateMessageRequest(BaseRequest):
-    file_ids: Optional[Set[ID]] = None
+    file_ids: Optional[IDSet] = None
     body: Optional[Text] = None
     chat_id: ID
 

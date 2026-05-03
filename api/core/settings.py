@@ -25,4 +25,4 @@ class Settings(BaseSettings):
     MESSAGE_FILE_STORAGE_PATH: str
     FILE_MAX_NAME_LENGTH: int
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")

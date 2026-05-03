@@ -1,7 +1,7 @@
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 from .base import BaseRequest, BaseResponse
-from domain.objects.types import ID, NoZeroFloat, NoZeroInt
+from domain.objects.types import ID, IDSet, NoZeroFloat, NoZeroInt
 
 
 class ProductImageResponse(BaseResponse):
@@ -15,7 +15,7 @@ class SellerResponse(BaseResponse):
     name: Optional[str]
     username: Optional[str]
     rating: float
-    avatar_id: Optional[ID] = None
+    avatar_id: Optional[int] = None
     advertisement_count: int
     review_count: int
     deal_count: int
@@ -70,19 +70,12 @@ class AdvertisementResponse(BaseResponse):
     options: Dict[str, AdvertisementOptionResponse]
 
 
-class UserShortResponse(BaseResponse):
-    telegram_id: int
-    username: Optional[str]
-    name: Optional[str]
-    rating: float
-
-
 class AdvertisementOptionShortResponse(BaseResponse):
     id: int
     name: str
     category_path: str
     has_trades: bool
-    user: UserShortResponse
+    user: SellerResponse
     options: List[str]
     prices: List[str]
 
@@ -118,12 +111,12 @@ class CreateAdvertisementOptionPriceRequest(BaseRequest):
 
 class CreateTradeRequest(BaseRequest):
     product_id: ID
-    product_option_ids: Set[ID]
+    product_option_ids: IDSet
     count: NoZeroInt
 
 
 class CreateAdvertisementOptionRequest(BaseRequest):
-    product_option_ids: Set[ID]
+    product_option_ids: IDSet
     count: NoZeroInt
     prices: List[CreateAdvertisementOptionPriceRequest]
     trades: List[CreateTradeRequest]
@@ -131,6 +124,7 @@ class CreateAdvertisementOptionRequest(BaseRequest):
 
 class CreateAdvertisementRequest(BaseRequest):
     product_id: ID
+    is_draft: bool
     options: List[CreateAdvertisementOptionRequest]
 
 
@@ -142,13 +136,19 @@ class UpdateAdvertisementOptionPriceRequest(BaseRequest):
 
 class UpdateTradeRequest(BaseRequest):
     id: Optional[ID] = None
+    product_id: ID
     count: NoZeroInt
-    product_option_ids: Set[ID]
+    product_option_ids: IDSet
 
 
 class UpdateAdvertisementOptionRequest(BaseRequest):
     id: Optional[ID] = None
     count: NoZeroInt
-    product_option_ids: Set[ID]
+    product_option_ids: IDSet
     prices: List[UpdateAdvertisementOptionPriceRequest]
     trades: List[UpdateTradeRequest]
+
+
+class UpdateAdvertisementRequest(BaseRequest):
+    is_draft: bool
+    options: List[UpdateAdvertisementOptionRequest]

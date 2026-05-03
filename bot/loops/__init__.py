@@ -6,10 +6,10 @@ from redis.asyncio import Redis
 from aiogram import Bot
 from typing import List
 
-from repositories import ModerationRepository, UserRepository, ConfigRepository
-from services import ModerationService, ConfigService
+from domain.repositories import ModerationRepository, UserRepository, ConfigRepository
+from domain.services import ModerationService, ConfigService
 from .violations import actualize_violations_loop
-from core.uow import SQLAlchemyUnitOfWork
+from domain.uow import SQLAlchemyUnitOfWork
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,6 @@ class SchedulerService:
                         moderation_repository=moderation_repository,
                         user_repository=user_repository,
                         config_service=config_service,
-                        bot=self.bot,
                     )
                     await actualize_violations_loop(self.bot, moderation_service)
             except asyncio.CancelledError:

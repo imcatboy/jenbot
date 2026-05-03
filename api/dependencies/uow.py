@@ -9,6 +9,7 @@ from domain import SQLAlchemyUnitOfWork
 from domain.cache import *
 from domain.repositories import *
 from domain.services import *
+from domain.mappers import *
 
 
 @inject
@@ -31,7 +32,11 @@ async def get_user_service(
     user_repository = UserRepository(session=uow.session)
     user_cache = UserCache(redis=redis)
     media_repository = MediaRepository(session=uow.session)
-    return UserService(user_repository=user_repository, user_cache=user_cache, media_repository=media_repository)
+    return UserService(
+        user_repository=user_repository,
+        user_cache=user_cache,
+        media_repository=media_repository,
+    )
 
 
 async def get_product_service(
@@ -46,3 +51,16 @@ async def get_media_service(
 ) -> MediaService:
     media_repository = MediaRepository(session=uow.session)
     return MediaService(media_repository=media_repository)
+
+
+async def get_marketplace_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+) -> MarketplaceService:
+    marketplace_repository = MarketplaceRepository(session=uow.session)
+    mapper = MarketplaceMapper()
+    product_repository = ProductRepository(session=uow.session)
+    return MarketplaceService(
+        marketplace_repository=marketplace_repository,
+        mapper=mapper,
+        product_repository=product_repository,
+    )

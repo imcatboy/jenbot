@@ -301,7 +301,7 @@ def get_report_message(report: entities.ReportWithUserEntity) -> str:
     return message
 
 
-def get_check_success_message(reputation: entities.UserReputationWithUserEntity) -> str:
+def get_check_success_message(reputation: entities.ReputationUserWithUserEntity) -> str:
     message = f"<b>{REPUTATION_ROLES[reputation.role]}</b>\n\n"
     message += f"Пользователь: @{reputation.user.username} (<code>{reputation.user.telegram_id}</code>)\n"
     message += f"От: {reputation.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"

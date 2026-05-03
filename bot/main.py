@@ -15,10 +15,10 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
 
-from core.settings import Settings
-from middlewares import *
-from handlers import *
-from loops import SchedulerService
+from bot.core.settings import Settings
+from bot.middlewares import *
+from bot.handlers import *
+from bot.loops import SchedulerService
 
 
 logging.basicConfig(

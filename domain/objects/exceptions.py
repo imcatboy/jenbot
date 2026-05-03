@@ -70,3 +70,27 @@ class UserNotFoundException(DomainException):
     def __init__(self, username: str):
         self.username = username
         super().__init__(f"User {username} not found")
+
+
+class DuplicateIdsException(DomainException):
+    
+    def __init__(self, object_name: str, object_ids: List[int]):
+        self.object_name = object_name
+        self.object_ids = object_ids
+        super().__init__(f"{object_name} with IDs {', '.join(map(str, object_ids))} has duplicate IDs")
+
+
+class MissingOptionException(DomainException):
+    
+    def __init__(self, product_id: int, option_ids: List[int]):
+        self.product_id = product_id
+        self.option_ids = option_ids
+        super().__init__(f"Product {product_id} is missing options {', '.join(map(str, option_ids))}")
+    
+
+class InvalidOptionRelationException(DomainException):
+    
+    def __init__(self, product_id: int, option_ids: List[int]):
+        self.product_id = product_id
+        self.option_ids = option_ids
+        super().__init__(f"Product {product_id} has invalid option relation {', '.join(map(str, option_ids))}")

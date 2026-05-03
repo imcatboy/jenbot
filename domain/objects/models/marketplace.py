@@ -15,6 +15,7 @@ from .associate_tables import (
     advertisement_options_product_options,
     product_types_products,
     trades_product_options,
+    deals_product_options,
 )
 from .base import EntityModel
 
@@ -33,6 +34,13 @@ class CategoryModel(EntityModel):
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
     parent_category_id: Mapped[Optional[int]] = mapped_column(
         "parent_category", ForeignKey("categories.id"), index=True
+    )
+    parent_category: Mapped[Optional[CategoryModel]] = relationship(
+        back_populates="categories",
+        remote_side=lambda: CategoryModel.id,
+    )
+    categories: Mapped[List[CategoryModel]] = relationship(
+        back_populates="parent_category"
     )
     products: Mapped[List[ProductModel]] = relationship(back_populates="category")
 
@@ -60,6 +68,10 @@ class ProductModel(EntityModel):
     )
     trades: Mapped[List[TradeModel]] = relationship(
         back_populates="product",
+        cascade="all, delete-orphan",
+    )
+    deals: Mapped[List[DealModel]] = relationship(
+        back_populates="trade_product",
         cascade="all, delete-orphan",
     )
 
@@ -97,6 +109,10 @@ class ProductOptionModel(EntityModel):
         secondary=trades_product_options,
         back_populates="product_options",
     )
+    deals: Mapped[List[DealModel]] = relationship(
+        secondary=deals_product_options,
+        back_populates="trade_product_options",
+    )
 
 
 class CurrencyModel(EntityModel):
@@ -107,6 +123,10 @@ class CurrencyModel(EntityModel):
     sign: Mapped[str] = mapped_column(String(5))
     description: Mapped[Optional[str]] = mapped_column(String(255))
     option_prices: Mapped[List[AdvertisementOptionPriceModel]] = relationship(
+        back_populates="currency",
+        cascade="all, delete-orphan",
+    )
+    deals: Mapped[List[DealModel]] = relationship(
         back_populates="currency",
         cascade="all, delete-orphan",
     )
