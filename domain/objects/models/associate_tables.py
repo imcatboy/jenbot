@@ -62,6 +62,26 @@ trades_product_options = Table(
 )
 
 
+trade_deals_product_options = Table(
+    "trade_deals_product_options",
+    BaseModel.metadata,
+    Column(
+        "deal_id",
+        Integer,
+        ForeignKey("deals.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
+    Column(
+        "product_option_id",
+        Integer,
+        ForeignKey("product_options.id", ondelete="CASCADE"),
+        nullable=False,
+        primary_key=True,
+    ),
+)
+
+
 deals_product_options = Table(
     "deals_product_options",
     BaseModel.metadata,

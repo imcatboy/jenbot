@@ -37,6 +37,10 @@ class ProductWithCategoryEntity(ProductEntity):
     category: CategoryWithParentEntity
 
 
+class ProductWithImagesEntity(ProductEntity):
+    images: List[FileEntity]
+
+
 class ProductTypeEntity(EntityWithMetadata):
     name: str
     can_many: bool
@@ -62,6 +66,8 @@ class CurrencyEntity(EntityWithMetadata):
 class AdvertisementEntity(EntityWithMetadata):
     user_id: int
     product_id: int
+    pays_for_agent: bool
+    ready_to_bargain: bool
     is_draft: bool
 
 

@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 from domain.repositories import MarketplaceRepository, ProductRepository
+from domain.objects import dtos, exceptions, types
 from domain.mappers import MarketplaceMapper
-from domain.objects import dtos, exceptions
 
 
 class MarketplaceService:
@@ -110,4 +110,56 @@ class MarketplaceService:
         return dtos.CatalogDTO(
             items=[self.mapper.option_short_to_dto(option) for option in options],
             has_more=has_more,
+        )
+
+    async def get_suggestions(
+        self, dto: dtos.GetAdvertisementSuggestionsDTO
+    ) -> List[dtos.AdvertisementSuggestionDTO]:
+        categories = []
+        products = []
+        product_options = []
+
+        if dto.product_ids is None:
+            categories = await self.marketplace_repository.get_suggestion_categories(
+                dto
+            )
+            products = await self.marketplace_repository.get_suggestion_products(dto)
+        else:
+            product_options = (
+                await self.marketplace_repository.get_suggestion_product_options(dto)
+            )
+
+        sellers = await self.marketplace_repository.get_suggestion_sellers(dto)
+
+        return (
+            [
+                dtos.AdvertisementSuggestionDTO(
+                    id=category.id,
+                    kind=types.SuggestionType.CATEGORY,
+                    title=category.name,
+                )
+                for category in categories
+            ]
+            + [
+                dtos.AdvertisementSuggestionDTO(
+                    id=product.id, kind=types.SuggestionType.PRODUCT, title=product.name
+                )
+                for product in products
+            ]
+            + [
+                dtos.AdvertisementSuggestionDTO(
+                    id=product_option.id,
+                    kind=types.SuggestionType.PRODUCT_OPTION,
+                    title=product_option.name,
+                )
+                for product_option in product_options
+            ]
+            + [
+                dtos.AdvertisementSuggestionDTO(
+                    id=seller.id,
+                    kind=types.SuggestionType.SELLER,
+                    title=f"@{seller.username}",
+                )
+                for seller in sellers
+            ]
         )

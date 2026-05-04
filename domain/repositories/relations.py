@@ -46,12 +46,19 @@ def get_product_relations() -> List[Any]:
     ]
 
 
+def get_trade_relations() -> List[Any]:
+    return [
+        selectinload(models.TradeModel.product_options),
+        joinedload(models.TradeModel.product).selectinload(models.ProductModel.images),
+    ]
+
+
 def get_advertisement_relations() -> List[Any]:
     return [
         selectinload(models.AdvertisementModel.options).options(
             selectinload(models.AdvertisementOptionModel.prices),
-            selectinload(models.AdvertisementOptionModel.trades).selectinload(
-                models.TradeModel.product_options
+            selectinload(models.AdvertisementOptionModel.trades).options(
+                *get_trade_relations()
             ),
             selectinload(models.AdvertisementOptionModel.product_options),
         ),
@@ -65,22 +72,11 @@ def get_full_advertisement_relations() -> List[Any]:
                 models.AdvertisementOptionPriceModel.currency
             ),
             selectinload(models.AdvertisementOptionModel.trades).options(
-                selectinload(models.TradeModel.product_options),
-                joinedload(models.TradeModel.product).selectinload(
-                    models.ProductModel.product_types
-                ),
+                *get_trade_relations()
             ),
             selectinload(models.AdvertisementOptionModel.product_options),
         ),
-        joinedload(models.AdvertisementModel.product).options(
-            joinedload(models.ProductModel.category).joinedload(
-                models.CategoryModel.parent_category
-            ),
-            selectinload(models.ProductModel.product_types).selectinload(
-                models.ProductTypeModel.options
-            ),
-            selectinload(models.ProductModel.images),
-        ),
+        joinedload(models.AdvertisementModel.product).options(*get_product_relations()),
         joinedload(models.AdvertisementModel.user).joinedload(
             models.UserModel.marketplace_user
         ),
@@ -90,10 +86,9 @@ def get_full_advertisement_relations() -> List[Any]:
 def get_advertisement_option_relations() -> List[Any]:
     return [
         selectinload(models.AdvertisementOptionModel.advertisement).options(
-            joinedload(models.AdvertisementModel.product).joinedload(
-                models.ProductModel.category).joinedload(
-                models.CategoryModel.parent_category
-            ),
+            joinedload(models.AdvertisementModel.product)
+            .joinedload(models.ProductModel.category)
+            .joinedload(models.CategoryModel.parent_category),
             joinedload(models.AdvertisementModel.user).joinedload(
                 models.UserModel.marketplace_user
             ),

@@ -133,6 +133,11 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "description": "Create a deal",
         "tags": ["Marketplace"],
     },
+    "accept_deal": {
+        "summary": "Accept a deal",
+        "description": "Accept a deal",
+        "tags": ["Marketplace"],
+    },
     "get_chats": {
         "summary": "Get chats",
         "description": "Get chats",

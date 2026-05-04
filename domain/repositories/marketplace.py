@@ -1,12 +1,18 @@
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List
 
+from sqlalchemy.orm import joinedload
+
+from domain.objects.models.associate_tables import (
+    advertisement_options_product_options,
+)
 from domain.objects.types import SortType
 from domain.repositories.relations import (
     get_advertisement_relations,
     get_full_advertisement_relations,
     get_advertisement_option_relations,
+    get_trade_relations,
 )
 from domain.objects import entities, dtos, exceptions, models
 from .base import BaseRepository
@@ -330,27 +336,46 @@ class MarketplaceRepository(BaseRepository):
         query = (
             select(models.AdvertisementOptionModel)
             .options(*get_advertisement_option_relations())
-            .where(
-                models.AdvertisementOptionModel.advertisement.has(
-                    models.AdvertisementModel.is_draft == False
-                )
+            .join(
+                models.AdvertisementModel,
+                models.AdvertisementOptionModel.advertisement_id
+                == models.AdvertisementModel.id,
             )
+            .join(
+                models.ProductModel,
+                models.AdvertisementModel.product_id == models.ProductModel.id,
+            )
+            .where(models.AdvertisementModel.is_draft == False)
         )
 
         if dto.category_ids:
-            query = query.where(models.CategoryModel.id.in_(dto.category_ids))
+            query = query.where(models.ProductModel.category_id.in_(dto.category_ids))
         if dto.product_ids:
             query = query.where(models.ProductModel.id.in_(dto.product_ids))
         if dto.seller_ids:
-            query = query.where(models.UserModel.id.in_(dto.seller_ids))
+            query = query.where(models.AdvertisementModel.user_id.in_(dto.seller_ids))
         if dto.product_option_ids:
-            query = query.where(
-                models.ProductOptionModel.id.in_(dto.product_option_ids)
-            )
+            for product_option_id in dto.product_option_ids:
+                query = query.where(
+                    exists(
+                        select(1)
+                        .select_from(advertisement_options_product_options)
+                        .where(
+                            advertisement_options_product_options.c.advertisement_option_id
+                            == models.AdvertisementOptionModel.id,
+                            advertisement_options_product_options.c.product_option_id
+                            == product_option_id,
+                        )
+                    )
+                )
         if dto.min_count:
             query = query.where(models.AdvertisementOptionModel.count >= dto.min_count)
         if dto.high_rating:
-            query = query.where(models.MarketplaceUserModel.rating >= 4.5)
+            query = query.join(
+                models.MarketplaceUserModel,
+                models.MarketplaceUserModel.user_id
+                == models.AdvertisementModel.user_id,
+            ).where(models.MarketplaceUserModel.rating >= 4.5)
 
         match dto.sort_type:
             case SortType.POPULARITY:
@@ -370,3 +395,186 @@ class MarketplaceRepository(BaseRepository):
             entities.AdvertisementOptionEntityWithAdvertisement.model_validate(option)
             for option in options.scalars().all()
         ]
+
+    async def get_suggestion_categories(
+        self, dto: dtos.GetAdvertisementSuggestionsDTO
+    ) -> List[entities.CategoryEntity]:
+        query = (
+            select(models.CategoryModel)
+            .join(models.ProductModel)
+            .join(models.AdvertisementModel)
+            .where(
+                models.AdvertisementModel.is_draft == False,
+                exists(
+                    select(1)
+                    .select_from(models.AdvertisementOptionModel)
+                    .where(
+                        models.AdvertisementOptionModel.advertisement_id
+                        == models.AdvertisementModel.id,
+                    ),
+                ),
+            )
+        )
+
+        if dto.category_ids:
+            query = query.where(
+                models.CategoryModel.parent_category_id.in_(dto.category_ids)
+            )
+        if dto.seller_ids:
+            query = query.where(models.AdvertisementModel.user_id.in_(dto.seller_ids))
+        if dto.search:
+            query = query.where(models.CategoryModel.name.ilike(f"%{dto.search}%"))
+
+        query = query.limit(dto.limit).offset(dto.offset)
+        categories = await self.session.execute(query)
+        return [
+            entities.CategoryEntity.model_validate(category)
+            for category in categories.scalars().unique().all()
+        ]
+
+    async def get_suggestion_products(
+        self, dto: dtos.GetAdvertisementSuggestionsDTO
+    ) -> List[entities.ProductEntity]:
+        query = (
+            select(models.ProductModel)
+            .join(models.AdvertisementModel)
+            .where(
+                models.AdvertisementModel.is_draft == False,
+                exists(
+                    select(1)
+                    .select_from(models.AdvertisementOptionModel)
+                    .where(
+                        models.AdvertisementOptionModel.advertisement_id
+                        == models.AdvertisementModel.id,
+                    ),
+                ),
+            )
+        )
+
+        if dto.category_ids:
+            query = query.where(models.ProductModel.category_id.in_(dto.category_ids))
+        if dto.seller_ids:
+            query = query.where(models.AdvertisementModel.user_id.in_(dto.seller_ids))
+        if dto.search:
+            query = query.where(models.ProductModel.name.ilike(f"%{dto.search}%"))
+
+        query = query.limit(dto.limit).offset(dto.offset)
+        products = await self.session.execute(query)
+        return [
+            entities.ProductEntity.model_validate(product)
+            for product in products.scalars().unique().all()
+        ]
+
+    async def get_suggestion_sellers(
+        self, dto: dtos.GetAdvertisementSuggestionsDTO
+    ) -> List[entities.UserEntity]:
+        query = (
+            select(models.UserModel)
+            .join(models.AdvertisementModel)
+            .where(
+                models.AdvertisementModel.is_draft == False,
+                exists(
+                    select(1)
+                    .select_from(models.AdvertisementOptionModel)
+                    .where(
+                        models.AdvertisementOptionModel.advertisement_id
+                        == models.AdvertisementModel.id,
+                    ),
+                ),
+            )
+        )
+
+        if dto.category_ids:
+            query = query.join(
+                models.ProductModel,
+                models.AdvertisementModel.product_id == models.ProductModel.id,
+            ).where(
+                models.ProductModel.category_id.in_(dto.category_ids),
+            )
+        if dto.product_ids:
+            query = query.where(
+                models.AdvertisementModel.product_id.in_(dto.product_ids)
+            )
+        if dto.search:
+            query = query.where(
+                models.UserModel.username.isnot(None),
+                models.UserModel.username.ilike(f"%{dto.search}%"),
+            )
+
+        query = query.limit(dto.limit).offset(dto.offset)
+        sellers = await self.session.execute(query)
+        return [
+            entities.UserEntity.model_validate(seller)
+            for seller in sellers.scalars().unique().all()
+        ]
+
+    async def get_suggestion_product_options(
+        self, dto: dtos.GetAdvertisementSuggestionsDTO
+    ) -> List[entities.ProductOptionEntity]:
+        query = (
+            select(models.ProductOptionModel)
+            .join(models.ProductOptionModel.advertisement_options)
+            .join(models.AdvertisementOptionModel.advertisement)
+            .where(models.AdvertisementModel.is_draft == False)
+        )
+
+        if dto.category_ids:
+            query = query.join(
+                models.ProductModel,
+                models.AdvertisementModel.product_id == models.ProductModel.id,
+            ).where(models.ProductModel.category_id.in_(dto.category_ids))
+        if dto.product_ids:
+            query = query.where(
+                models.AdvertisementModel.product_id.in_(dto.product_ids)
+            )
+        if dto.seller_ids:
+            query = query.where(models.AdvertisementModel.user_id.in_(dto.seller_ids))
+        if dto.product_option_ids:
+            for product_option_id in dto.product_option_ids:
+                query = query.where(
+                    exists(
+                        select(1)
+                        .select_from(advertisement_options_product_options)
+                        .where(
+                            advertisement_options_product_options.c.advertisement_option_id
+                            == models.AdvertisementOptionModel.id,
+                            advertisement_options_product_options.c.product_option_id
+                            == product_option_id,
+                        )
+                    )
+                )
+        if dto.search:
+            query = query.where(models.ProductOptionModel.name.ilike(f"%{dto.search}%"))
+
+        query = query.limit(dto.limit).offset(dto.offset)
+        product_options = await self.session.execute(query)
+        return [
+            entities.ProductOptionEntity.model_validate(product_option)
+            for product_option in product_options.scalars().unique().all()
+        ]
+
+    async def get_advertisement_option(
+        self, id: int
+    ) -> entities.AdvertisementOptionEntityWithAdvertisement:
+        option = await self.get_by_id(
+            models.AdvertisementOptionModel, id, get_advertisement_option_relations()
+        )
+        return entities.AdvertisementOptionEntityWithAdvertisement.model_validate(
+            option
+        )
+
+    async def get_advertisement_option_price(
+        self, id: int
+    ) -> entities.AdvertisementOptionPriceWithCurrency:
+        price = await self.get_by_id(
+            models.AdvertisementOptionPriceModel,
+            id,
+            [joinedload(models.AdvertisementOptionPriceModel.currency)],
+        )
+        return entities.AdvertisementOptionPriceWithCurrency.model_validate(price)
+
+    async def get_advertisement_option_trade(
+        self, id: int
+    ) -> entities.TradeWithRelations:
+        trade = await self.get_by_id(models.TradeModel, id, get_trade_relations())
+        return entities.TradeWithRelations.model_validate(trade)

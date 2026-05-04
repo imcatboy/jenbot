@@ -4,3 +4,4 @@ from .user import *
 from .product import *
 from .messaging import *
 from .marketplace import *
+from .trading import *

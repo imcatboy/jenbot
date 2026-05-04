@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, List, Optional
 from .associate_tables import (
     advertisement_options_product_options,
     product_types_products,
+    trade_deals_product_options,
     trades_product_options,
     deals_product_options,
 )
@@ -71,6 +72,10 @@ class ProductModel(EntityModel):
         cascade="all, delete-orphan",
     )
     deals: Mapped[List[DealModel]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan",
+    )
+    trade_deals: Mapped[List[DealModel]] = relationship(
         back_populates="trade_product",
         cascade="all, delete-orphan",
     )
@@ -111,6 +116,10 @@ class ProductOptionModel(EntityModel):
     )
     deals: Mapped[List[DealModel]] = relationship(
         secondary=deals_product_options,
+        back_populates="product_options",
+    )
+    trade_deals: Mapped[List[DealModel]] = relationship(
+        secondary=trade_deals_product_options,
         back_populates="trade_product_options",
     )
 
@@ -141,6 +150,8 @@ class AdvertisementModel(EntityModel):
         back_populates="advertisements", foreign_keys=[user_id]
     )
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
+    pays_for_agent: Mapped[bool] = mapped_column(default=False)
+    ready_to_bargain: Mapped[bool] = mapped_column(default=False)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped[ProductModel] = relationship(back_populates="advertisements")
     options: Mapped[List[AdvertisementOptionModel]] = relationship(

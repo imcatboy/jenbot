@@ -68,6 +68,19 @@ class SortType(StrEnum):
     OLD = "old"
 
 
+class SuggestionType(StrEnum):
+    CATEGORY = "category"
+    PRODUCT = "product"
+    SELLER = "seller"
+    PRODUCT_OPTION = "product_option"
+
+
+class DealCondition(StrEnum):
+    ACCEPTED = "accepted"
+    COMPLAINT = "complaint"
+    CANCELLED = "cancelled"
+
+
 def parse_username(v: Any) -> Union[str, int]:
     if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
         return v.replace("@", "")
@@ -113,7 +126,7 @@ IDSet = Annotated[
     Set[ID],
     Field(
         max_length=10,
-        description="Набор ID в запросе (не более 10 значений)",
+        description="Набор ID (не более 10 значений)",
     ),
 ]
 

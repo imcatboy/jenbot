@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 
-from domain.objects.types import DealType, DealStatus
+from domain.objects.types import DealCondition, DealType, DealStatus
 from .base import BaseEntity, EntityWithMetadata
 
 if TYPE_CHECKING:
-    from .marketplace import ProductEntityWithRelations, ProductOptionEntity
+    from .marketplace import ProductWithImagesEntity, ProductOptionEntity
 
 
 class TradeProductOptionEntity(BaseEntity):
@@ -23,18 +23,22 @@ class TradeEntity(EntityWithMetadata):
 
 class TradeWithRelations(TradeEntity):
     product_options: List[ProductOptionEntity]
-    product: ProductEntityWithRelations
+    product: ProductWithImagesEntity
 
 
 class DealEntity(EntityWithMetadata):
     count: int
     deal_type: DealType
+    amount: Optional[float] = None
     expires_at: datetime
     status: DealStatus
     trade_id: Optional[int] = None
     advertisement_option_id: int
     user_id: int
     seller_id: int
+    product_id: int
+    seller_condition: Optional[DealCondition] = None
+    buyer_condition: Optional[DealCondition] = None
     agent_id: Optional[int] = None
     advertisement_option_price_id: Optional[int] = None
     amount: Optional[float] = None

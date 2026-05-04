@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
+from domain.objects.types import SortType, SuggestionType
 from domain.objects import entities
-from domain.objects.types import SortType
 from .base import BaseDTO, GetDTO
 
 
@@ -131,3 +131,16 @@ class AdvertisementOptionShortDTO(BaseDTO):
 class CatalogDTO(BaseDTO):
     items: List[AdvertisementOptionShortDTO]
     has_more: bool
+
+
+class GetAdvertisementSuggestionsDTO(GetDTO):
+    category_ids: Optional[List[int]] = None
+    product_ids: Optional[List[int]] = None
+    seller_ids: Optional[List[int]] = None
+    product_option_ids: Optional[List[int]] = None
+
+
+class AdvertisementSuggestionDTO(BaseDTO):
+    id: int
+    kind: SuggestionType
+    title: str

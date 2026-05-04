@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
+from domain.objects.types import ID, IDSet, NoZeroFloat, NoZeroInt, SuggestionType
 from .base import BaseRequest, BaseResponse
-from domain.objects.types import ID, IDSet, NoZeroFloat, NoZeroInt
 
 
 class ProductImageResponse(BaseResponse):
@@ -96,6 +96,12 @@ class AdvertisementsResponse(BaseResponse):
     items: List[AdvertisementShortResponse]
     has_more: bool
 
+
+class AdvertisementSuggestionResponse(BaseResponse):
+    id: int
+    kind: SuggestionType
+    title: str
+    
 
 class BuyAdvertisementRequest(BaseRequest):
     advertisement_option_id: ID

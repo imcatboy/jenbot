@@ -5,8 +5,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
 
-from .associate_tables import deals_product_options, trades_product_options
-from domain.objects.types import DealStatus, DealType
+from .associate_tables import (
+    deals_product_options,
+    trade_deals_product_options,
+    trades_product_options,
+)
+from domain.objects.types import DealCondition, DealStatus, DealType
 from .base import EntityModel
 
 if TYPE_CHECKING:
@@ -81,6 +85,18 @@ class DealModel(EntityModel):
     status: Mapped[DealStatus] = mapped_column(
         Enum(DealStatus, name="DEAL_STATUS"), index=True
     )
+    seller_condition: Mapped[Optional[DealCondition]] = mapped_column(
+        Enum(DealCondition, name="DEAL_CONDITION"), index=True
+    )
+    buyer_condition: Mapped[Optional[DealCondition]] = mapped_column(
+        Enum(DealCondition, name="DEAL_CONDITION"), index=True
+    )
+    seller_acceptance: Mapped[bool] = mapped_column(default=False)
+    buyer_acceptance: Mapped[bool] = mapped_column(default=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
+    product: Mapped[ProductModel] = relationship(
+        back_populates="deals",
+    )
     advertisement_option_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("advertisement_options.id"), index=True
     )
@@ -117,11 +133,15 @@ class DealModel(EntityModel):
     )
     trade_product_id: Mapped[Optional[int]] = mapped_column(ForeignKey("products.id"))
     trade_product: Mapped[Optional[ProductModel]] = relationship(
+        back_populates="trade_deals",
+    )
+    product_options: Mapped[List[ProductOptionModel]] = relationship(
+        secondary=trade_deals_product_options,
         back_populates="deals",
     )
     trade_product_options: Mapped[List[ProductOptionModel]] = relationship(
         secondary=deals_product_options,
-        back_populates="deals",
+        back_populates="trade_deals",
     )
     reviews: Mapped[List[ReviewModel]] = relationship(
         back_populates="deal", cascade="all, delete-orphan"

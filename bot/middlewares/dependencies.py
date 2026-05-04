@@ -8,6 +8,7 @@ from domain import SQLAlchemyUnitOfWork
 from bot.core.settings import Settings
 from domain.repositories import *
 from domain.services import *
+from domain.cache import *
 from bot.actions import *
 
 
@@ -30,7 +31,13 @@ class DIMiddleware(BaseMiddleware):
         config_service = ConfigService(config_repository=config_repository)
         data["config_service"] = config_service
         user_repository = UserRepository(session=uow.session)
-        user_service = UserService(user_repository=user_repository)
+        user_cache = UserCache(redis=self.redis)
+        media_repository = MediaRepository(session=uow.session)
+        user_service = UserService(
+            user_repository=user_repository,
+            user_cache=user_cache,
+            media_repository=media_repository,
+        )
         data["user_service"] = user_service
         moderation_repository = ModerationRepository(session=uow.session)
         moderation_service = ModerationService(
