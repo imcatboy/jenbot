@@ -40,6 +40,8 @@ class CategoryModel(EntityModel):
         back_populates="categories",
         remote_side=lambda: CategoryModel.id,
     )
+    author_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    author: Mapped[Optional[UserModel]] = relationship(back_populates="categories")
     categories: Mapped[List[CategoryModel]] = relationship(
         back_populates="parent_category"
     )
@@ -59,6 +61,8 @@ class ProductModel(EntityModel):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
     category: Mapped[CategoryModel] = relationship(back_populates="products")
     is_draft: Mapped[bool] = mapped_column(Boolean, default=True)
+    author_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    author: Mapped[Optional[UserModel]] = relationship(back_populates="products")
     product_types: Mapped[List[ProductTypeModel]] = relationship(
         secondary=product_types_products,
         back_populates="products",
@@ -74,10 +78,12 @@ class ProductModel(EntityModel):
     deals: Mapped[List[DealModel]] = relationship(
         back_populates="product",
         cascade="all, delete-orphan",
+        foreign_keys="DealModel.product_id",
     )
     trade_deals: Mapped[List[DealModel]] = relationship(
         back_populates="trade_product",
         cascade="all, delete-orphan",
+        foreign_keys="DealModel.trade_product_id",
     )
 
 

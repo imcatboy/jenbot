@@ -1,6 +1,6 @@
 from dependency_injector.wiring import inject, Provide
 from fastapi.concurrency import run_in_threadpool
-from fastapi import Form, UploadFile, File, Depends
+from fastapi import UploadFile, File, Depends
 from fastapi.exceptions import HTTPException
 from PIL import Image, ImageOps
 from typing import List, Tuple
@@ -11,7 +11,6 @@ from uuid import uuid4
 from api.core.container import AppContainer
 from api.core.settings import Settings
 from domain.objects import dtos, entities
-from domain.objects.types import ID
 from domain.services import MediaService
 from api.dependencies.uow import get_media_service
 from api.dependencies.auth import Authorize
@@ -77,12 +76,12 @@ async def get_avatar(
         max_size=settings.AVATAR_MAX_SIZE,
         allowed_extensions=settings.ALLOWED_AVATAR_EXTENSIONS,
         target_size=settings.AVATAR_SIZE,
-        storage_path=settings.AVATAR_STORAGE_PATH
+        storage_path=settings.AVATAR_STORAGE_PATH,
     )
-    
+
     image, extension = await processor.validate_and_process(file, settings)
     name = uuid4().hex
-    
+
     dto = dtos.CreateFileDTO(
         name=name,
         display_name=file.filename,
@@ -90,14 +89,16 @@ async def get_avatar(
         uploaded_by_user_id=user.id,
     )
     file_obj = await media_service.create_file(dto)
-    await media_service.link_file_to_marketplace_user(file_id=file_obj.id, user_id=user.id)
-    
+    await media_service.link_file_to_marketplace_user(
+        file_id=file_obj.id, user_id=user.id
+    )
+
     await processor.save_image(image, name, extension)
     return file_obj
 
+
 @inject
 async def get_product_image(
-    product_id: ID = Form(...),
     file: UploadFile = File(...),
     user: entities.UserEntity = Depends(Authorize()),
     settings: Settings = Depends(Provide[AppContainer.settings]),
@@ -107,18 +108,17 @@ async def get_product_image(
         max_size=settings.PRODUCT_IMAGE_MAX_SIZE,
         allowed_extensions=settings.ALLOWED_PRODUCT_IMAGE_EXTENSIONS,
         target_size=settings.PRODUCT_IMAGE_SIZE,
-        storage_path=settings.PRODUCT_IMAGE_STORAGE_PATH
+        storage_path=settings.PRODUCT_IMAGE_STORAGE_PATH,
     )
-    
+
     image, extension = await processor.validate_and_process(file, settings)
     name = uuid4().hex
-    
+
     dto = dtos.CreateFileDTO(
         name=name,
         display_name=file.filename,
         extension=extension,
         uploaded_by_user_id=user.id,
-        product_id=product_id
     )
     file_obj = await media_service.create_file(dto)
     await processor.save_image(image, name, extension)

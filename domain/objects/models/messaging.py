@@ -39,9 +39,7 @@ class ChatModel(EntityModel):
 class MessageModel(EntityModel):
     __tablename__ = "messages"
     fk_name = "message_id"
-    __table_args__ = (
-        Index("ix_messages_user_id", "chat_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_messages_user_id", "chat_id", "created_at"),)
 
     body: Mapped[Optional[str]] = mapped_column(String(1024))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -67,7 +65,14 @@ class ChatParticipantModel(EntityModel):
     __tablename__ = "chat_participiants"
     fk_name = "chat_participant_id"
     __table_args__ = (
-        Index("ix_chat_participants_user_id", "user_id", "chat_id", unique=True),
+        Index(
+            "ix_chat_participants_user_id_chat_id", "user_id", "chat_id", unique=True
+        ),
+        Index(
+            "ix_chat_participants_user_id_last_read_message_id",
+            "user_id",
+            "last_read_message_id",
+        ),
     )
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -95,7 +100,9 @@ class FileModel(EntityModel):
     name: Mapped[str] = mapped_column(String(100), index=True)
     display_name: Mapped[str] = mapped_column(String(100), index=True)
     extension: Mapped[str] = mapped_column(String(10))
-    message_id: Mapped[Optional[int]] = mapped_column(ForeignKey("messages.id"), index=True)
+    message_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("messages.id"), index=True
+    )
     message: Mapped[Optional[MessageModel]] = relationship(
         foreign_keys=[message_id],
         back_populates="files",
@@ -103,12 +110,14 @@ class FileModel(EntityModel):
     marketplace_user: Mapped[Optional[MarketplaceUserModel]] = relationship(
         back_populates="avatar",
     )
-    product_id: Mapped[Optional[int]] = mapped_column(ForeignKey("products.id"))
+    product_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("products.id"), index=True
+    )
     product: Mapped[Optional[ProductModel]] = relationship(
         foreign_keys=[product_id],
         back_populates="images",
     )
-    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    uploaded_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     uploaded_by_user: Mapped[UserModel] = relationship(
         back_populates="files",
         foreign_keys=[uploaded_by_user_id],

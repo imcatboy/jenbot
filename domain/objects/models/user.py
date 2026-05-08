@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .messaging import ChatModel, ChatParticipantModel, MessageModel, FileModel
     from .moderation import ChatViolationModel, ViolationModel, ReportModel
     from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
-    from .marketplace import AdvertisementModel
+    from .marketplace import AdvertisementModel, ProductModel, CategoryModel
     from .trading import DealModel
 
 
@@ -133,6 +133,16 @@ class UserModel(EntityModel):
     files: Mapped[List[FileModel]] = relationship(
         back_populates="uploaded_by_user",
         foreign_keys="FileModel.uploaded_by_user_id",
+        cascade="all, delete-orphan",
+    )
+    products: Mapped[List[ProductModel]] = relationship(
+        back_populates="author",
+        foreign_keys="ProductModel.author_id",
+        cascade="all, delete-orphan",
+    )
+    categories: Mapped[List[CategoryModel]] = relationship(
+        back_populates="author",
+        foreign_keys="CategoryModel.author_id",
         cascade="all, delete-orphan",
     )
 

@@ -39,6 +39,7 @@ class ProductWithCategoryEntity(ProductEntity):
 
 class ProductWithImagesEntity(ProductEntity):
     images: List[FileEntity]
+    category: CategoryWithParentEntity
 
 
 class ProductTypeEntity(EntityWithMetadata):

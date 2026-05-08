@@ -12,7 +12,7 @@ class TradingRepository(BaseRepository):
         super().__init__(session)
 
     async def create_deal(self, dto: dtos.CreateDealDTO) -> entities.DealEntity:
-        deal = models.DealModel(**dto.model_dump())
+        deal = models.DealModel(**dto.model_dump(exclude={"product_option_ids", "trade_product_option_ids", "option_price_id"}))
         await self.create_relation(
             deal, models.AdvertisementOptionModel, dto.advertisement_option_id
         )

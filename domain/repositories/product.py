@@ -13,12 +13,20 @@ class ProductRepository(BaseRepository):
         super().__init__(session)
 
     async def create(self, dto: dtos.CreateProductDTO) -> entities.ProductEntity:
-        product = models.ProductModel(**dto.model_dump(exclude={"product_type_ids", "image_ids"}))
+        product = models.ProductModel(
+            **dto.model_dump(exclude={"product_type_ids", "image_ids"})
+        )
         await self.create_relation(product, models.CategoryModel, dto.category_id)
+        await self.set_optional_relation(
+            product, models.UserModel, dto.author_id, "author_id"
+        )
         self.session.add(product)
         await self.session.flush()
         await self.create_many_to_many_relation(
-            product, models.product_types_products, models.ProductTypeModel, dto.product_type_ids
+            product,
+            models.product_types_products,
+            models.ProductTypeModel,
+            dto.product_type_ids,
         )
         await self.create_many_to_one_relation(product, models.FileModel, dto.image_ids)
         return entities.ProductEntity.model_validate(product)
@@ -33,7 +41,10 @@ class ProductRepository(BaseRepository):
 
         await self.update_relation(product, models.CategoryModel, dto.category_id)
         await self.update_many_to_many_relation(
-            product, models.product_types_products, models.ProductTypeModel, dto.product_type_ids
+            product,
+            models.product_types_products,
+            models.ProductTypeModel,
+            dto.product_type_ids,
         )
         await self.update_many_to_one_relation(product, models.FileModel, dto.image_ids)
         await self.session.flush()
@@ -57,11 +68,14 @@ class ProductRepository(BaseRepository):
         return entities.ProductTypeWithOptionsEntity.model_validate(product_type)
 
     async def create_category(
-        self, name: str, parent_category_id: Optional[int] = None
+        self, dto: dtos.CreateCategoryDTO
     ) -> entities.CategoryEntity:
-        category = models.CategoryModel(name=name)
+        category = models.CategoryModel(name=dto.name)
         await self.set_optional_relation(
-            category, models.CategoryModel, parent_category_id, "parent_category_id"
+            category, models.CategoryModel, dto.parent_category_id, "parent_category_id"
+        )
+        await self.set_optional_relation(
+            category, models.UserModel, dto.author_id, "author_id"
         )
         self.session.add(category)
         await self.session.flush()

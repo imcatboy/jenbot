@@ -64,3 +64,21 @@ async def get_marketplace_service(
         mapper=mapper,
         product_repository=product_repository,
     )
+
+
+async def get_trading_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+) -> TradingService:
+    trading_repository = TradingRepository(session=uow.session)
+    marketplace_repository = MarketplaceRepository(session=uow.session)
+    return TradingService(
+        trading_repository=trading_repository,
+        marketplace_repository=marketplace_repository,
+    )
+
+
+async def get_messaging_service(
+    uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+) -> MessagingService:
+    messaging_repository = MessagingRepository(session=uow.session)
+    return MessagingService(messaging_repository=messaging_repository)

@@ -168,11 +168,6 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "description": "Read messages by chat ID",
         "tags": ["Messaging"],
     },
-    "upload_attachments": {
-        "summary": "Upload attachments",
-        "description": "Upload attachments",
-        "tags": ["Messaging", "Media"],
-    },
     "get_message": {
         "summary": "Get message by ID",
         "description": "Get message by ID",
@@ -242,6 +237,26 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "summary": "Get avatar by user ID",
         "description": "Get avatar by user ID",
         "tags": ["User", "Media"],
+    },
+    "upload_message_attachment": {
+        "summary": "Upload message attachment",
+        "description": "Upload message attachment",
+        "tags": ["Messaging", "Media"],
+    },
+    "upload_product_attachment": {
+        "summary": "Upload product attachment",
+        "description": "Upload product attachment",
+        "tags": ["Product", "Media"],
+    },
+    "get_message_attachment": {
+        "summary": "Get message attachment by ID",
+        "description": "Get message attachment by ID",
+        "tags": ["Messaging", "Media"],
+    },
+    "get_product_attachment": {
+        "summary": "Get product attachment by ID",
+        "description": "Get product attachment by ID",
+        "tags": ["Product", "Media"],
     },
 }
 

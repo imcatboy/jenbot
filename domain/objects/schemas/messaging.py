@@ -110,7 +110,6 @@ class CreateChatRequest(BaseRequest):
 class CreateMessageRequest(BaseRequest):
     file_ids: Optional[IDSet] = None
     body: Optional[Text] = None
-    chat_id: ID
 
 
 class ReadChatRequest(BaseRequest):

@@ -7,7 +7,7 @@ from domain.objects.types import DealCondition, DealType, DealStatus
 from .base import BaseEntity, EntityWithMetadata
 
 if TYPE_CHECKING:
-    from .marketplace import ProductWithImagesEntity, ProductOptionEntity
+    from .marketplace import ProductOptionEntity, ProductWithImagesEntity
 
 
 class TradeProductOptionEntity(BaseEntity):

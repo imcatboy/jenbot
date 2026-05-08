@@ -578,3 +578,17 @@ class MarketplaceRepository(BaseRepository):
     ) -> entities.TradeWithRelations:
         trade = await self.get_by_id(models.TradeModel, id, get_trade_relations())
         return entities.TradeWithRelations.model_validate(trade)
+
+    async def update_advertisement_option_count(self, id: int, delta: int) -> None:
+        option = await self.get_by_id(models.AdvertisementOptionModel, id)
+
+        if option.count - delta < 0:
+            raise exceptions.NotEnoughInventoryException(id, delta)
+
+        option.count -= delta
+        await self.session.flush()
+
+    async def update_advertisement_option_sold_count(self, id: int, delta: int) -> None:
+        option = await self.get_by_id(models.AdvertisementOptionModel, id)
+        option.sold_count += delta
+        await self.session.flush()

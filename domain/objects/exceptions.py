@@ -132,3 +132,27 @@ class DealNotPendingException(DomainException):
     def __init__(self, deal_id: int):
         self.deal_id = deal_id
         super().__init__(f"Deal {deal_id} is not pending")
+
+
+class DealSelfPurchaseException(DomainException):
+
+    def __init__(self, advertisement_option_id: int):
+        self.advertisement_option_id = advertisement_option_id
+        super().__init__(
+            f"User cannot purchase their own advertisement option {advertisement_option_id}"
+        )
+
+
+class ChatParticipantNotFoundException(DomainException):
+
+    def __init__(self, chat_id: int, user_id: int):
+        self.chat_id = chat_id
+        self.user_id = user_id
+        super().__init__(f"Chat participant {user_id} not found in chat {chat_id}")
+
+
+class FileNotFoundException(DomainException):
+
+    def __init__(self, *file_ids: int):
+        self.file_ids = file_ids
+        super().__init__(f"File {', '.join(map(str, file_ids))} not found")

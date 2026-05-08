@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta
 from typing import List
-from domain.repositories import TradingRepository, MarketplaceRepository
+from domain.repositories import (
+    TradingRepository,
+    MarketplaceRepository,
+    MessagingRepository,
+)
 from domain.objects import entities, dtos, exceptions, types
 
 
@@ -10,9 +14,11 @@ class TradingService:
         self,
         trading_repository: TradingRepository,
         marketplace_repository: MarketplaceRepository,
+        messaging_repository: MessagingRepository,
     ) -> None:
         self.trading_repository = trading_repository
         self.marketplace_repository = marketplace_repository
+        self.messaging_repository = messaging_repository
 
     async def buy_advertisement_option(
         self, dto: dtos.BuyAdvertisementOptionDTO
@@ -37,6 +43,11 @@ class TradingService:
             raise exceptions.NotEnoughInventoryException(
                 dto.advertisement_option_id,
                 dto.count,
+            )
+
+        if dto.user_id == advertisement_option.advertisement.user_id:
+            raise exceptions.DealSelfPurchaseException(
+                deal_id=dto.advertisement_option_id,
             )
 
         if (
@@ -84,7 +95,10 @@ class TradingService:
             currency_id = price.currency_id
             deal_type = types.DealType.MONEY
 
-        return await self.trading_repository.create_deal(
+        await self.marketplace_repository.update_advertisement_option_count(
+            advertisement_option.id, dto.count
+        )
+        deal = await self.trading_repository.create_deal(
             dtos.CreateDealDTO(
                 advertisement_option_id=advertisement_option.id,
                 deal_type=deal_type,
@@ -106,6 +120,21 @@ class TradingService:
                 trade_product_option_ids=trade_product_option_ids,
             )
         )
+        options = [
+            product_option.name
+            for product_option in advertisement_option.product_options
+        ]
+        await self.messaging_repository.create_chat(
+            dtos.CreateChatDTO(
+                name=f"Покупка {advertisement_option.advertisement.product.name} {', '.join(options)}",
+                deal_id=deal.id,
+                participant_ids=[
+                    dto.user_id,
+                    advertisement_option.advertisement.user_id,
+                ],
+            )
+        )
+        return deal
 
     async def update_deal(
         self, id: int, dto: dtos.UpdateDealDTO
@@ -161,6 +190,11 @@ class TradingService:
             await self.trading_repository.update_deal(
                 id, dtos.UpdateDealDTO(status=types.DealStatus.COMPLETED)
             )
+
+            if deal.advertisement_option_id:
+                await self.marketplace_repository.update_advertisement_option_sold_count(
+                    deal.advertisement_option_id, deal.count
+                )
         elif (
             deal.seller_condition == types.DealCondition.CANCELLED
             and deal.buyer_condition == types.DealCondition.CANCELLED

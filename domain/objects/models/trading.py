@@ -83,7 +83,7 @@ class DealModel(EntityModel):
     trade_count: Mapped[Optional[int]]
     expires_at: Mapped[datetime]
     status: Mapped[DealStatus] = mapped_column(
-        Enum(DealStatus, name="DEAL_STATUS"), index=True
+        Enum(DealStatus, name="DEAL_STATUS"), default=DealStatus.PENDING, index=True
     )
     seller_condition: Mapped[Optional[DealCondition]] = mapped_column(
         Enum(DealCondition, name="DEAL_CONDITION"), index=True
@@ -96,6 +96,7 @@ class DealModel(EntityModel):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped[ProductModel] = relationship(
         back_populates="deals",
+        foreign_keys=[product_id],
     )
     advertisement_option_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("advertisement_options.id"), index=True
@@ -134,13 +135,14 @@ class DealModel(EntityModel):
     trade_product_id: Mapped[Optional[int]] = mapped_column(ForeignKey("products.id"))
     trade_product: Mapped[Optional[ProductModel]] = relationship(
         back_populates="trade_deals",
+        foreign_keys=[trade_product_id],
     )
     product_options: Mapped[List[ProductOptionModel]] = relationship(
-        secondary=trade_deals_product_options,
+        secondary=deals_product_options,
         back_populates="deals",
     )
     trade_product_options: Mapped[List[ProductOptionModel]] = relationship(
-        secondary=deals_product_options,
+        secondary=trade_deals_product_options,
         back_populates="trade_deals",
     )
     reviews: Mapped[List[ReviewModel]] = relationship(

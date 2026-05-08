@@ -105,8 +105,8 @@ class ModerationRepository(BaseRepository):
             models.ReportModel.status == dto.status,
             models.ReportModel.report_type == dto.report_type,
         )
-        report = await self.session.execute(query)
-        report = report.scalar_one_or_none()
+        result = await self.session.execute(query)
+        report = result.scalar_one_or_none()
 
         if not report:
             raise exceptions.ObjectNotFoundException("report", [dto.report_id])

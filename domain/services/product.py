@@ -1,17 +1,23 @@
 from typing import Optional
 
-from domain.repositories import ProductRepository
-from domain.objects import entities, dtos
+from domain.repositories import ProductRepository, MediaRepository
+from domain.objects import entities, dtos, exceptions
 
 
 class ProductService:
 
-    def __init__(self, product_repository: ProductRepository) -> None:
+    def __init__(self, product_repository: ProductRepository, media_repository: MediaRepository) -> None:
         self.product_repository = product_repository
+        self.media_repository = media_repository
 
     async def create_product(
         self, dto: dtos.CreateProductDTO
     ) -> entities.ProductEntity:
+        if not await self.media_repository.is_user_unlinked_files(
+            dto.author_id, dto.image_ids
+        ):
+            raise exceptions.FileNotFoundException(*dto.image_ids)
+
         return await self.product_repository.create(dto)
 
     async def update_product(
@@ -28,9 +34,9 @@ class ProductService:
         return await self.product_repository.create_product_type(dto)
 
     async def create_category(
-        self, name: str, parent_category_id: Optional[int] = None
+        self, dto: dtos.CreateCategoryDTO
     ) -> entities.CategoryEntity:
-        return await self.product_repository.create_category(name, parent_category_id)
+        return await self.product_repository.create_category(dto)
 
     async def update_category(
         self,
@@ -48,9 +54,7 @@ class ProductService:
     async def get_category(self, id: int) -> entities.CategoryEntity:
         return await self.product_repository.get_category(id)
 
-    async def get_categories(
-        self, dto: dtos.GetCategoriesDTO
-    ) -> dtos.CategoriesDTO:
+    async def get_categories(self, dto: dtos.GetCategoriesDTO) -> dtos.CategoriesDTO:
         dto = dto.model_copy(update={"limit": dto.limit + 1})
         categories = await self.product_repository.get_categories(dto)
         has_more = len(categories) == dto.limit
@@ -72,3 +76,6 @@ class ProductService:
             products = products[:-1]
 
         return dtos.ProductsDTO(items=products, has_more=has_more)
+
+    async def get_attachment(self, product_id: int, file_id: int) -> entities.FileEntity:
+        return await self.media_repository.get_product_file(product_id, file_id)

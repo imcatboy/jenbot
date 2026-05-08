@@ -9,6 +9,7 @@ class CreateProductDTO(BaseDTO):
     category_id: int
     product_type_ids: List[int]
     image_ids: List[int]
+    author_id: Optional[int] = None
 
 
 class UpdateProductDTO(BaseDTO):
@@ -16,6 +17,12 @@ class UpdateProductDTO(BaseDTO):
     image_ids: Optional[List[int]] = None
     category_id: Optional[int] = None
     product_type_ids: Optional[List[int]] = None
+
+
+class CreateCategoryDTO(BaseDTO):
+    name: str
+    parent_category_id: Optional[int] = None
+    author_id: Optional[int] = None
 
 
 class CreateProductTypeDTO(BaseDTO):
