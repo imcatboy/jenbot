@@ -1,0 +1,46 @@
+.header {
+  background: linear-gradient(90deg, $brand-color 0%, $brand-second-gradient-color 100%);
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 12px;
+  gap: 10px;
+
+  svg {
+    color: $brand-color;
+  }
+}
+
+.headerLabel {
+  font-size: 24px;
+  font-weight: 600;
+  color: $brand-secondary-color;
+}
+
+.elements {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+
+  .separatedElements {
+    justify-content: space-between;
+  }
+}
+
+
+.content {
+  background-color: $bg-color;
+  border-radius: 20px 20px 0 0;
+  padding: 12px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}

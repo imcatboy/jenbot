@@ -75,6 +75,7 @@ class AdvertisementOptionShortResponse(BaseResponse):
     name: str
     category_path: str
     has_trades: bool
+    image_url: str
     user: SellerResponse
     options: List[str]
     prices: List[str]

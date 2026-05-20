@@ -123,6 +123,7 @@ class AdvertisementOptionShortDTO(BaseDTO):
     name: str
     category_path: str
     has_trades: bool
+    image_url: str
     user: SellerDTO
     options: List[str]
     prices: List[str]

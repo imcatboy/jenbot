@@ -1,0 +1,32 @@
+:root {
+  --bg-color: var(--tg-theme-bg-color, #FFFFFF);
+  --text-color: var(--tg-theme-text-color, #000000);
+  --hint-color: var(--tg-theme-hint-color, #8E8E93);
+  --link-color: var(--tg-theme-link-color, #2481CC);
+  --main-color: var(--tg-theme-button-color, #3390EC);
+  --main-text-color: var(--tg-theme-button-text-color, #FFFFFF);
+  --secondary-bg-color: var(--tg-theme-secondary-bg-color, #F4F4F5);
+  --destructive-color: var(--tg-theme-destructive-color, #E53935);
+  --placeholder-color: var(--tg-theme-placeholder-color, #A0A0A0);
+  --brand-color: #EC3393;
+  --brand-secondary-color: #FFFFFF;
+  --brand-second-gradient-color: #DD2EB7;
+  --online-color: #39CA3E;
+  --tg-viewport-height: 100vh;
+}
+
+
+$bg-color: var(--bg-color);
+$text-color: var(--text-color);
+$link-color: var(--hint-color);
+$hint-color: var(--hint-color);
+$main-color: var(--main-color);
+$main-text-color: var(--main-text-color);
+$secondary-bg-color: var(--secondary-bg-color);
+$destructive-color: var(--destructive-color);
+$placeholder-color: var(--placeholder-color);
+$brand-color: var(--brand-color);
+$brand-secondary-color: var(--brand-secondary-color);
+$brand-second-gradient-color: var(--brand-second-gradient-color);
+$online-color: var(--online-color);
+$tg-viewport-height: var(--tg-viewport-height);

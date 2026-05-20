@@ -1,0 +1,32 @@
+.tab {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  color: $hint-color;
+  gap: 5px;
+  transition: color 0.1s ease-in-out;
+
+  &:hover {
+    cursor: pointer;
+    color: $main-color;
+  }
+
+  &:active {
+    color: color-mix($main-color 90%, black);
+  }
+
+  &:focus {
+    outline: 2px solid $main-color;
+    border-radius: 10px;
+    outline-offset: 2px;
+  }
+}
+
+.tabActive {
+  color: $main-color;
+}
+
+.tabLabel {
+  font-size: 12px;
+}

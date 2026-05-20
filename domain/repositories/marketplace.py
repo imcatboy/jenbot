@@ -405,6 +405,7 @@ class MarketplaceRepository(BaseRepository):
             .join(models.AdvertisementModel)
             .where(
                 models.AdvertisementModel.is_draft == False,
+                models.CategoryModel.is_draft == False,
                 exists(
                     select(1)
                     .select_from(models.AdvertisementOptionModel)
@@ -440,6 +441,7 @@ class MarketplaceRepository(BaseRepository):
             .join(models.AdvertisementModel)
             .where(
                 models.AdvertisementModel.is_draft == False,
+                models.ProductModel.is_draft == False,
                 exists(
                     select(1)
                     .select_from(models.AdvertisementOptionModel)

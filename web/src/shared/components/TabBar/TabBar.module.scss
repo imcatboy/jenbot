@@ -1,0 +1,19 @@
+@use "@/styles/vars" as *;
+
+
+.tabBar {
+  display: flex;
+  justify-content: space-between;
+  position: fixed;
+  bottom: 36px;
+  left: 0;
+  right: 0;
+  background-color: $bg-color;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  padding: 10px 20px;
+  border-radius: 10px 10px 0 0;
+}
+
+.tabBar > * {
+  flex: 1 1 0%;
+}

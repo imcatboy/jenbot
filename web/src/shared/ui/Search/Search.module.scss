@@ -1,0 +1,20 @@
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 20px;
+  background-color: $bg-color;
+  font-size: 16px;
+  color: $text-color;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1);
+
+  &:focus {
+    outline: 2px solid $hint-color;
+    outline-offset: 2px;
+  }
+
+  &:placeholder {
+    color: $placeholder-color;
+  }
+}

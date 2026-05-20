@@ -1,0 +1,64 @@
+.adCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $main-color;
+}
+
+.category {
+  font-size: 12px;
+  color: $hint-color;
+}
+
+.prices {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: $main-color;
+}
+
+.price {
+  font-size: 16px;
+  color: $main-color;
+}
+
+.morePrices {
+  font-size: 16px;
+  color: $hint-color;
+}
+
+.seller {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ratingValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: $main-color;
+}
+
+.sellerName {
+  font-size: 16px;
+  color: $text-color;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.option {
+  font-size: 16px;
+  color: $hint-color;
+  padding: 3px 6px;
+  border-radius: 11px;
+  background-color: $secondary-bg-color;
+}

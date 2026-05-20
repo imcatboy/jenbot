@@ -14,8 +14,6 @@ class MediaRepository(BaseRepository):
     async def create_file(self, dto: dtos.CreateFileDTO) -> entities.FileEntity:
         file = models.FileModel(**dto.model_dump())
         await self.create_relation(file, models.UserModel, dto.uploaded_by_user_id)
-        await self.set_optional_relation(file, models.MessageModel, dto.message_id)
-        await self.set_optional_relation(file, models.ProductModel, dto.product_id)
         self.session.add(file)
         await self.session.flush()
         return entities.FileEntity.model_validate(file)

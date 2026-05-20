@@ -1,0 +1,19 @@
+.image {
+  background-color: $secondary-bg-color;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.big {
+  max-width: 187px;
+}
+
+.medium {
+  max-width: 127px;
+}
+
+.small {
+  max-width: 81px;
+}

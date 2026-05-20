@@ -1,0 +1,38 @@
+.option {
+  padding: 12px 16px;
+  border-radius: 11px;
+  background-color: $secondary-bg-color;
+  color: $hint-color;
+  font-size: 16px;
+  transition: all 0.1s ease-in-out;
+
+  .disabled {
+    color: $bg-color;
+    background-color: $hint-color;
+    cursor: not-allowed;
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: color-mix(in srgb, $secondary-bg-color 95%, black);
+  }
+  
+  &:active {
+    background-color: color-mix(in srgb, $secondary-bg-color 90%, black);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 2px;
+  }
+}
+
+.checkbox.checked {
+  color: $main-color;
+  border: 1px solid $main-color;
+}
+
+.radio.checked {
+  color: $main-text-color;
+  background-color: $main-color;
+}

@@ -123,11 +123,13 @@ class MarketplaceMapper:
     def option_short_to_dto(
         self, option: entities.AdvertisementOptionEntityWithAdvertisement
     ) -> dtos.AdvertisementOptionShortDTO:
+        image_url = f"/api/v1/products/{option.advertisement.product.id}/attachments/{option.advertisement.product.images[0].id}"
         return dtos.AdvertisementOptionShortDTO(
             id=option.id,
             name=option.advertisement.product.name,
             category_path=self.category_path(option.advertisement.product.category),
             has_trades=len(option.trades) > 0,
+            image_url=image_url,
             user=self.user_to_dto(option.advertisement.user),
             options=[option.name for option in option.product_options],
             prices=[

@@ -46,6 +46,15 @@ def get_product_relations() -> List[Any]:
     ]
 
 
+def get_product_with_images_relations() -> List[Any]:
+    return [
+        selectinload(models.ProductModel.images),
+        joinedload(models.ProductModel.category).joinedload(
+            models.CategoryModel.parent_category
+        ),
+    ]
+
+
 def get_trade_relations() -> List[Any]:
     return [
         selectinload(models.TradeModel.product_options),
@@ -86,9 +95,7 @@ def get_full_advertisement_relations() -> List[Any]:
 def get_advertisement_option_relations() -> List[Any]:
     return [
         selectinload(models.AdvertisementOptionModel.advertisement).options(
-            joinedload(models.AdvertisementModel.product)
-            .joinedload(models.ProductModel.category)
-            .joinedload(models.CategoryModel.parent_category),
+            joinedload(models.AdvertisementModel.product).options(*get_product_with_images_relations()),
             joinedload(models.AdvertisementModel.user).joinedload(
                 models.UserModel.marketplace_user
             ),

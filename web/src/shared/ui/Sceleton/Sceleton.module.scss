@@ -1,0 +1,13 @@
+.sceleton {
+  border-radius: 10px;
+  background-color: $secondary-bg-color;
+  background-image: linear-gradient(
+    90deg,
+    $secondary-bg-color 25%,
+    color-mix(in srgb, $secondary-bg-color 50%, white) 50%,
+    $secondary-bg-color 75%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.5s linear infinite;
+}

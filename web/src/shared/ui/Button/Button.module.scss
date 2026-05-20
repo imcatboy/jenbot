@@ -1,0 +1,93 @@
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: background-color 0.3s ease-in-out;
+
+  .label {
+    font-size: 16px;
+  }
+
+  .loading {
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 2px;
+  }
+}
+
+
+.standard {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background-color: $main-color;
+
+  .label {
+    color: $main-text-color;
+  }
+
+  .loading {
+    background: linear-gradient(90deg,
+        $main-color 25%,
+        color-mix(in srgb, $main-color 95%, black) 50%,
+        $main-color 75%);
+  }
+
+  &:disabled {
+    background-color: $hint-color;
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, $main-color 95%, black);
+  }
+
+  &:active {
+    background-color: color-mix(in srgb, $main-color 90%, black);
+  }
+}
+
+.floating {
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1);
+  background-color: $bg-color;
+  border-radius: 20px;
+  padding: 10px;
+
+  .label {
+    color: $hint-color;
+  }
+
+  .loading {
+    background: linear-gradient(90deg,
+        $bg-color 25%,
+        color-mix(in srgb, $bg-color 95%, black) 50%,
+        $bg-color 75%);
+  }
+
+  &:disabled {
+    background-color: $secondary-bg-color;
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, $bg-color 95%, black);
+  }
+
+  &:active {
+    background-color: color-mix(in srgb, $bg-color 90%, black);
+  }
+}
+
+.fullWidth {
+  width: 100%;
+}

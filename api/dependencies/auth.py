@@ -2,7 +2,7 @@ import hmac
 import hashlib
 import json
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Query
 from urllib.parse import parse_qsl, unquote
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -70,20 +70,36 @@ async def resolve_current_user(
 
 
 async def get_current_user(
-    init_data: str = Header(
-        ..., alias="X-Telegram-Init-Data", description="Telegram init data"
+    header_init_data: Optional[str] = Header(
+        None, alias="X-Telegram-Init-Data", description="Telegram init data"
+    ),
+    query_init_data: Optional[str] = Query(
+        None, alias="init_data", description="Telegram init data"
     ),
     user_service: UserService = Depends(get_user_service),
 ) -> entities.UserEntity:
+    init_data = header_init_data or query_init_data
+
+    if not init_data:
+        raise HTTPException(401, "Telegram auth failed")
+
     return await resolve_current_user(init_data, user_service)
 
 
 async def get_current_user_cached(
-    init_data: str = Header(
-        ..., alias="X-Telegram-Init-Data", description="Telegram init data"
+    header_init_data: Optional[str] = Header(
+        None, alias="X-Telegram-Init-Data", description="Telegram init data"
+    ),
+    query_init_data: Optional[str] = Query(
+        None, alias="init_data", description="Telegram init data"
     ),
     user_service: UserService = Depends(get_user_service),
 ) -> entities.UserEntity:
+    init_data = header_init_data or query_init_data
+
+    if not init_data:
+        raise HTTPException(401, "Telegram auth failed")
+
     cache_key = hashlib.sha256(init_data.encode()).hexdigest()
     user = await user_service.get_auth(cache_key)
 

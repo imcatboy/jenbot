@@ -43,7 +43,8 @@ async def get_product_service(
     uow: SQLAlchemyUnitOfWork = Depends(get_uow),
 ) -> ProductService:
     product_repository = ProductRepository(session=uow.session)
-    return ProductService(product_repository=product_repository)
+    media_repository = MediaRepository(session=uow.session)
+    return ProductService(product_repository=product_repository, media_repository=media_repository)
 
 
 async def get_media_service(

@@ -1,0 +1,24 @@
+@forward 'reset';
+
+
+* {
+  box-sizing: border-box;
+  outline: none;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+body,
+#root {
+  display: flex;
+  flex-direction: column;
+  height: $tg-viewport-height;
+  overflow: hidden;
+}

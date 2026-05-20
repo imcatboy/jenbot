@@ -101,7 +101,7 @@ class AdvertisementEntityWithOptions(AdvertisementEntity):
 
 
 class AdvertisementEntityWithRelations(AdvertisementEntity):
-    product: ProductWithCategoryEntity
+    product: ProductWithImagesEntity
     user: UserWithMarketplaceUserEntity
 
 
