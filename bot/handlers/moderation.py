@@ -53,7 +53,7 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.username or purpose_user.telegram_id,
+            purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
             command_data.reason,
         )
@@ -124,7 +124,7 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            purpose_user.username or purpose_user.telegram_id,
+            purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
             command_data.reason,
         )
@@ -195,7 +195,7 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            purpose_user.username or purpose_user.telegram_id,
+            purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
             command_data.reason,
         )
