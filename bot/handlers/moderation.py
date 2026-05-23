@@ -53,7 +53,7 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.username or purpose_user.id,
+            purpose_user.username or purpose_user.telegram_id,
             command_data.expires_at,
             command_data.reason,
         )
@@ -124,7 +124,7 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            purpose_user.username or purpose_user.id,
+            purpose_user.username or purpose_user.telegram_id,
             command_data.expires_at,
             command_data.reason,
         )
@@ -195,7 +195,7 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            purpose_user.username or purpose_user.id,
+            purpose_user.username or purpose_user.telegram_id,
             command_data.expires_at,
             command_data.reason,
         )
@@ -218,7 +218,9 @@ async def unwarn_handler(
 ):
     await moderation_service.unwarn_user(command_data.id)
     violation = await moderation_service.get_violation(command_data.id)
-    await audit_actions.upload_action_audit(ChatAction.UNWARN, violation.user, violation.applied_by_user, command_data.id)
+    await audit_actions.upload_action_audit(
+        ChatAction.UNWARN, violation.user, violation.applied_by_user, command_data.id
+    )
     await message.answer(text.UNWARN_USER_SUCCESS)
 
 
@@ -254,7 +256,9 @@ async def violations_handler(
     has_more = len(violations) == dto.limit
     await message.answer(
         text.get_violations_message(violations),
-        reply_markup=get_violations_keyboard(0, dto.limit - 1, purpose_user.id, has_more),
+        reply_markup=get_violations_keyboard(
+            0, dto.limit - 1, purpose_user.id, has_more
+        ),
     )
 
 
