@@ -11,7 +11,5 @@ env
 *.log
 .env
 web/
-api/
-alembic/
 *.md
 .dockerignore
