@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY bot/ ./bot/
 COPY domain/ ./domain/
+COPY alembic/ ./alembic/
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
