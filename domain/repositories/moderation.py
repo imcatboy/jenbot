@@ -16,7 +16,7 @@ class ModerationRepository(BaseRepository):
 
     async def add_violation(
         self, dto: dtos.AddViolationDTO
-    ) -> entities.ViolationEntity:
+    ) -> entities.ChatViolationEntity:
         violation = models.ChatViolationModel(**dto.model_dump())
         await self.create_relation(violation, models.UserModel, dto.user_id)
         await self.create_relation(
@@ -24,18 +24,23 @@ class ModerationRepository(BaseRepository):
         )
         self.session.add(violation)
         await self.session.flush()
-        return entities.ViolationEntity.model_validate(violation)
+        return entities.ChatViolationEntity.model_validate(violation)
 
     async def get_violations(
-        self, user_id: int
-    ) -> List[entities.ViolationWithUserEntity]:
-        violations = await self.get_all_by_data(
-            models.ChatViolationModel,
-            options=get_violation_relations(),
-            user_id=user_id,
+        self, dto: dtos.GetViolationsDTO
+    ) -> List[entities.ChatViolationWithUserEntity]:
+        result = await self.session.execute(
+            select(models.ChatViolationModel)
+            .join(models.UserModel, models.ChatViolationModel.user_id == models.UserModel.id)
+            .where(models.ChatViolationModel.user_id == dto.user_id)
+            .order_by(models.ChatViolationModel.is_active.desc(), models.ChatViolationModel.created_at.desc())
+            .options(*get_violation_relations())
+            .limit(dto.limit)
+            .offset(dto.offset)
         )
+        violations = result.scalars().all()
         return [
-            entities.ViolationWithUserEntity.model_validate(violation)
+            entities.ChatViolationWithUserEntity.model_validate(violation)
             for violation in violations
         ]
 
@@ -51,9 +56,9 @@ class ModerationRepository(BaseRepository):
         )
         await self.session.flush()
 
-    async def get_violation(self, violation_id: int) -> entities.ViolationEntity:
-        violation = await self.get_by_id(models.ChatViolationModel, violation_id)
-        return entities.ViolationEntity.model_validate(violation)
+    async def get_violation(self, violation_id: int) -> entities.ChatViolationWithUserEntity:
+        violation = await self.get_by_id(models.ChatViolationModel, violation_id, get_violation_relations())
+        return entities.ChatViolationWithUserEntity.model_validate(violation)
 
     async def set_violations_inactive(self, user_id: int, type: ViolationType) -> None:
         await self.session.execute(
@@ -84,8 +89,8 @@ class ModerationRepository(BaseRepository):
             query = query.where(models.ReportModel.user_id == dto.user_id)
         if dto.status:
             query = query.where(models.ReportModel.status == dto.status)
-        if dto.report_type:
-            query = query.where(models.ReportModel.report_type == dto.report_type)
+        if dto.type:
+            query = query.where(models.ReportModel.type == dto.type)
         if dto.accused_user_id:
             query = query.where(models.ReportModel.accused_user_id == dto.accused_user_id)
         
@@ -103,7 +108,7 @@ class ModerationRepository(BaseRepository):
         query = query.where(
             models.ReportModel.id == dto.report_id,
             models.ReportModel.status == dto.status,
-            models.ReportModel.report_type == dto.report_type,
+            models.ReportModel.type == dto.type,
         )
         result = await self.session.execute(query)
         report = result.scalar_one_or_none()
@@ -128,10 +133,10 @@ class ModerationRepository(BaseRepository):
             )
         )
 
-    async def get_violations_to_actualize(self) -> List[entities.ViolationWithUserEntity]:
+    async def get_violations_to_actualize(self) -> List[entities.ChatViolationWithUserEntity]:
         violations = await self.get_all_by_data(
             models.ChatViolationModel,
             is_active=True,
             options=get_violation_relations(),
         )
-        return [entities.ViolationWithUserEntity.model_validate(violation) for violation in violations]
+        return [entities.ChatViolationWithUserEntity.model_validate(violation) for violation in violations]

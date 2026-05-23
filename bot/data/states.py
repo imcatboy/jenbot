@@ -4,7 +4,7 @@ from aiogram.fsm.state import State, StatesGroup
 class ReportState(StatesGroup):
     reason = State()
     attachments = State()
-    report_type = State()
+    type = State()
     accused_user_id = State()
     username = State()
 

@@ -22,3 +22,16 @@ class ReputationRoleCallback(CallbackData, prefix="reputation_role"):
 
 class CheckCallback(CallbackData, prefix="check"):
     report_id: int
+
+
+class ViolationsCallback(CallbackData, prefix="violations"):
+    user_id: int
+    offset: int
+
+
+class CancelCallback(CallbackData, prefix="cancel"):
+    user_id: int
+
+
+class SkipCallback(CallbackData, prefix="skip"):
+    user_id: int

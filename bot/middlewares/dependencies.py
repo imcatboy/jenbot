@@ -46,12 +46,18 @@ class DIMiddleware(BaseMiddleware):
             config_service=config_service,
         )
         data["moderation_service"] = moderation_service
+        audit_actions = AuditActions(
+            moderation_service=moderation_service,
+            config_service=config_service,
+            bot=bot,
+        )
         moderation_actions = ModerationActions(
             moderation_service=moderation_service,
             user_service=user_service,
             config_service=config_service,
             bot=bot,
         )
+        data["audit_actions"] = audit_actions
         data["moderation_actions"] = moderation_actions
         user_actions = UserActions(user_service=user_service, bot=bot)
         data["user_actions"] = user_actions

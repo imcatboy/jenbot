@@ -1,17 +1,18 @@
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.enums import ChatType
 from typing import Optional
 from aiogram import Router
 from html import escape
 
+from bot.data.keyboards import get_violations_keyboard
 from domain.services import ModerationService, ConfigService
-from bot.actions import UserActions, ModerationActions
+from bot.actions import UserActions, ModerationActions, AuditActions
 from domain.objects import dtos, entities, exceptions
-from domain.objects.types import UserRole
+from bot.filters import GroupsFilter, UsersFilter
+from domain.objects.types import UserRole, ChatAction
 from domain.services import UserService
-from bot.filters import GroupsFilter
-from bot.data import text
+from bot.data import text, callbacks
 
 
 moderation_router = Router()
@@ -31,6 +32,7 @@ async def ban_handler(
     user: entities.UserEntity,
     user_actions: UserActions,
     moderation_actions: ModerationActions,
+    audit_actions: AuditActions,
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
@@ -47,7 +49,8 @@ async def ban_handler(
         telegram_chat_id=message.chat.id,
         expires_at=command_data.expires_at,
     )
-    await moderation_actions.ban_user(dto)
+    violation = await moderation_actions.ban_user(dto)
+    await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
             purpose_user.username,
@@ -68,8 +71,10 @@ async def ban_handler(
 async def unban_handler(
     message: Message,
     command_data: dtos.UnbanCommandDTO,
+    user: entities.UserEntity,
     user_actions: UserActions,
     moderation_actions: ModerationActions,
+    audit_actions: AuditActions,
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
@@ -80,7 +85,8 @@ async def unban_handler(
         return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
 
     await moderation_actions.unban_user(purpose_user.id, message.chat.id)
-    await message.answer(text.UNBAN_USER_SUCCESS.format(escape(command_data.username)))
+    await audit_actions.upload_action_audit(ChatAction.UNBAN, purpose_user, user)
+    await message.answer(text.UNBAN_USER_SUCCESS.format(escape(purpose_user.username)))
 
 
 @moderation_router.message(
@@ -97,6 +103,7 @@ async def mute_handler(
     user: entities.UserEntity,
     user_actions: UserActions,
     moderation_actions: ModerationActions,
+    audit_actions: AuditActions,
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
@@ -113,7 +120,8 @@ async def mute_handler(
         telegram_chat_id=message.chat.id,
         expires_at=command_data.expires_at,
     )
-    await moderation_actions.mute_user(dto)
+    violation = await moderation_actions.mute_user(dto)
+    await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
             purpose_user.username,
@@ -136,6 +144,8 @@ async def unmute_handler(
     command_data: dtos.UnmuteCommandDTO,
     user_actions: UserActions,
     moderation_actions: ModerationActions,
+    user: entities.UserEntity,
+    audit_actions: AuditActions,
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
@@ -146,7 +156,8 @@ async def unmute_handler(
         return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
 
     await moderation_actions.unmute_user(purpose_user.id, message.chat.id)
-    await message.answer(text.UNMUTE_USER_SUCCESS.format(escape(command_data.username)))
+    await audit_actions.upload_action_audit(ChatAction.UNMUTE, purpose_user, user)
+    await message.answer(text.UNMUTE_USER_SUCCESS.format(escape(purpose_user.username)))
 
 
 @moderation_router.message(
@@ -163,6 +174,7 @@ async def warn_handler(
     user: entities.UserEntity,
     user_actions: UserActions,
     moderation_service: ModerationService,
+    audit_actions: AuditActions,
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
@@ -179,7 +191,8 @@ async def warn_handler(
         telegram_chat_id=message.chat.id,
         expires_at=command_data.expires_at,
     )
-    await moderation_service.warn_user(dto)
+    violation = await moderation_service.warn_user(dto)
+    await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
             purpose_user.username,
@@ -201,8 +214,11 @@ async def unwarn_handler(
     message: Message,
     command_data: dtos.UnwarnCommandDTO,
     moderation_service: ModerationService,
+    audit_actions: AuditActions,
 ):
     await moderation_service.unwarn_user(command_data.id)
+    violation = await moderation_service.get_violation(command_data.id)
+    await audit_actions.upload_action_audit(ChatAction.UNWARN, violation.user, violation.applied_by_user, command_data.id)
     await message.answer(text.UNWARN_USER_SUCCESS)
 
 
@@ -229,8 +245,41 @@ async def violations_handler(
     else:
         purpose_user = user
 
-    violations = await moderation_service.get_violations(purpose_user.id)
-    await message.answer(text.get_violations_message(violations))
+    dto = dtos.GetViolationsDTO(
+        user_id=purpose_user.id,
+        limit=6,
+        offset=0,
+    )
+    violations = await moderation_service.get_violations(dto)
+    has_more = len(violations) == dto.limit
+    await message.answer(
+        text.get_violations_message(violations),
+        reply_markup=get_violations_keyboard(0, dto.limit - 1, purpose_user.id, has_more),
+    )
+
+
+@moderation_router.callback_query(
+    callbacks.ViolationsCallback.filter(),
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+)
+async def violations_callback(
+    callback: CallbackQuery,
+    callback_data: callbacks.ViolationsCallback,
+    moderation_service: ModerationService,
+):
+    dto = dtos.GetViolationsDTO(
+        user_id=callback_data.user_id,
+        limit=6,
+        offset=callback_data.offset,
+    )
+    violations = await moderation_service.get_violations(dto)
+    has_more = len(violations) == dto.limit
+    await callback.message.edit_text(
+        text.get_violations_message(violations),
+        reply_markup=get_violations_keyboard(
+            callback_data.offset, dto.limit - 1, callback_data.user_id, has_more
+        ),
+    )
 
 
 @moderation_router.message(

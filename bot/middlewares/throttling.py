@@ -33,8 +33,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         user_id = message.from_user.id
 
         if user_id in self.cache:
-            await message.answer(text.THROTTLE_ERROR, show_alert=True)
-            return None
+            return
 
         self.cache[user_id] = True
         return await handler(event, data)

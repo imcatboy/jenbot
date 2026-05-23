@@ -81,6 +81,12 @@ class DealCondition(StrEnum):
     CANCELLED = "cancelled"
 
 
+class ChatAction(StrEnum):
+    UNMUTE = "unmute"
+    UNWARN = "unwarn"
+    UNBAN = "unban"
+
+
 def parse_username(v: Any) -> Union[str, int]:
     if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
         return v.replace("@", "")
@@ -177,7 +183,11 @@ def parse_relative_time(v: Any) -> datetime:
             td_kwargs[key] = int(match.group(1))
 
     if not td_kwargs:
-        raise ValueError("Invalid time format. Use 'd', 'h' or 'm'")
+        raise ValueError("Invalid time format. Use 'd', 'h', 'm' or 'w'")
+
+    for value in td_kwargs.values():
+        if value > 1000:
+            raise ValueError("Invalid time format. Use < 1000 days, hours, minutes or weeks")
 
     return datetime.now() + timedelta(**td_kwargs)
 

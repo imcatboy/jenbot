@@ -8,3 +8,4 @@ from .media import MediaCheckMiddleware
 from .album import AlbumMiddleware
 from .state import StateMiddleware
 from .words import WordsMiddleware
+from .role import RoleMiddleware

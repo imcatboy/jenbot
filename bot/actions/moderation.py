@@ -49,7 +49,7 @@ class ModerationActions:
             reply_markup=keyboards.get_report_keyboard(report),
         )
 
-    async def ban_user(self, dto: dtos.BanUserDTO) -> entities.ViolationEntity:
+    async def ban_user(self, dto: dtos.BanUserDTO) -> entities.ChatViolationEntity:
         user = await self.user_service.get_by_id(dto.user_id)
 
         if user.role != UserRole.USER:
@@ -86,7 +86,7 @@ class ModerationActions:
             user_id, ViolationType.BAN
         )
 
-    async def mute_user(self, dto: dtos.MuteUserDTO) -> entities.ViolationEntity:
+    async def mute_user(self, dto: dtos.MuteUserDTO) -> entities.ChatViolationEntity:
         user = await self.user_service.get_by_id(dto.user_id)
 
         if user.role != UserRole.USER:

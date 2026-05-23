@@ -80,6 +80,11 @@ VIOLATIONS = {
     types.ViolationType.MUTE: "Мьют",
     types.ViolationType.BAN: "Бан",
 }
+CHAT_ACTIONS = {
+    types.ChatAction.UNMUTE: "💤 Размьют",
+    types.ChatAction.UNWARN: "💤 Снятие предупреждения",
+    types.ChatAction.UNBAN: "🔓 Снятие бана",
+}
 REPORT_TYPES = {
     types.ReportType.SCAM: "⚠️ Скам",
     types.ReportType.UNBAN: "💬 Снятие нарушения",
@@ -105,36 +110,6 @@ HOMOGLYPHS = str.maketrans(
     "ayBkKMnoPpCcTyXxeE", 
     "ауВкКМноРрСсТуХхеЕ"
 )
-
-HELP_MESSAGE = """<b>Справка по командам</b>
-
-<b>Обращения и проверки</b>
-• <code>/report</code> — создать обращение: выбор типа, затем пошаговый ввод (при необходимости пользователь/причина/вложения).
-• <code>/check @username</code> или <code>/check ID</code> — посмотреть репутацию пользователя и одобренные скам-отчёты (кнопки под сообщением).
-
-<b>Общие</b>
-• <code>/getid</code> — ваш Telegram ID; если ответить на чужое сообщение — ID автора ответа.
-• <code>/violations</code> — список ваших нарушений.
-• <code>/violations @username</code> или <code>/violations ID</code> — нарушения другого пользователя (только админ или модератор).
-• <code>/rules</code> — текст правил из настроек бота.
-• <code>/moderators</code> — список модераторов.
-
-<b>Модерация в группе</b> (только группы и супергруппы; роль админ или модератор, кроме отдельно указанного)
-• <code>/ban @username|ID (срок) причина</code> — бан. Срок опционально, формат времени например <code>1d12h</code> (d, h, m, w). Причина до 255 символов.
-• <code>/unban @username|ID</code> — снять бан в этом чате.
-• <code>/mute @username|ID (срок) причина</code> — мьют (срок и формат как у бана).
-• <code>/unmute @username|ID</code> — снять мьют.
-• <code>/warn @username|ID (срок) причина</code> — предупреждение.
-• <code>/unwarn ID</code> — деактивировать предупреждение по его числовому ID (из списка <code>/violations</code>).
-
-<b>Управление модераторами</b> (только админ)
-• <code>/addmoderator @username|ID</code> — назначить модератором.
-• <code>/removemoderator @username|ID</code> — вернуть роль обычного пользователя.
-
-<b>Администрирование бота</b> (только админ)
-• <code>/setsetting название значение</code> — сохранить настройку: <code>название</code> — латиница, цифры и подчёркивание, 3–255 символов; <code>значение</code> — текст до 1024 символов (например правила под ключом <code>rules</code>).
-• <code>/setreputation @username|ID</code> — задать репутацию: после команды выберите роль кнопками и введите описание (до 255 символов).
-"""
 
 
 def _usage_label_for_field(name: str, field_info: FieldInfo) -> str:
@@ -222,7 +197,7 @@ def get_warn_user_success_message(
         return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(escape(username), escape(reason))
 
 
-def get_violations_message(violations: List[entities.ViolationWithUserEntity]) -> str:
+def get_violations_message(violations: List[entities.ChatViolationWithUserEntity]) -> str:
     message = "🚨 <b>Нарушения</b>\n\n"
     active_violations = [violation for violation in violations if violation.is_active]
     inactive_violations = [
@@ -269,6 +244,32 @@ def get_violations_message(violations: List[entities.ViolationWithUserEntity]) -
     return message
 
 
+def get_audit_message(violation: entities.ChatViolationWithUserEntity) -> str:
+    message = f"<b>{VIOLATIONS[violation.type]}</b>\n\n"
+    message += f"Выдан: @{violation.applied_by_user.username} (<code>{violation.applied_by_user.telegram_id}</code>)\n"
+    message += f"В чате: <code>{violation.telegram_chat_id}</code>\n"
+    message += f"Пользователь: @{violation.user.username} (<code>{violation.user.telegram_id}</code>)\n"
+    message += f"От: {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
+
+    if violation.expires_at:
+        message += f"\nДо: {violation.expires_at.strftime('%d.%m.%Y %H:%M')}"
+
+    message += f"\n\n<blockquote>{escape(violation.reason)}</blockquote>"
+
+    return message
+
+
+def get_action_audit_message(action: types.ChatAction, user: entities.UserEntity, applied_by_user: entities.UserEntity, violation_id: Optional[int] = None) -> str:
+    message = f"<b>{CHAT_ACTIONS[action]}</b>\n\n"
+    message += f"Пользователь: @{user.username} (<code>{user.telegram_id}</code>)\n"
+    message += f"Выполнил: @{applied_by_user.username} (<code>{applied_by_user.telegram_id}</code>)\n"
+    
+    if violation_id:
+        message += f"Нарушение: <code>{violation_id}</code>"
+
+    return message
+
+
 def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
     message = "👮 <b>Модераторы</b>\n\n"
     for moderator in moderators:
@@ -277,7 +278,7 @@ def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
 
 
 def get_report_message(report: entities.ReportWithUserEntity) -> str:
-    message = f"<b>{REPORT_TYPES[report.report_type]}</b>\n\n"
+    message = f"<b>{REPORT_TYPES[report.type]}</b>\n\n"
     message += f"Статус: <b>{REPORT_STATUSES[report.status]}</b>\n"
     message += f"Пользователь: @{report.user.username} (<code>{report.user.telegram_id}</code>)\n"
 

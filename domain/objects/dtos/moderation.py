@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from domain.objects.types import ViolationType, ReportStatus, ReportType
+from domain.objects.types import ViolationType, ReportStatus, ReportType, ChatAction
 from .base import BaseDTO
 
 
@@ -41,7 +41,7 @@ class WarnUserDTO(BaseDTO):
 class AddReportDTO(BaseDTO):
     reason: str
     attachments: List[str]
-    report_type: ReportType
+    type: ReportType
     user_id: int
     accused_user_id: Optional[int] = None
 
@@ -55,11 +55,17 @@ class UpdateReportDTO(BaseDTO):
 class GetReportsDTO(BaseDTO):
     user_id: Optional[int] = None
     status: Optional[ReportStatus] = None
-    report_type: Optional[ReportType] = None
+    type: Optional[ReportType] = None
     accused_user_id: Optional[int] = None
 
 
 class GetUserReportDTO(BaseDTO):
     report_id: int
     status: ReportStatus
-    report_type: ReportType
+    type: ReportType
+
+
+class GetViolationsDTO(BaseDTO):
+    user_id: int
+    limit: int
+    offset: int

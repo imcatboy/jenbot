@@ -39,18 +39,18 @@ async def report_callback_handler(
         await callback.message.edit_text(text.REPORT_ALREADY_PENDING)
         return
 
-    await state.update_data(report_type=callback_data.type)
+    await state.update_data(type=callback_data.type)
 
     if callback_data.type in [types.ReportType.SCAM, types.ReportType.VIOLATION]:
         await state.set_state(states.ReportState.accused_user_id)
         await callback.message.edit_text(
-            text.REPORT_ACCUSED_USER_ID_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+            text.REPORT_ACCUSED_USER_ID_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
         )
         return
 
     await state.set_state(states.ReportState.reason)
     await callback.message.edit_text(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
     )
 
 
@@ -68,20 +68,22 @@ async def accused_user_id_handler(
     except exceptions.UserNotFoundException:
 
         if isinstance(state_data, str):
-            await message.answer(text.REPORT_USERNAME_NOT_FOUND.format(escape(state_data)))
+            await message.answer(
+                text.REPORT_USERNAME_NOT_FOUND.format(escape(state_data))
+            )
             return
 
         await state.update_data(accused_user_id=state_data)
         await state.set_state(states.ReportState.username)
         await message.answer(
-            text.REPORT_USERNAME_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+            text.REPORT_USERNAME_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
         )
         return
 
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
     )
 
 
@@ -98,7 +100,7 @@ async def username_handler(
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
     )
 
 
@@ -108,24 +110,30 @@ async def reason_handler(message: Message, state_data: types.Text, state: FSMCon
     await state.set_state(states.ReportState.attachments)
     await message.answer(
         text.REPORT_ATTACHMENTS_MESSAGE,
-        reply_markup=keyboards.REPORT_ATTACHMENTS_KEYBOARD,
+        reply_markup=keyboards.get_skip_keyboard(message.from_user.id),
     )
 
 
-@report_router.callback_query(F.data == "skip", states.ReportState.attachments)
+@report_router.callback_query(
+    callbacks.SkipCallback.filter(), states.ReportState.attachments
+)
 async def skip_handler(
     callback: CallbackQuery,
+    callback_data: callbacks.SkipCallback,
     state: FSMContext,
     moderation_service: ModerationService,
     user: entities.UserEntity,
     moderation_actions: ModerationActions,
 ):
+    if callback.message.from_user.id != callback_data.user_id:
+        return
+
     await state.update_data(attachments=[])
     data = await state.get_data()
     dto = dtos.AddReportDTO(
         reason=data["reason"],
         attachments=data["attachments"],
-        report_type=data["report_type"],
+        type=data["type"],
         user_id=user.id,
         accused_user_id=data.get("accused_user_id"),
     )
@@ -150,7 +158,7 @@ async def attachments_handler(
     dto = dtos.AddReportDTO(
         reason=data["reason"],
         attachments=data["attachments"],
-        report_type=data["report_type"],
+        type=data["type"],
         user_id=user.id,
         accused_user_id=data.get("accused_user_id"),
     )
@@ -159,8 +167,15 @@ async def attachments_handler(
     await message.answer(text.REPORT_SUCCESS)
 
 
-@report_router.callback_query(F.data == "cancel")
-async def cancel_handler(callback: CallbackQuery, state: FSMContext):
+@report_router.callback_query(callbacks.CancelCallback.filter())
+async def cancel_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.CancelCallback,
+    state: FSMContext,
+):
+    if callback.message.from_user.id != callback_data.user_id:
+        return
+
     await state.clear()
     await callback.message.edit_text(text.STATE_CANCELLED)
 
@@ -180,7 +195,7 @@ async def check_handler(
             dtos.GetReportsDTO(
                 accused_user_id=user.id,
                 status=ReportStatus.APPROVED,
-                report_type=ReportType.SCAM,
+                type=ReportType.SCAM,
             )
         )
     except (exceptions.UserNotFoundException, exceptions.ObjectNotFoundException):
@@ -204,7 +219,7 @@ async def check_callback_handler(
         dtos.GetUserReportDTO(
             report_id=callback_data.report_id,
             status=ReportStatus.APPROVED,
-            report_type=ReportType.SCAM,
+            type=ReportType.SCAM,
         )
     )
 

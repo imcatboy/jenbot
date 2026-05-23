@@ -44,7 +44,7 @@ async def reportstatus_callback_handler(
     )
     await state.set_state(states.AdminReportState.report_status)
     await callback.message.reply(
-        text.REPORT_COMMENT_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+        text.REPORT_COMMENT_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id)
     )
 
 
@@ -87,7 +87,7 @@ async def reportaccusseduser_callback_handler(
     await state.update_data(accused_user_id=callback_data.id)
     await state.set_state(states.AdminScamReportState.description)
     await callback.message.reply(
-        text.REPORT_ACCUSED_DESCRIPTION_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD
+        text.REPORT_ACCUSED_DESCRIPTION_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id)
     )
 
 
@@ -139,7 +139,7 @@ async def reputationrole_callback_handler(
 ):
     await state.update_data(role=callback_data.role)
     await state.set_state(states.AdminSetReputationState.description)
-    await callback.message.reply(text.SET_REPUTATION_DESCRIPTION_MESSAGE, reply_markup=keyboards.CANCEL_KEYBOARD)
+    await callback.message.reply(text.SET_REPUTATION_DESCRIPTION_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id))
 
 
 @admin_router.message(

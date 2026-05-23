@@ -69,6 +69,7 @@ class CommandValidationMiddleware(BaseMiddleware):
         try:
             validated_data = model.model_validate(payload)
             data["command_data"] = validated_data
-            return await handler(event, data)
         except ValidationError:
             return await event.answer(text.COMMAND_ARGUMENTS_VALIDATION_ERROR.format(text.get_command_usage(command, model)))
+
+        return await handler(event, data)

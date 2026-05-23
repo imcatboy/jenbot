@@ -20,13 +20,16 @@ class ModerationService:
 
     async def add_violation(
         self, dto: dtos.AddViolationDTO
-    ) -> entities.ViolationEntity:
+    ) -> entities.ChatViolationEntity:
         return await self.moderation_repository.add_violation(dto)
 
-    async def get_violations(self, user_id: int) -> List[entities.ViolationEntity]:
-        return await self.moderation_repository.get_violations(user_id)
+    async def get_violations(self, dto: dtos.GetViolationsDTO) -> List[entities.ChatViolationWithUserEntity]:
+        return await self.moderation_repository.get_violations(dto)
 
-    async def warn_user(self, dto: dtos.WarnUserDTO) -> entities.ViolationEntity:
+    async def get_violation(self, violation_id: int) -> entities.ChatViolationWithUserEntity:
+        return await self.moderation_repository.get_violation(violation_id)
+
+    async def warn_user(self, dto: dtos.WarnUserDTO) -> entities.ChatViolationEntity:
         user = await self.user_repository.get(dto.user_id)
 
         if user.role != UserRole.USER:
@@ -69,7 +72,7 @@ class ModerationService:
     ) -> None:
         return await self.moderation_repository.update_report(report_id, dto)
 
-    async def get_violations_to_actualize(self) -> List[entities.ViolationWithUserEntity]:
+    async def get_violations_to_actualize(self) -> List[entities.ChatViolationWithUserEntity]:
         return await self.moderation_repository.get_violations_to_actualize()
     
     async def set_violations_active(self, ids: List[int], is_active: bool) -> None:

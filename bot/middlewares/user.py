@@ -1,10 +1,8 @@
-from aiogram.dispatcher.event.handler import HandlerObject
 from typing import Callable, Dict, Any, Awaitable, Union
 from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 
 from domain.services import UserService
-from bot.data import text
 
 
 class UserMiddleware(BaseMiddleware):
@@ -26,7 +24,6 @@ class UserMiddleware(BaseMiddleware):
             event.from_user.id, event.from_user.username
         )
         data["user"] = user
-        handler_object: HandlerObject = data["handler"]
 
         if (
             isinstance(event, Message)
@@ -38,20 +35,5 @@ class UserMiddleware(BaseMiddleware):
                 event.reply_to_message.from_user.username,
             )
             data["reply_to_user"] = reply_to_user
-
-        if handler_object.flags.get(
-            "user_role"
-        ) and not user.role in handler_object.flags.get("user_role"):
-            message: Message | None = None
-
-            if isinstance(event, Message):
-                message = event
-            elif isinstance(event, CallbackQuery):
-                message = event.message
-
-            if message:
-                return await message.answer(text.USER_NOT_ALLOWED_TO_ACTION)
-
-            return
 
         return await handler(event, data)

@@ -42,16 +42,6 @@ REPORT_TYPE_KEYBOARD = InlineKeyboardMarkup(
 )
 
 
-REPORT_ATTACHMENTS_KEYBOARD = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="❌ Отмена", callback_data="cancel"),
-            InlineKeyboardButton(text="➡️ Пропустить", callback_data="skip"),
-        ]
-    ]
-)
-
-
 REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -100,9 +90,28 @@ REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
 )
 
 
-CANCEL_KEYBOARD = InlineKeyboardMarkup(
-    inline_keyboard=[[InlineKeyboardButton(text="❌ Отмена", callback_data="cancel")]]
-)
+
+
+def get_cancel_keyboard(user_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="❌ Отмена",
+        callback_data=CancelCallback(user_id=user_id).pack(),
+    )
+    return builder.as_markup()
+
+
+def get_skip_keyboard(user_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="❌ Отмена",
+        callback_data=CancelCallback(user_id=user_id).pack(),
+    )
+    builder.button(
+        text="➡️ Пропустить",
+        callback_data=SkipCallback(user_id=user_id).pack(),
+    )
+    return builder.adjust(2).as_markup()
 
 
 def get_subscriptions_keyboard(subscriptions: List[int]) -> InlineKeyboardMarkup:
@@ -146,7 +155,7 @@ def get_report_keyboard(report: entities.ReportWithUserEntity) -> InlineKeyboard
             ).pack(),
         )
 
-    if report.report_type == ReportType.SCAM and report.accused_user:
+    if report.type == ReportType.SCAM and report.accused_user:
         builder.button(
             text=f"📌 Отметить как скам",
             callback_data=ReportAccusedUserCallback(id=report.accused_user.id).pack(),
@@ -165,3 +174,21 @@ def get_check_keyboard(reports: List[entities.ReportEntity]) -> InlineKeyboardMa
         )
 
     return builder.adjust(3).as_markup()
+
+
+def get_violations_keyboard(offset: int, limit: int, user_id: int, has_more: bool) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    if offset > 0:
+        builder.button(
+            text="⬅️ Назад",
+            callback_data=ViolationsCallback(user_id=user_id, offset=max(0, offset - limit)).pack(),
+        )
+
+    if has_more:
+        builder.button(
+            text="➡️ Вперед",
+            callback_data=ViolationsCallback(user_id=user_id, offset=offset + limit).pack(),
+        )
+    
+    return builder.adjust(2).as_markup()

@@ -25,7 +25,7 @@ class ChatViolationModel(EntityModel):
     )
     telegram_chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
     expires_at: Mapped[Optional[datetime]]
-    is_active: Mapped[bool]
+    is_active: Mapped[bool] = mapped_column(default=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     applied_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped[UserModel] = relationship(
@@ -57,7 +57,7 @@ class ReportModel(EntityModel):
 
     reason: Mapped[str] = mapped_column(String(1024))
     status: Mapped[ReportStatus] = mapped_column(
-        Enum(ReportStatus, name="REPORT_STATUS"), index=True
+        Enum(ReportStatus, name="REPORT_STATUS"), index=True, default=ReportStatus.PENDING,
     )
     attachments: Mapped[List[str]] = mapped_column(ARRAY(String(255)))
     type: Mapped[ReportType] = mapped_column(

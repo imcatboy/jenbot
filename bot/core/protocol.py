@@ -94,3 +94,14 @@ class BotProtocol(Protocol):
         reply_to_message_id: Optional[int] = None,
         request_timeout: Optional[int] = None,
     ) -> list[Message]: ...
+
+    async def forward_message(
+        self,
+        chat_id: Union[int, str],
+        from_chat_id: Union[int, str],
+        message_id: int,
+        message_thread_id: Optional[int] = None,
+        disable_notification: Optional[bool] = None,
+        protect_content: Optional[Union[bool, Default]] = Default("protect_content"),
+        request_timeout: Optional[int] = None,
+    ) -> Message: ...
