@@ -1,13 +1,10 @@
-from aiogram.types import Message, CallbackQuery
 from typing import Callable, Dict, Any, Awaitable, Union
+from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 from cachetools import TTLCache
 
-from bot.data import text
-
 
 class ThrottlingMiddleware(BaseMiddleware):
-    
     def __init__(self, rate_limit: float) -> None:
         self.cache = TTLCache[str, bool](maxsize=10_000, ttl=rate_limit)
 
@@ -17,23 +14,22 @@ class ThrottlingMiddleware(BaseMiddleware):
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
-        if not getattr(event, "from_user", None):
+        if not event.from_user:
             return await handler(event, data)
+
+        if isinstance(event, Message) and event.media_group_id:
+            return await handler(event, data)
+
+        user_id = event.from_user.id
         
-        message: Message | None = None
+        event_type = "msg" if isinstance(event, Message) else "cb"
+        cache_key = f"{event_type}:{user_id}"
 
-        if isinstance(event, Message):
-            message = event
-        elif isinstance(event, CallbackQuery):
-            message = event.message
-
-        if not message:
-            return await handler(event, data)
-
-        user_id = message.from_user.id
-
-        if user_id in self.cache:
+        if cache_key in self.cache:
+            if isinstance(event, CallbackQuery):
+                await event.answer("Too many requests! Please wait a second.", show_alert=False)
+            
             return
 
-        self.cache[user_id] = True
+        self.cache[cache_key] = True
         return await handler(event, data)
