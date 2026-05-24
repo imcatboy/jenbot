@@ -16,7 +16,7 @@ from bot.actions import ModerationActions, UserActions
 report_router = Router()
 
 
-@report_router.message(Command("report", "r", ignore_case=True))
+@report_router.message(Command("report", "rep", ignore_case=True))
 async def report_handler(message: Message):
     await message.answer(
         text.REPORT_TYPE_MESSAGE, reply_markup=keyboards.REPORT_TYPE_KEYBOARD
@@ -66,7 +66,6 @@ async def accused_user_id_handler(
     try:
         accused_user = await user_actions.get_telegram_user(state_data)
     except exceptions.UserNotFoundException:
-
         if isinstance(state_data, str):
             await message.answer(
                 text.REPORT_USERNAME_NOT_FOUND.format(escape(state_data))
@@ -91,12 +90,12 @@ async def accused_user_id_handler(
 async def username_handler(
     message: Message,
     state_data: types.Username,
-    user_actions: UserActions,
+    user_service: UserService,
     state: FSMContext,
 ):
     state_payload = await state.get_data()
     telegram_id = state_payload["accused_user_id"]
-    accused_user = await user_actions.get_telegram_user(telegram_id)
+    accused_user = await user_service.get_or_create(telegram_id, state_data)
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(
