@@ -172,7 +172,7 @@ async def cancel_handler(
     callback_data: callbacks.CancelCallback,
     state: FSMContext,
 ):
-    if callback.message.from_user.id != callback_data.user_id:
+    if callback.from_user.id != callback_data.user_id:
         return
 
     await state.clear()
