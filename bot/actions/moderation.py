@@ -50,6 +50,17 @@ class ModerationActions:
             reply_markup=keyboards.get_report_keyboard(report),
         )
 
+    async def send_report_updated_message(
+        self, report: entities.ReportWithUserEntity
+    ) -> None:
+        try:
+            await self.bot.send_message(
+                report.user.telegram_id,
+                text.get_report_updated_message(report),
+            )
+        except TelegramAPIError:
+            pass
+
     async def ban_user(self, dto: dtos.BanUserDTO) -> entities.ChatViolationEntity:
         user = await self.user_service.get_by_id(dto.user_id)
 

@@ -10,7 +10,9 @@ class ThrottlingMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[
+            [Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]
+        ],
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
@@ -21,14 +23,16 @@ class ThrottlingMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         user_id = event.from_user.id
-        
+
         event_type = "msg" if isinstance(event, Message) else "cb"
         cache_key = f"{event_type}:{user_id}"
 
         if cache_key in self.cache:
             if isinstance(event, CallbackQuery):
-                await event.answer("Too many requests! Please wait a second.", show_alert=False)
-            
+                await event.answer(
+                    "Too many requests! Please wait a second.", show_alert=False
+                )
+
             return
 
         self.cache[cache_key] = True

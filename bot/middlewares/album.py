@@ -23,7 +23,7 @@ class AlbumMiddleware(BaseMiddleware):
 
         if event.media_group_id not in self.cache:
             self.cache[event.media_group_id] = []
-        
+
         self.cache[event.media_group_id].append(event)
 
         if event.media_group_id in self.lock_cache:

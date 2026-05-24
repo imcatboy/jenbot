@@ -9,7 +9,7 @@ from bot.data import text
 
 
 class CommandValidationMiddleware(BaseMiddleware):
-    
+
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
@@ -29,28 +29,36 @@ class CommandValidationMiddleware(BaseMiddleware):
 
         raw_args = command.args.strip() if command.args else ""
         current_args_list = raw_args.split()
-        
+
         fields = list(model.model_fields.items())
         payload = {}
         arg_index = 0
-        
+
         for i, (name, field_info) in enumerate(fields):
-            is_last = (i == len(fields) - 1)
-            
+            is_last = i == len(fields) - 1
+
             if is_last:
                 remaining_text = " ".join(current_args_list[arg_index:])
 
                 if remaining_text:
                     payload[name] = remaining_text
                 elif field_info.is_required():
-                    return await event.answer(text.COMMAND_ARGUMENTS_ERROR.format(text.get_command_usage(command, model)))
-                
+                    return await event.answer(
+                        text.COMMAND_ARGUMENTS_ERROR.format(
+                            text.get_command_usage(command, model)
+                        )
+                    )
+
                 break
 
             if arg_index >= len(current_args_list):
                 if field_info.is_required():
-                    return await event.answer(text.COMMAND_ARGUMENTS_ERROR.format(text.get_command_usage(command, model)))
-                
+                    return await event.answer(
+                        text.COMMAND_ARGUMENTS_ERROR.format(
+                            text.get_command_usage(command, model)
+                        )
+                    )
+
                 continue
 
             current_val = current_args_list[arg_index]
@@ -70,6 +78,10 @@ class CommandValidationMiddleware(BaseMiddleware):
             validated_data = model.model_validate(payload)
             data["command_data"] = validated_data
         except ValidationError:
-            return await event.answer(text.COMMAND_ARGUMENTS_VALIDATION_ERROR.format(text.get_command_usage(command, model)))
+            return await event.answer(
+                text.COMMAND_ARGUMENTS_VALIDATION_ERROR.format(
+                    text.get_command_usage(command, model)
+                )
+            )
 
         return await handler(event, data)

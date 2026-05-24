@@ -9,10 +9,12 @@ from bot.data import text, keyboards
 
 
 class SubscriptionsMiddleware(BaseMiddleware):
-    
+
     async def __call__(
         self,
-        handler: Callable[[Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[
+            [Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]
+        ],
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
@@ -23,7 +25,7 @@ class SubscriptionsMiddleware(BaseMiddleware):
 
         subscriptions = await config_service.get("subscriptions", [])
         message: Message | None = None
-        
+
         if isinstance(event, Message):
             message = event
         elif isinstance(event, CallbackQuery):

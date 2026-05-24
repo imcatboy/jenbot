@@ -13,12 +13,8 @@ COMMAND_ARGUMENTS_ERROR = "⚠️ Ошибка! Команда требует а
 COMMAND_ARGUMENTS_COUNT_ERROR = "❌ Неверное число аргументов.\n\n<code>{0}</code>"
 COMMAND_ARGUMENTS_VALIDATION_ERROR = "🚫 Ошибка валидации!\n\n<code>{0}</code>"
 USER_NOT_ALLOWED_TO_ACTION = "❌ Вы не имеете прав на выполнение этого действия."
-VIOLATIONS_OTHER_USER_FORBIDDEN = (
-    "❌ Просмотр нарушений другого пользователя доступен только модераторам и администраторам."
-)
-BAN_USER_SUCCESS = (
-    "🔒 Пользователь <b>{0}</b> заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<i>{2}</i>."
-)
+VIOLATIONS_OTHER_USER_FORBIDDEN = "❌ Просмотр нарушений другого пользователя доступен только модераторам и администраторам."
+BAN_USER_SUCCESS = "🔒 Пользователь <b>{0}</b> заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<i>{2}</i>."
 BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
     "🔒 Пользователь <b>{0}</b> заблокирован\n\n<b>Причина</b>\n<i>{1}</i>."
 )
@@ -31,9 +27,7 @@ MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
     "🔇 Пользователь {0} замьючен\n\n<b>Причина</b>\n<i>{1}</i>."
 )
 UNMUTE_USER_SUCCESS = "💤 Пользователь {0} размьючен."
-WARN_USER_SUCCESS = (
-    "⚠️ Пользователь <b>{0}</b> предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<i>{2}</i>."
-)
+WARN_USER_SUCCESS = "⚠️ Пользователь <b>{0}</b> предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<i>{2}</i>."
 WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
     "⚠️ Пользователь {0} предупрежден\n\n<b>Причина</b>\n<i>{1}</i>."
 )
@@ -233,7 +227,7 @@ def get_violations_message(
         )
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
-        message += f"Выдан {f"@{violation.applied_by_user.username}" if violation.applied_by_user.username else f"<code>{violation.applied_by_user.telegram_id}</code>"}\n"
+        message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
         message += f"От {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
 
         if violation.expires_at:
@@ -250,7 +244,7 @@ def get_violations_message(
         )
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
-        message += f"Выдан {f"@{violation.applied_by_user.username}" if violation.applied_by_user.username else f"<code>{violation.applied_by_user.telegram_id}</code>"}\n"
+        message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
         message += f"От {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
 
         if violation.expires_at:
@@ -266,9 +260,9 @@ def get_violations_message(
 
 def get_audit_message(violation: entities.ChatViolationWithUserEntity) -> str:
     message = f"<b>{VIOLATIONS[violation.type]}</b>\n\n"
-    message += f"Выдан: {f"@{violation.applied_by_user.username}" if violation.applied_by_user.username else f"<code>{violation.applied_by_user.telegram_id}</code>"} (<code>{violation.applied_by_user.telegram_id}</code>)\n"
+    message += f"Выдан: {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)} (<code>{violation.applied_by_user.telegram_id}</code>)\n"
     message += f"В чате: <code>{violation.telegram_chat_id}</code>\n"
-    message += f"Пользователь: {f"@{violation.user.username}" if violation.user.username else f"<code>{violation.user.telegram_id}</code>"} (<code>{violation.user.telegram_id}</code>)\n"
+    message += f"Пользователь: {format_user_handle(violation.user.username, violation.user.telegram_id)} (<code>{violation.user.telegram_id}</code>)\n"
     message += f"От: {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
 
     if violation.expires_at:
@@ -286,8 +280,8 @@ def get_action_audit_message(
     violation_id: Optional[int] = None,
 ) -> str:
     message = f"<b>{CHAT_ACTIONS[action]}</b>\n\n"
-    message += f"Пользователь: {f"@{user.username}" if user.username else f"<code>{user.telegram_id}</code>"} (<code>{user.telegram_id}</code>)\n"
-    message += f"Выполнил: {f"@{applied_by_user.username}" if applied_by_user.username else f"<code>{applied_by_user.telegram_id}</code>"} (<code>{applied_by_user.telegram_id}</code>)\n"
+    message += f"Пользователь: {format_user_handle(user.username, user.telegram_id)} (<code>{user.telegram_id}</code>)\n"
+    message += f"Выполнил: {format_user_handle(applied_by_user.username, applied_by_user.telegram_id)} (<code>{applied_by_user.telegram_id}</code>)\n"
 
     if violation_id:
         message += f"Нарушение: <code>{violation_id}</code>"
@@ -298,19 +292,19 @@ def get_action_audit_message(
 def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
     message = "👮 <b>Модераторы</b>\n\n"
     for moderator in moderators:
-        message += f"{f"@{moderator.username}" if moderator.username else f"<code>{moderator.telegram_id}</code>"}\n"
+        message += f"{format_user_handle(moderator.username, moderator.telegram_id)}\n"
     return message
 
 
 def get_report_message(report: entities.ReportWithUserEntity) -> str:
     message = f"<b>{REPORT_TYPES[report.type]}</b>\n\n"
     message += f"Статус: <b>{REPORT_STATUSES[report.status]}</b>\n"
-    message += f"Пользователь: {f"@{report.user.username}" if report.user.username else f"<code>{report.user.telegram_id}</code>"} (<code>{report.user.telegram_id}</code>)\n"
+    message += f"Пользователь: {format_user_handle(report.user.username, report.user.telegram_id)} (<code>{report.user.telegram_id}</code>)\n"
 
     if report.accused_user:
-        message += f"Обвиняемый: {f"@{report.accused_user.username}" if report.accused_user.username else f"<code>{report.accused_user.telegram_id}</code>"} (<code>{report.accused_user.telegram_id}</code>)\n"
+        message += f"Обвиняемый: {format_user_handle(report.accused_user.username, report.accused_user.telegram_id)} (<code>{report.accused_user.telegram_id}</code>)\n"
     if report.applied_by_user:
-        message += f"Изменил статус: {f"@{report.applied_by_user.username}" if report.applied_by_user.username else f"<code>{report.applied_by_user.telegram_id}</code>"} (<code>{report.applied_by_user.telegram_id}</code>)\n"
+        message += f"Изменил статус: {format_user_handle(report.applied_by_user.username, report.applied_by_user.telegram_id)} (<code>{report.applied_by_user.telegram_id}</code>)\n"
 
     message += f"Дата: {report.created_at.strftime('%d.%m.%Y %H:%M')}\n"
 
@@ -329,7 +323,7 @@ def get_report_message(report: entities.ReportWithUserEntity) -> str:
 
 def get_check_success_message(reputation: entities.ReputationUserWithUserEntity) -> str:
     message = f"<b>{REPUTATION_ROLES[reputation.role]}</b>\n\n"
-    message += f"Пользователь: {f"@{reputation.user.username}" if reputation.user.username else f"<code>{reputation.user.telegram_id}</code>"} (<code>{reputation.user.telegram_id}</code>)\n"
+    message += f"Пользователь: {format_user_handle(reputation.user.username, reputation.user.telegram_id)} (<code>{reputation.user.telegram_id}</code>)\n"
     message += f"От: {reputation.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
     message += f"<blockquote>{escape(reputation.description)}</blockquote>\n"
     return message
@@ -338,4 +332,17 @@ def get_check_success_message(reputation: entities.ReputationUserWithUserEntity)
 def get_check_error_message(username: str) -> str:
     message = f"<b>👤 Пользователь</b>\n\n"
     message += f"<i>Пользователь <b>{escape(username)}</b> не имеет репутации.</i>"
+    return message
+
+
+def get_report_updated_message(report: entities.ReportWithUserEntity) -> str:
+    message = f"#<code>{report.id}</code> <b>{REPORT_TYPES[report.type]}</b>\n\n"
+    message += f"Новый статус: <b>{REPORT_STATUSES[report.status]}</b>\n"
+
+    message += f"<blockquote>{escape(report.reason)}</blockquote>\n\n"
+
+    if report.admin_comment:
+        message += "<b>Ответ администратора:</b>\n"
+        message += f"<blockquote>{escape(report.admin_comment)}</blockquote>\n\n"
+
     return message

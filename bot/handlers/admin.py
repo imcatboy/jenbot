@@ -8,7 +8,7 @@ from domain.services import ConfigService, ModerationService, UserService
 from domain.objects.types import UserRole, UserReputationRole
 from bot.data import text, callbacks, states, keyboards
 from domain.objects import dtos, types, entities
-from bot.actions import UserActions
+from bot.actions import UserActions, ModerationActions
 from bot.filters import UsersFilter
 
 admin_router = Router()
@@ -44,7 +44,8 @@ async def reportstatus_callback_handler(
     )
     await state.set_state(states.AdminReportState.report_status)
     await callback.message.reply(
-        text.REPORT_COMMENT_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id)
+        text.REPORT_COMMENT_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),
     )
 
 
@@ -58,6 +59,7 @@ async def reportstatus_handler(
     bot: Bot,
     user: entities.UserEntity,
     moderation_service: ModerationService,
+    moderation_actions: ModerationActions,
 ):
     await state.update_data(admin_comment=message.text)
     data = await state.get_data()
@@ -75,6 +77,7 @@ async def reportstatus_handler(
         message_id=data["report_message_id"],
         reply_markup=keyboards.get_report_keyboard(report),
     )
+    await moderation_actions.send_report_updated_message(report)
     await message.answer(text.REPORT_STATUS_UPDATED)
 
 
@@ -87,7 +90,8 @@ async def reportaccusseduser_callback_handler(
     await state.update_data(accused_user_id=callback_data.id)
     await state.set_state(states.AdminScamReportState.description)
     await callback.message.reply(
-        text.REPORT_ACCUSED_DESCRIPTION_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id)
+        text.REPORT_ACCUSED_DESCRIPTION_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),
     )
 
 
@@ -128,10 +132,15 @@ async def setreputation_handler(
     user = await user_actions.get_telegram_user(command_data.username)
     await state.update_data(user_id=user.id)
     await state.set_state(states.AdminSetReputationState.role)
-    await message.answer(text.SET_REPUTATION_ROLE_MESSAGE, reply_markup=keyboards.REPUTATION_ROLE_KEYBOARD)
+    await message.answer(
+        text.SET_REPUTATION_ROLE_MESSAGE,
+        reply_markup=keyboards.REPUTATION_ROLE_KEYBOARD,
+    )
 
 
-@admin_router.callback_query(callbacks.ReputationRoleCallback.filter(), states.AdminSetReputationState.role)
+@admin_router.callback_query(
+    callbacks.ReputationRoleCallback.filter(), states.AdminSetReputationState.role
+)
 async def reputationrole_callback_handler(
     callback: CallbackQuery,
     callback_data: callbacks.ReputationRoleCallback,
@@ -139,7 +148,10 @@ async def reputationrole_callback_handler(
 ):
     await state.update_data(role=callback_data.role)
     await state.set_state(states.AdminSetReputationState.description)
-    await callback.message.reply(text.SET_REPUTATION_DESCRIPTION_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id))
+    await callback.message.reply(
+        text.SET_REPUTATION_DESCRIPTION_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),
+    )
 
 
 @admin_router.message(
@@ -165,9 +177,12 @@ async def reputationdescription_handler(
     await message.answer(text.SET_REPUTATION_SUCCESS)
 
 
-@admin_router.message(Command("addbanword", "abw", ignore_case=True), flags={
-    "command_model": dtos.AddBanWordCommandDTO,
-})
+@admin_router.message(
+    Command("addbanword", "abw", ignore_case=True),
+    flags={
+        "command_model": dtos.AddBanWordCommandDTO,
+    },
+)
 async def addbanword_handler(
     message: Message,
     command_data: dtos.AddBanWordCommandDTO,
@@ -177,9 +192,12 @@ async def addbanword_handler(
     await message.answer(text.ADD_BAN_WORD_SUCCESS.format(escape(command_data.word)))
 
 
-@admin_router.message(Command("removebanword", "rbw", ignore_case=True), flags={
-    "command_model": dtos.RemoveBanWordCommandDTO,
-})
+@admin_router.message(
+    Command("removebanword", "rbw", ignore_case=True),
+    flags={
+        "command_model": dtos.RemoveBanWordCommandDTO,
+    },
+)
 async def removebanword_handler(
     message: Message,
     command_data: dtos.RemoveBanWordCommandDTO,

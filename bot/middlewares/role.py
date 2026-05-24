@@ -32,7 +32,7 @@ class RoleMiddleware(BaseMiddleware):
                 message = event.message
             if message:
                 return await message.answer(text.USER_NOT_ALLOWED_TO_ACTION)
-            
+
             return
 
         return await handler(event, data)

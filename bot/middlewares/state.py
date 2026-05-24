@@ -21,11 +21,14 @@ class StateMiddleware(BaseMiddleware):
 
         if not target_type:
             return await handler(event, data)
-        
+
         try:
             result = TypeAdapter(target_type).validate_python(event.text)
         except ValidationError:
-            return await event.answer(text.STATE_VALIDATION_ERROR, reply_markup=keyboards.get_cancel_keyboard(event.from_user.id))
+            return await event.answer(
+                text.STATE_VALIDATION_ERROR,
+                reply_markup=keyboards.get_cancel_keyboard(event.from_user.id),
+            )
 
         data["state_data"] = result
         return await handler(event, data)

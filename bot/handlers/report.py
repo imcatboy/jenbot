@@ -44,7 +44,8 @@ async def report_callback_handler(
     if callback_data.type in [types.ReportType.SCAM, types.ReportType.VIOLATION]:
         await state.set_state(states.ReportState.accused_user_id)
         await callback.message.edit_text(
-            text.REPORT_ACCUSED_USER_ID_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
+            text.REPORT_ACCUSED_USER_ID_MESSAGE,
+            reply_markup=keyboards.get_cancel_keyboard(user.id),
         )
         return
 
@@ -75,14 +76,16 @@ async def accused_user_id_handler(
         await state.update_data(accused_user_id=state_data)
         await state.set_state(states.ReportState.username)
         await message.answer(
-            text.REPORT_USERNAME_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
+            text.REPORT_USERNAME_MESSAGE,
+            reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
         )
         return
 
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
+        text.REPORT_REASON_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
     )
 
 
@@ -99,7 +102,8 @@ async def username_handler(
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(message.from_user.id)
+        text.REPORT_REASON_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
     )
 
 
