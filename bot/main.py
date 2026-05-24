@@ -62,8 +62,8 @@ scheduler_service = SchedulerService(
 
 dp.message.outer_middleware(ThrottlingMiddleware(rate_limit=1.0))
 dp.callback_query.outer_middleware(ThrottlingMiddleware(rate_limit=1.0))
-dp.update.outer_middleware(DIMiddleware(redis=redis, settings=settings))
 dp.update.outer_middleware(UOWMiddleware(session_factory=session_factory))
+dp.update.outer_middleware(DIMiddleware(redis=redis, settings=settings))
 dp.message.outer_middleware(AlbumMiddleware(latency=0.5))
 dp.message.outer_middleware(UserMiddleware())
 dp.callback_query.outer_middleware(UserMiddleware())
