@@ -16,7 +16,7 @@ from bot.actions import ModerationActions, UserActions
 report_router = Router()
 
 
-@report_router.message(Command("report"))
+@report_router.message(Command("report", "r", ignore_case=True))
 async def report_handler(message: Message):
     await message.answer(
         text.REPORT_TYPE_MESSAGE, reply_markup=keyboards.REPORT_TYPE_KEYBOARD

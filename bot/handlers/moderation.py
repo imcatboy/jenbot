@@ -20,7 +20,7 @@ moderation_router = Router()
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("ban"),
+    Command("ban", "b", ignore_case=True),
     flags={
         "command_model": dtos.BanCommandDTO,
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
@@ -62,7 +62,7 @@ async def ban_handler(
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("unban"),
+    Command("unban", "ub", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
         "command_model": dtos.UnbanCommandDTO,
@@ -91,7 +91,7 @@ async def unban_handler(
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("mute"),
+    Command("mute", "m", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
         "command_model": dtos.MuteCommandDTO,
@@ -133,7 +133,7 @@ async def mute_handler(
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("unmute"),
+    Command("unmute", "um", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
         "command_model": dtos.UnmuteCommandDTO,
@@ -162,7 +162,7 @@ async def unmute_handler(
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("warn"),
+    Command("warn", "w", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
         "command_model": dtos.WarnCommandDTO,
@@ -204,7 +204,7 @@ async def warn_handler(
 
 @moderation_router.message(
     GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("unwarn"),
+    Command("unwarn", "uw", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
         "command_model": dtos.UnwarnCommandDTO,
@@ -225,7 +225,7 @@ async def unwarn_handler(
 
 
 @moderation_router.message(
-    Command("violations"),
+    Command("violations", "v", ignore_case=True),
     flags={
         "command_model": dtos.ViolationsCommandDTO,
     },
@@ -287,7 +287,7 @@ async def violations_callback(
 
 
 @moderation_router.message(
-    Command("getid"),
+    Command("getid", "gid", ignore_case=True),
 )
 async def getid_handler(
     message: Message,
@@ -304,7 +304,7 @@ async def getid_handler(
 
 
 @moderation_router.message(
-    Command("addmoderator"),
+    Command("addmoderator", "am", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN],
         "command_model": dtos.AddModeratorCommandDTO,
@@ -322,7 +322,7 @@ async def addmoderator_handler(
 
 
 @moderation_router.message(
-    Command("removemoderator"),
+    Command("removemoderator", "rm", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN],
         "command_model": dtos.RemoveModeratorCommandDTO,
@@ -339,7 +339,7 @@ async def removemoderator_handler(
     await message.answer(text.REMOVE_MODERATOR_SUCCESS.format(escape(user.username)))
 
 
-@moderation_router.message(Command("rules"))
+@moderation_router.message(Command("rules", "r", ignore_case=True))
 async def rules_handler(
     message: Message,
     config_service: ConfigService,
@@ -348,7 +348,7 @@ async def rules_handler(
     await message.answer(rules)
 
 
-@moderation_router.message(Command("moderators"))
+@moderation_router.message(Command("moderators", "mod", ignore_case=True))
 async def moderators_handler(
     message: Message,
     user_service: UserService,

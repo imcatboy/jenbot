@@ -17,7 +17,7 @@ admin_router.callback_query.filter(UsersFilter([UserRole.ADMIN]))
 
 
 @admin_router.message(
-    Command("setsetting"),
+    Command("setsetting", "ss", ignore_case=True),
     flags={
         "command_model": dtos.SetSettingCommandDTO,
     },
@@ -115,7 +115,7 @@ async def reportaccusseduserdescription_handler(
 
 
 @admin_router.message(
-    Command("setreputation"),
+    Command("setreputation", "sr", ignore_case=True),
     flags={"command_model": dtos.SetReputationCommandDTO},
 )
 async def setreputation_handler(
@@ -165,7 +165,7 @@ async def reputationdescription_handler(
     await message.answer(text.SET_REPUTATION_SUCCESS)
 
 
-@admin_router.message(Command("addbanword"), flags={
+@admin_router.message(Command("addbanword", "abw", ignore_case=True), flags={
     "command_model": dtos.AddBanWordCommandDTO,
 })
 async def addbanword_handler(
@@ -177,7 +177,7 @@ async def addbanword_handler(
     await message.answer(text.ADD_BAN_WORD_SUCCESS.format(escape(command_data.word)))
 
 
-@admin_router.message(Command("removebanword"), flags={
+@admin_router.message(Command("removebanword", "rbw", ignore_case=True), flags={
     "command_model": dtos.RemoveBanWordCommandDTO,
 })
 async def removebanword_handler(
