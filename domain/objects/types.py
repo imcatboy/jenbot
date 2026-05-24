@@ -114,13 +114,22 @@ SettingName = Annotated[
 
 Name = Annotated[str, Field(description="Название", min_length=3, max_length=100)]
 
+
+def clean_username(value: Any) -> Any:
+    if isinstance(value, str) and value.startswith("@"):
+        return value[1:]
+
+    return value
+
+
 Username = Annotated[
     str,
+    BeforeValidator(clean_username),
     Field(
         description="@username",
         min_length=3,
         max_length=255,
-        pattern=r"^@[a-zA-Z0-9_]+$",
+        pattern=r"^[a-zA-Z0-9_]+$",
     ),
 ]
 
@@ -187,7 +196,9 @@ def parse_relative_time(v: Any) -> datetime:
 
     for value in td_kwargs.values():
         if value > 1000:
-            raise ValueError("Invalid time format. Use < 1000 days, hours, minutes or weeks")
+            raise ValueError(
+                "Invalid time format. Use < 1000 days, hours, minutes or weeks"
+            )
 
     return datetime.now() + timedelta(**td_kwargs)
 

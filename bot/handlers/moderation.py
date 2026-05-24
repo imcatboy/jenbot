@@ -8,7 +8,7 @@ from html import escape
 from bot.data.keyboards import get_violations_keyboard
 from domain.services import ModerationService, ConfigService
 from bot.actions import UserActions, ModerationActions, AuditActions
-from domain.objects import dtos, entities, exceptions
+from domain.objects import dtos, entities
 from bot.filters import GroupsFilter, UsersFilter
 from domain.objects.types import UserRole, ChatAction
 from domain.services import UserService
@@ -55,7 +55,9 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            "@" + purpose_user.username or str(purpose_user.telegram_id),
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            ),
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -79,7 +81,9 @@ async def globalban_handler(
     audit_actions: AuditActions,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     else:
         return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
 
@@ -93,7 +97,9 @@ async def globalban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            "@" + purpose_user.username or str(purpose_user.telegram_id),
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            ),
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -162,7 +168,9 @@ async def unban_handler(
     await audit_actions.upload_action_audit(ChatAction.UNBAN, purpose_user, user)
     await message.answer(
         text.UNBAN_USER_SUCCESS.format(
-            "@" + purpose_user.username or str(purpose_user.telegram_id)
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            )
         )
     )
 
@@ -204,7 +212,9 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            "@" + purpose_user.username or str(purpose_user.telegram_id),
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            ),
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -241,7 +251,9 @@ async def unmute_handler(
     await audit_actions.upload_action_audit(ChatAction.UNMUTE, purpose_user, user)
     await message.answer(
         text.UNMUTE_USER_SUCCESS.format(
-            "@" + purpose_user.username or str(purpose_user.telegram_id)
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            )
         )
     )
 
@@ -283,7 +295,9 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            "@" + purpose_user.username or str(purpose_user.telegram_id),
+            text.format_user_handle(
+                purpose_user.username, purpose_user.telegram_id
+            ),
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -327,9 +341,7 @@ async def violations_handler(
 ):
     if command_data.username:
         if user.role == UserRole.USER:
-            raise exceptions.UserNotAllowedToActionException(
-                user.id, message.chat.id, "view violations"
-            )
+            return await message.answer(text.VIOLATIONS_OTHER_USER_FORBIDDEN)
 
         purpose_user = await user_actions.get_telegram_user(
             command_data.username, message.chat.id

@@ -7,10 +7,10 @@ from cachetools import TTLCache
 
 
 class AlbumMiddleware(BaseMiddleware):
-
-    def __init__(self, latency: float) -> None:
+    def __init__(self, latency: float = 0.5) -> None:
         self.latency = latency
         self.cache = TTLCache[str, List[Message]](maxsize=1000, ttl=latency * 3)
+        self.lock_cache = TTLCache[str, bool](maxsize=1000, ttl=latency * 3)
 
     async def __call__(
         self,
@@ -21,16 +21,18 @@ class AlbumMiddleware(BaseMiddleware):
         if not event.media_group_id:
             return await handler(event, data)
 
-        if event.media_group_id in self.cache.keys():
-            self.cache[event.media_group_id].append(event)
-            return 
+        if event.media_group_id not in self.cache:
+            self.cache[event.media_group_id] = []
         
-        self.cache[event.media_group_id] = [event]
-        await asyncio.sleep(self.latency)
-        album = self.cache.pop(event.media_group_id, None)
+        self.cache[event.media_group_id].append(event)
 
-        if album is None:
-            album = [event]
-        
+        if event.media_group_id in self.lock_cache:
+            return
+
+        self.lock_cache[event.media_group_id] = True
+        await asyncio.sleep(self.latency)
+        album = self.cache.pop(event.media_group_id, [])
+        self.lock_cache.pop(event.media_group_id, None)
+        album.sort(key=lambda x: x.message_id)
         data["album"] = album
         return await handler(event, data)

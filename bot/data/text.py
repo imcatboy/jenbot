@@ -13,6 +13,9 @@ COMMAND_ARGUMENTS_ERROR = "⚠️ Ошибка! Команда требует а
 COMMAND_ARGUMENTS_COUNT_ERROR = "❌ Неверное число аргументов.\n\n<code>{0}</code>"
 COMMAND_ARGUMENTS_VALIDATION_ERROR = "🚫 Ошибка валидации!\n\n<code>{0}</code>"
 USER_NOT_ALLOWED_TO_ACTION = "❌ Вы не имеете прав на выполнение этого действия."
+VIOLATIONS_OTHER_USER_FORBIDDEN = (
+    "❌ Просмотр нарушений другого пользователя доступен только модераторам и администраторам."
+)
 BAN_USER_SUCCESS = (
     "🔒 Пользователь <b>{0}</b> заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<i>{2}</i>."
 )
@@ -155,6 +158,10 @@ def _description_from_annotation(annotation: object) -> str | None:
                 return found
 
     return None
+
+
+def format_user_handle(username: Optional[str], telegram_id: int) -> str:
+    return f"@{username}" if username else f"<code>{telegram_id}</code>"
 
 
 def get_command_usage(command: CommandObject, model: Type[BaseModel]) -> str:

@@ -36,7 +36,10 @@ class MediaCheckMiddleware(BaseMiddleware):
                 files.append(file_id)
 
         if not files:
-            return await event.answer(text.REPORT_ATTACHMENTS_ERROR, reply_markup=keyboards.REPORT_ATTACHMENTS_KEYBOARD)
+            return await event.answer(
+                text.REPORT_ATTACHMENTS_ERROR,
+                reply_markup=keyboards.get_cancel_keyboard(event.from_user.id),
+            )
 
         data["file_ids"] = files
         return await handler(event, data)
@@ -46,5 +49,5 @@ class MediaCheckMiddleware(BaseMiddleware):
             return message.photo[-1].file_id
         if message.video:
             return message.video.file_id
-        
+
         return None
