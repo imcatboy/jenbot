@@ -49,29 +49,35 @@ redis = Redis(
 )
 
 fsm_storage = RedisStorage(redis)
-bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML), session=AiohttpSession(proxy=settings.PROXY_URL))
+bot = Bot(
+    token=settings.BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    session=AiohttpSession(proxy=settings.PROXY_URL),
+)
 dp = Dispatcher(storage=fsm_storage)
 
 scheduler_service = SchedulerService(
     session_factory=session_factory, bot=bot, redis=redis
 )
 
+dp.message.outer_middleware(ThrottlingMiddleware(rate_limit=1.0))
 dp.callback_query.outer_middleware(ThrottlingMiddleware(rate_limit=1.0))
-dp.message.middleware(ThrottlingMiddleware(rate_limit=1.0))
-dp.message.middleware(SubscriptionsMiddleware())
-dp.callback_query.middleware(SubscriptionsMiddleware())
-dp.update.middleware(UOWMiddleware(session_factory=session_factory))
-dp.update.middleware(DIMiddleware(redis=redis, settings=settings))
+dp.update.outer_middleware(DIMiddleware(redis=redis, settings=settings))
+dp.update.outer_middleware(UOWMiddleware(session_factory=session_factory))
+dp.message.outer_middleware(AlbumMiddleware(latency=0.5))
 dp.message.outer_middleware(UserMiddleware())
 dp.callback_query.outer_middleware(UserMiddleware())
+dp.message.outer_middleware(WordsMiddleware())
+dp.message.middleware(SubscriptionsMiddleware())
+dp.callback_query.middleware(SubscriptionsMiddleware())
 dp.message.middleware(RoleMiddleware())
 dp.callback_query.middleware(RoleMiddleware())
 dp.message.middleware(CommandValidationMiddleware())
-dp.message.middleware(AlbumMiddleware(latency=0.5))
-dp.message.middleware(MediaCheckMiddleware())
 dp.message.middleware(StateMiddleware())
-dp.message.outer_middleware(WordsMiddleware())
-dp.include_routers(moderation_router, exception_router, report_router, admin_router, user_router)
+dp.message.middleware(MediaCheckMiddleware())
+dp.include_routers(
+    moderation_router, exception_router, report_router, admin_router, user_router
+)
 
 
 async def set_bot_commands(bot: Bot):
@@ -118,7 +124,11 @@ async def on_startup(bot: Bot, scheduler_service: SchedulerService):
 async def main():
     dp.shutdown.register(on_shutdown)
     await dp.start_polling(
-        bot, allowed_updates=dp.resolve_used_update_types(), engine=engine, redis=redis, scheduler_service=scheduler_service
+        bot,
+        allowed_updates=dp.resolve_used_update_types(),
+        engine=engine,
+        redis=redis,
+        scheduler_service=scheduler_service,
     )
 
 
