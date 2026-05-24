@@ -90,8 +90,6 @@ REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
 )
 
 
-
-
 def get_cancel_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
@@ -176,19 +174,25 @@ def get_check_keyboard(reports: List[entities.ReportEntity]) -> InlineKeyboardMa
     return builder.adjust(3).as_markup()
 
 
-def get_violations_keyboard(offset: int, limit: int, user_id: int, has_more: bool) -> InlineKeyboardMarkup:
+def get_violations_keyboard(
+    offset: int, limit: int, user_id: int, has_more: bool
+) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     if offset > 0:
         builder.button(
             text="⬅️ Назад",
-            callback_data=ViolationsCallback(user_id=user_id, offset=max(0, offset - limit)).pack(),
+            callback_data=ViolationsCallback(
+                user_id=user_id, offset=max(0, offset - limit)
+            ).pack(),
         )
 
     if has_more:
         builder.button(
             text="➡️ Вперед",
-            callback_data=ViolationsCallback(user_id=user_id, offset=offset + limit).pack(),
+            callback_data=ViolationsCallback(
+                user_id=user_id, offset=offset + limit
+            ).pack(),
         )
-    
+
     return builder.adjust(2).as_markup()

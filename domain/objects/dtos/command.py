@@ -9,6 +9,12 @@ class BanCommandDTO(BaseDTO):
     reason: Reason
 
 
+class PreventivelyBanCommandDTO(BaseDTO):
+    id: ID
+    expires_at: Optional[RelativeDateTime] = None
+    reason: Reason
+
+
 class UnbanCommandDTO(BaseDTO):
     username: Optional[UsernameOrID] = None
 

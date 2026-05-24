@@ -10,7 +10,7 @@ class AddViolationDTO(BaseDTO):
     reason: str
     type: ViolationType
     applied_by_user_id: int
-    telegram_chat_id: int
+    telegram_chat_id: Optional[int] = None
     expires_at: Optional[datetime] = None
 
 
@@ -19,6 +19,13 @@ class BanUserDTO(BaseDTO):
     reason: str
     applied_by_user_id: int
     telegram_chat_id: int
+    expires_at: Optional[datetime] = None
+
+
+class GlobalBanUserDTO(BaseDTO):
+    user_id: int
+    reason: str
+    applied_by_user_id: int
     expires_at: Optional[datetime] = None
 
 

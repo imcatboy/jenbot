@@ -50,13 +50,12 @@ class TooManyObjectsFoundException(DomainException):
 class ModerationException(DomainException):
 
     def __init__(
-        self, user_id: int, telegram_chat_id: int, violation_type: ViolationType
+        self, user_id: int, violation_type: ViolationType
     ):
         self.user_id = user_id
-        self.telegram_chat_id = telegram_chat_id
         self.violation_type = violation_type
         super().__init__(
-            f"Bot cannot {violation_type.value.capitalize()} user {user_id} in chat {telegram_chat_id}"
+            f"Bot cannot {violation_type.value.capitalize()} user {user_id}"
         )
 
 

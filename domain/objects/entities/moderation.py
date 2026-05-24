@@ -11,7 +11,7 @@ from .user import UserEntity
 class ChatViolationEntity(EntityWithMetadata):
     reason: str
     type: ViolationType
-    telegram_chat_id: int
+    telegram_chat_id: Optional[int] = None
     is_active: bool
     expires_at: Optional[datetime] = None
     user_id: int

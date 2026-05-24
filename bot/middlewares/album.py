@@ -10,7 +10,7 @@ class AlbumMiddleware(BaseMiddleware):
 
     def __init__(self, latency: float) -> None:
         self.latency = latency
-        self.cache = TTLCache[str, List[Message]](maxsize=1000, ttl=latency)
+        self.cache = TTLCache[str, List[Message]](maxsize=1000, ttl=latency * 3)
 
     async def __call__(
         self,
@@ -27,5 +27,10 @@ class AlbumMiddleware(BaseMiddleware):
         
         self.cache[event.media_group_id] = [event]
         await asyncio.sleep(self.latency)
-        data["album"] = self.cache.pop(event.media_group_id)
+        album = self.cache.pop(event.media_group_id, None)
+
+        if album is None:
+            album = [event]
+        
+        data["album"] = album
         return await handler(event, data)

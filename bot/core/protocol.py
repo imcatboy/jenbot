@@ -105,3 +105,17 @@ class BotProtocol(Protocol):
         protect_content: Optional[Union[bool, Default]] = Default("protect_content"),
         request_timeout: Optional[int] = None,
     ) -> Message: ...
+
+    async def get_chat_member(
+        self,
+        chat_id: Union[int, str],
+        user_id: int,
+        request_timeout: Optional[int] = None,
+    ) -> Union[
+        ChatMemberOwner,
+        ChatMemberAdministrator,
+        ChatMemberMember,
+        ChatMemberRestricted,
+        ChatMemberLeft,
+        ChatMemberBanned,
+    ]: ...

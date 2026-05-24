@@ -124,7 +124,7 @@ async def skip_handler(
     user: entities.UserEntity,
     moderation_actions: ModerationActions,
 ):
-    if callback.message.from_user.id != callback_data.user_id:
+    if callback.from_user.id != callback_data.user_id:
         return
 
     await state.update_data(attachments=[])

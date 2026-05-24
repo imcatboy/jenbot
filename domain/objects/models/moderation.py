@@ -23,7 +23,7 @@ class ChatViolationModel(EntityModel):
     type: Mapped[ViolationType] = mapped_column(
         Enum(ViolationType, name="VIOLATION_TYPE")
     )
-    telegram_chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    telegram_chat_id: Mapped[Optional[int]] = mapped_column(BigInteger, index=True)
     expires_at: Mapped[Optional[datetime]]
     is_active: Mapped[bool] = mapped_column(default=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)

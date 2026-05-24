@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 from typing import List, Optional
 
@@ -25,9 +26,13 @@ class UserRepository(BaseRepository):
             await self.session.flush()
             return entities.UserEntity.model_validate(user)
 
-        user = models.UserModel(telegram_id=telegram_id, username=username)
-        self.session.add(user)
-        await self.session.flush()
+        try:
+            user = models.UserModel(telegram_id=telegram_id, username=username)
+            self.session.add(user)
+            await self.session.flush()
+        except IntegrityError:
+            user = await self.get_one_by_data(models.UserModel, telegram_id=telegram_id)
+
         return entities.UserEntity.model_validate(user)
 
     async def get(self, id: int) -> entities.UserEntity:
@@ -127,13 +132,15 @@ class UserRepository(BaseRepository):
     async def update_marketplace_user(
         self, user_id: int, dto: dtos.UpdateMarketplaceUserDTO
     ) -> entities.MarketplaceUserEntity:
-        marketplace_user = await self.get_one_by_data(models.MarketplaceUserModel, user_id=user_id)
+        marketplace_user = await self.get_one_by_data(
+            models.MarketplaceUserModel, user_id=user_id
+        )
 
         if dto.name is not None:
             marketplace_user.name = dto.name
         if dto.description is not None:
             marketplace_user.description = dto.description
-        
+
         await self.update_relation
         await self.session.flush()
         return entities.MarketplaceUserEntity.model_validate(marketplace_user)

@@ -36,7 +36,9 @@ async def ban_handler(
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     elif reply_to_user:
         purpose_user = reply_to_user
     else:
@@ -53,9 +55,79 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.username or str(purpose_user.telegram_id),
+            "@" + purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
-            command_data.reason,
+            escape(command_data.reason),
+        )
+    )
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("globalban", "gb", ignore_case=True),
+    flags={
+        "command_model": dtos.BanCommandDTO,
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+    },
+)
+async def globalban_handler(
+    message: Message,
+    command_data: dtos.BanCommandDTO,
+    user: entities.UserEntity,
+    user_actions: UserActions,
+    moderation_actions: ModerationActions,
+    audit_actions: AuditActions,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(command_data.username)
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.GlobalBanUserDTO(
+        user_id=purpose_user.id,
+        reason=command_data.reason,
+        applied_by_user_id=user.id,
+        expires_at=command_data.expires_at,
+    )
+    violation = await moderation_actions.global_ban_user(dto)
+    await audit_actions.upload_audit(violation.id, message.reply_to_message)
+    await message.answer(
+        text.get_ban_user_success_message(
+            "@" + purpose_user.username or str(purpose_user.telegram_id),
+            command_data.expires_at,
+            escape(command_data.reason),
+        )
+    )
+
+
+@moderation_router.message(
+    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
+    Command("preventivelyban", "pb", ignore_case=True),
+    flags={
+        "command_model": dtos.PreventivelyBanCommandDTO,
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+    },
+)
+async def preventivelyban_handler(
+    message: Message,
+    command_data: dtos.PreventivelyBanCommandDTO,
+    user: entities.UserEntity,
+    moderation_actions: ModerationActions,
+    audit_actions: AuditActions,
+):
+    dto = dtos.GlobalBanUserDTO(
+        user_id=command_data.id,
+        reason=command_data.reason,
+        applied_by_user_id=user.id,
+        expires_at=command_data.expires_at,
+    )
+    violation = await moderation_actions.preventively_ban_user(dto)
+    await audit_actions.upload_audit(violation.id)
+    await message.answer(
+        text.get_ban_user_success_message(
+            str(command_data.id),
+            command_data.expires_at,
+            escape(command_data.reason),
         )
     )
 
@@ -78,7 +150,9 @@ async def unban_handler(
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     elif reply_to_user:
         purpose_user = reply_to_user
     else:
@@ -86,7 +160,11 @@ async def unban_handler(
 
     await moderation_actions.unban_user(purpose_user.id, message.chat.id)
     await audit_actions.upload_action_audit(ChatAction.UNBAN, purpose_user, user)
-    await message.answer(text.UNBAN_USER_SUCCESS.format(escape(purpose_user.username)))
+    await message.answer(
+        text.UNBAN_USER_SUCCESS.format(
+            "@" + purpose_user.username or str(purpose_user.telegram_id)
+        )
+    )
 
 
 @moderation_router.message(
@@ -107,7 +185,9 @@ async def mute_handler(
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     elif reply_to_user:
         purpose_user = reply_to_user
     else:
@@ -124,9 +204,9 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            purpose_user.username or str(purpose_user.telegram_id),
+            "@" + purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
-            command_data.reason,
+            escape(command_data.reason),
         )
     )
 
@@ -149,7 +229,9 @@ async def unmute_handler(
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     elif reply_to_user:
         purpose_user = reply_to_user
     else:
@@ -157,7 +239,11 @@ async def unmute_handler(
 
     await moderation_actions.unmute_user(purpose_user.id, message.chat.id)
     await audit_actions.upload_action_audit(ChatAction.UNMUTE, purpose_user, user)
-    await message.answer(text.UNMUTE_USER_SUCCESS.format(escape(purpose_user.username)))
+    await message.answer(
+        text.UNMUTE_USER_SUCCESS.format(
+            "@" + purpose_user.username or str(purpose_user.telegram_id)
+        )
+    )
 
 
 @moderation_router.message(
@@ -178,7 +264,9 @@ async def warn_handler(
     reply_to_user: Optional[entities.UserEntity] = None,
 ):
     if command_data.username:
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     elif reply_to_user:
         purpose_user = reply_to_user
     else:
@@ -195,9 +283,9 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            purpose_user.username or str(purpose_user.telegram_id),
+            "@" + purpose_user.username or str(purpose_user.telegram_id),
             command_data.expires_at,
-            command_data.reason,
+            escape(command_data.reason),
         )
     )
 
@@ -243,7 +331,9 @@ async def violations_handler(
                 user.id, message.chat.id, "view violations"
             )
 
-        purpose_user = await user_actions.get_telegram_user(command_data.username)
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
     else:
         purpose_user = user
 
@@ -316,9 +406,11 @@ async def addmoderator_handler(
     user_actions: UserActions,
     user_service: UserService,
 ):
-    user = await user_actions.get_telegram_user(command_data.username)
+    user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.MODERATOR)
-    await message.answer(text.ADD_MODERATOR_SUCCESS.format(escape(user.username)))
+    await message.answer(
+        text.ADD_MODERATOR_SUCCESS.format("@" + user.username or str(user.telegram_id))
+    )
 
 
 @moderation_router.message(
@@ -334,9 +426,13 @@ async def removemoderator_handler(
     user_service: UserService,
     user_actions: UserActions,
 ):
-    user = await user_actions.get_telegram_user(command_data.username)
+    user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.USER)
-    await message.answer(text.REMOVE_MODERATOR_SUCCESS.format(escape(user.username)))
+    await message.answer(
+        text.REMOVE_MODERATOR_SUCCESS.format(
+            "@" + user.username or str(user.telegram_id)
+        )
+    )
 
 
 @moderation_router.message(Command("rules", "r", ignore_case=True))

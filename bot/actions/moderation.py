@@ -1,3 +1,4 @@
+from typing import List
 from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
 from aiogram.exceptions import TelegramAPIError
 
@@ -53,18 +54,58 @@ class ModerationActions:
         user = await self.user_service.get_by_id(dto.user_id)
 
         if user.role != UserRole.USER:
-            raise exceptions.ModerationException(
-                dto.user_id, dto.telegram_chat_id, ViolationType.BAN
-            )
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
 
         try:
             await self.bot.ban_chat_member(
                 dto.telegram_chat_id, user.telegram_id, dto.expires_at
             )
         except TelegramAPIError:
-            raise exceptions.ModerationException(
-                dto.user_id, dto.telegram_chat_id, ViolationType.BAN
-            )
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
+
+        violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
+        violation = await self.moderation_service.add_violation(violation_dto)
+        return violation
+
+    async def global_ban_user(
+        self, dto: dtos.GlobalBanUserDTO
+    ) -> entities.ChatViolationEntity:
+        user = await self.user_service.get_by_id(dto.user_id)
+
+        if user.role != UserRole.USER:
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
+
+        chats: List[int] = await self.config_service.get("chats")
+
+        for chat_id in chats:
+            try:
+                await self.bot.ban_chat_member(
+                    chat_id, user.telegram_id, dto.expires_at
+                )
+            except TelegramAPIError:
+                continue
+
+        violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
+        violation = await self.moderation_service.add_violation(violation_dto)
+        return violation
+
+    async def preventively_ban_user(
+        self, dto: dtos.GlobalBanUserDTO
+    ) -> entities.ChatViolationEntity:
+        user = await self.user_service.get_or_create(dto.user_id)
+
+        if user.role != UserRole.USER:
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
+
+        chats: List[int] = await self.config_service.get("chats")
+
+        for chat_id in chats:
+            try:
+                await self.bot.ban_chat_member(
+                    chat_id, user.telegram_id, dto.expires_at
+                )
+            except TelegramAPIError:
+                continue
 
         violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
         violation = await self.moderation_service.add_violation(violation_dto)
@@ -78,9 +119,7 @@ class ModerationActions:
                 telegram_chat_id, user.telegram_id, only_if_banned=True
             )
         except TelegramAPIError:
-            raise exceptions.ModerationException(
-                user_id, telegram_chat_id, ViolationType.BAN
-            )
+            raise exceptions.ModerationException(user_id, ViolationType.BAN)
 
         await self.moderation_service.set_violations_inactive(
             user_id, ViolationType.BAN
@@ -90,9 +129,7 @@ class ModerationActions:
         user = await self.user_service.get_by_id(dto.user_id)
 
         if user.role != UserRole.USER:
-            raise exceptions.ModerationException(
-                dto.user_id, dto.telegram_chat_id, ViolationType.MUTE
-            )
+            raise exceptions.ModerationException(dto.user_id, ViolationType.MUTE)
 
         permissions = ChatPermissions.model_validate(
             await self.config_service.get("muted_user_permissions", ChatPermissions())
@@ -106,9 +143,7 @@ class ModerationActions:
                 until_date=dto.expires_at,
             )
         except TelegramAPIError:
-            raise exceptions.ModerationException(
-                dto.user_id, dto.telegram_chat_id, ViolationType.MUTE
-            )
+            raise exceptions.ModerationException(dto.user_id, ViolationType.MUTE)
 
         violation_dto = dtos.AddViolationDTO(
             **dto.model_dump(), type=ViolationType.MUTE
@@ -130,9 +165,7 @@ class ModerationActions:
                 until_date=None,
             )
         except TelegramAPIError:
-            raise exceptions.ModerationException(
-                user_id, telegram_chat_id, ViolationType.MUTE
-            )
+            raise exceptions.ModerationException(user_id, ViolationType.MUTE)
 
         await self.moderation_service.set_violations_inactive(
             user_id, ViolationType.MUTE
