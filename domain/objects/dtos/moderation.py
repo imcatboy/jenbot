@@ -73,6 +73,9 @@ class GetUserReportDTO(BaseDTO):
 
 
 class GetViolationsDTO(BaseDTO):
-    user_id: int
+    user_id: Optional[int] = None
+    applied_by_user_id: Optional[int] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     limit: int
     offset: int

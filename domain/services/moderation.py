@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from domain.repositories import ModerationRepository, UserRepository
 from domain.objects.types import ViolationType, UserRole
@@ -27,6 +27,11 @@ class ModerationService:
         self, dto: dtos.GetViolationsDTO
     ) -> List[entities.ChatViolationWithUserEntity]:
         return await self.moderation_repository.get_violations(dto)
+    
+    async def get_violations_count(
+        self, dto: dtos.GetViolationsDTO
+    ) -> Dict[ViolationType, int]:
+        return await self.moderation_repository.get_violations_count(dto)
 
     async def get_violation(
         self, violation_id: int

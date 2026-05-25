@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy import update
-from typing import List
+from typing import Dict, List
 
 from domain.objects.types import ViolationType
 from .relations import get_report_relations, get_violation_relations
@@ -29,25 +29,60 @@ class ModerationRepository(BaseRepository):
     async def get_violations(
         self, dto: dtos.GetViolationsDTO
     ) -> List[entities.ChatViolationWithUserEntity]:
-        result = await self.session.execute(
+        query = (
             select(models.ChatViolationModel)
-            .join(models.UserModel, models.ChatViolationModel.user_id == models.UserModel.id)
-            .where(models.ChatViolationModel.user_id == dto.user_id)
-            .order_by(models.ChatViolationModel.is_active.desc(), models.ChatViolationModel.created_at.desc())
+            .order_by(
+                models.ChatViolationModel.is_active.desc(),
+                models.ChatViolationModel.created_at.desc(),
+            )
             .options(*get_violation_relations())
             .limit(dto.limit)
             .offset(dto.offset)
         )
-        violations = result.scalars().all()
+
+        if dto.user_id:
+            query = query.where(models.ChatViolationModel.user_id == dto.user_id)
+        if dto.applied_by_user_id:
+            query = query.where(
+                models.ChatViolationModel.applied_by_user_id == dto.applied_by_user_id
+            )
+        if dto.start_date:
+            query = query.where(models.ChatViolationModel.created_at >= dto.start_date)
+        if dto.end_date:
+            query = query.where(models.ChatViolationModel.created_at <= dto.end_date)
+
+        result = await self.session.execute(query)
         return [
             entities.ChatViolationWithUserEntity.model_validate(violation)
-            for violation in violations
+            for violation in result.scalars().all()
         ]
+
+    async def get_violations_count(
+        self, dto: dtos.GetViolationsDTO
+    ) -> Dict[ViolationType, int]:
+        query = select(
+            models.ChatViolationModel.type, func.count(models.ChatViolationModel.id)
+        )
+        query = query.group_by(models.ChatViolationModel.type)
+
+        if dto.user_id:
+            query = query.where(models.ChatViolationModel.user_id == dto.user_id)
+        if dto.applied_by_user_id:
+            query = query.where(
+                models.ChatViolationModel.applied_by_user_id == dto.applied_by_user_id
+            )
+        if dto.start_date:
+            query = query.where(models.ChatViolationModel.created_at >= dto.start_date)
+        if dto.end_date:
+            query = query.where(models.ChatViolationModel.created_at <= dto.end_date)
+
+        result = await self.session.execute(query)
+        return dict(result.scalars().all())
 
     async def set_violation_active(self, violation_id: int, is_active: bool) -> None:
         violation = await self.get_by_id(models.ChatViolationModel, violation_id)
         violation.is_active = is_active
-    
+
     async def set_violations_active(self, ids: List[int], is_active: bool) -> None:
         await self.session.execute(
             update(models.ChatViolationModel)
@@ -56,8 +91,12 @@ class ModerationRepository(BaseRepository):
         )
         await self.session.flush()
 
-    async def get_violation(self, violation_id: int) -> entities.ChatViolationWithUserEntity:
-        violation = await self.get_by_id(models.ChatViolationModel, violation_id, get_violation_relations())
+    async def get_violation(
+        self, violation_id: int
+    ) -> entities.ChatViolationWithUserEntity:
+        violation = await self.get_by_id(
+            models.ChatViolationModel, violation_id, get_violation_relations()
+        )
         return entities.ChatViolationWithUserEntity.model_validate(violation)
 
     async def set_violations_inactive(self, user_id: int, type: ViolationType) -> None:
@@ -80,11 +119,9 @@ class ModerationRepository(BaseRepository):
         await self.session.flush()
         return entities.ReportEntity.model_validate(report)
 
-    async def get_reports(
-        self, dto: dtos.GetReportsDTO
-    ) -> List[entities.ReportEntity]:
+    async def get_reports(self, dto: dtos.GetReportsDTO) -> List[entities.ReportEntity]:
         query = select(models.ReportModel)
-        
+
         if dto.user_id:
             query = query.where(models.ReportModel.user_id == dto.user_id)
         if dto.status:
@@ -92,10 +129,15 @@ class ModerationRepository(BaseRepository):
         if dto.type:
             query = query.where(models.ReportModel.type == dto.type)
         if dto.accused_user_id:
-            query = query.where(models.ReportModel.accused_user_id == dto.accused_user_id)
-        
+            query = query.where(
+                models.ReportModel.accused_user_id == dto.accused_user_id
+            )
+
         reports = await self.session.execute(query)
-        return [entities.ReportEntity.model_validate(report) for report in reports.scalars().all()]
+        return [
+            entities.ReportEntity.model_validate(report)
+            for report in reports.scalars().all()
+        ]
 
     async def get_report(self, report_id: int) -> entities.ReportWithUserEntity:
         report = await self.get_by_id(
@@ -103,7 +145,9 @@ class ModerationRepository(BaseRepository):
         )
         return entities.ReportWithUserEntity.model_validate(report)
 
-    async def get_user_report(self, dto: dtos.GetUserReportDTO) -> entities.ReportEntity:
+    async def get_user_report(
+        self, dto: dtos.GetUserReportDTO
+    ) -> entities.ReportEntity:
         query = select(models.ReportModel)
         query = query.where(
             models.ReportModel.id == dto.report_id,
@@ -115,7 +159,7 @@ class ModerationRepository(BaseRepository):
 
         if not report:
             raise exceptions.ObjectNotFoundException("report", [dto.report_id])
-        
+
         return entities.ReportEntity.model_validate(report)
 
     async def update_report(
@@ -133,10 +177,15 @@ class ModerationRepository(BaseRepository):
             )
         )
 
-    async def get_violations_to_actualize(self) -> List[entities.ChatViolationWithUserEntity]:
+    async def get_violations_to_actualize(
+        self,
+    ) -> List[entities.ChatViolationWithUserEntity]:
         violations = await self.get_all_by_data(
             models.ChatViolationModel,
             is_active=True,
             options=get_violation_relations(),
         )
-        return [entities.ChatViolationWithUserEntity.model_validate(violation) for violation in violations]
+        return [
+            entities.ChatViolationWithUserEntity.model_validate(violation)
+            for violation in violations
+        ]

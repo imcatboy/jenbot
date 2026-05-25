@@ -1,3 +1,4 @@
+from datetime import datetime
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.enums import ChatType
@@ -455,3 +456,40 @@ async def moderators_handler(
 ):
     moderators = await user_service.get_by_role(UserRole.MODERATOR)
     await message.answer(text.get_moderators_message(moderators))
+
+
+@moderation_router.message(
+    Command("violationscount", "vc", ignore_case=True),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.GetViolationsCountCommandDTO,
+    },
+)
+async def violationscount_handler(
+    message: Message,
+    command_data: dtos.GetViolationsCountCommandDTO,
+    user: entities.UserEntity,
+    moderation_service: ModerationService,
+    user_actions: UserActions,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
+
+        if user.role == UserRole.USER:
+            return await message.answer(text.VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN)
+    else:
+        purpose_user = user
+
+    end_date = datetime.now()
+    start_date = end_date - (command_data.start_date - end_date)
+    dto = dtos.GetViolationsDTO(
+        start_date=start_date,
+        end_date=end_date,
+        user_id=purpose_user.id,
+    )
+    violations_count = await moderation_service.get_violations_count(dto)
+    await message.answer(
+        text.get_violations_count_message(start_date, purpose_user, violations_count)
+    )

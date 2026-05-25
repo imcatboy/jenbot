@@ -70,3 +70,8 @@ class AddBanWordCommandDTO(BaseDTO):
 
 class RemoveBanWordCommandDTO(BaseDTO):
     word: Word
+
+
+class GetViolationsCountCommandDTO(BaseDTO):
+    username: Optional[UsernameOrID] = None
+    start_date: Optional[RelativeDateTime] = None
