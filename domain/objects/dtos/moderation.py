@@ -77,5 +77,5 @@ class GetViolationsDTO(BaseDTO):
     applied_by_user_id: Optional[int] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    limit: int
-    offset: int
+    limit: Optional[int] = None
+    offset: Optional[int] = None

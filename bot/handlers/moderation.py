@@ -483,10 +483,13 @@ async def violationscount_handler(
         purpose_user = user
 
     end_date = datetime.now()
-    start_date = end_date - (command_data.start_date - end_date)
+    start_date = None
+
+    if command_data.start_date:
+        start_date = end_date - (command_data.start_date - end_date)
+
     dto = dtos.GetViolationsDTO(
         start_date=start_date,
-        end_date=end_date,
         user_id=purpose_user.id,
     )
     violations_count = await moderation_service.get_violations_count(dto)
