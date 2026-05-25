@@ -382,13 +382,15 @@ async def violations_callback(
 async def getid_handler(
     message: Message,
 ):
-    if not message.reply_to_message:
+    if not message.reply_to_message or not message.reply_to_message.from_user:
         return await message.answer(text.GET_MY_ID_SUCCESS.format(message.from_user.id))
 
     await message.answer(
         text.GET_USER_ID_SUCCESS.format(
-            escape(message.reply_to_message.from_user.username),
-            message.reply_to_message.from_user.id,
+            text.format_user_handle(
+                message.reply_to_message.from_user.username,
+                message.reply_to_message.from_user.id,
+            )
         )
     )
 
@@ -409,7 +411,9 @@ async def addmoderator_handler(
     user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.MODERATOR)
     await message.answer(
-        text.ADD_MODERATOR_SUCCESS.format("@" + user.username or str(user.telegram_id))
+        text.ADD_MODERATOR_SUCCESS.format(
+            text.format_user_handle(user.username, user.telegram_id)
+        )
     )
 
 
@@ -430,7 +434,7 @@ async def removemoderator_handler(
     await user_service.update_role(user.id, UserRole.USER)
     await message.answer(
         text.REMOVE_MODERATOR_SUCCESS.format(
-            "@" + user.username or str(user.telegram_id)
+            text.format_user_handle(user.username, user.telegram_id)
         )
     )
 

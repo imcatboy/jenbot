@@ -2,21 +2,24 @@ from aiogram.exceptions import TelegramAPIError
 from aiogram.types import InputMediaPhoto, InputMediaVideo, Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
-from aiogram import F, Bot, Router
+from aiogram.enums import ChatType
+from aiogram import Bot, Router
 from typing import List
-from html import escape
 
 from bot.data import states, callbacks, keyboards, text
 from domain.objects import exceptions, dtos, types, entities
 from domain.services import UserService, ModerationService
-from domain.objects.types import ReportStatus, ReportType
+from domain.objects.types import ReportStatus, ReportType, UserRole
 from bot.actions import ModerationActions, UserActions
+from bot.filters import GroupsFilter
 
 
 report_router = Router()
 
 
-@report_router.message(Command("report", "rep", ignore_case=True))
+@report_router.message(
+    Command("report", "rep", ignore_case=True), GroupsFilter([ChatType.PRIVATE])
+)
 async def report_handler(message: Message):
     await message.answer(
         text.REPORT_TYPE_MESSAGE, reply_markup=keyboards.REPORT_TYPE_KEYBOARD
@@ -35,7 +38,7 @@ async def report_callback_handler(
         dtos.GetReportsDTO(user_id=user.id, status=ReportStatus.PENDING)
     )
 
-    if reports:
+    if reports and user.role == UserRole.USER:
         await callback.message.edit_text(text.REPORT_ALREADY_PENDING)
         return
 
@@ -55,29 +58,21 @@ async def report_callback_handler(
     )
 
 
-@report_router.message(
-    states.ReportState.accused_user_id, flags={"cast": types.UsernameOrID}
-)
+@report_router.message(states.ReportState.accused_user_id, flags={"cast": types.ID})
 async def accused_user_id_handler(
     message: Message,
-    state_data: types.UsernameOrID,
-    user_actions: UserActions,
+    state_data: types.ID,
+    user_service: UserService,
     state: FSMContext,
 ):
     try:
-        accused_user = await user_actions.get_telegram_user(state_data)
-    except exceptions.UserNotFoundException:
-        if isinstance(state_data, str):
-            await message.answer(
-                text.REPORT_USERNAME_NOT_FOUND.format(escape(state_data))
-            )
-            return
-
+        accused_user = await user_service.get_by_id(state_data)
+    except exceptions.ObjectNotFoundException:
         await state.update_data(accused_user_id=state_data)
         await state.set_state(states.ReportState.username)
         await message.answer(
             text.REPORT_USERNAME_MESSAGE,
-            reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
+            reply_markup=keyboards.get_skip_keyboard(message.from_user.id),
         )
         return
 
@@ -167,7 +162,7 @@ async def attachments_handler(
     )
     report = await moderation_service.add_report(dto)
     await moderation_actions.publish_report(report.id)
-    await message.answer(text.REPORT_SUCCESS)
+    await message.answer(text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(file_ids)))
 
 
 @report_router.callback_query(callbacks.CancelCallback.filter())
