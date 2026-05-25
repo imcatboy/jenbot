@@ -490,7 +490,7 @@ async def violationscount_handler(
 
     dto = dtos.GetViolationsDTO(
         start_date=start_date,
-        user_id=purpose_user.id,
+        applied_by_user_id=purpose_user.id,
     )
     violations_count = await moderation_service.get_violations_count(dto)
     await message.answer(
