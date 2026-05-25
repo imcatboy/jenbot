@@ -77,7 +77,7 @@ class ModerationRepository(BaseRepository):
             query = query.where(models.ChatViolationModel.created_at <= dto.end_date)
 
         result = await self.session.execute(query)
-        return dict(result.scalars().all())
+        return dict(result.all())
 
     async def set_violation_active(self, violation_id: int, is_active: bool) -> None:
         violation = await self.get_by_id(models.ChatViolationModel, violation_id)
