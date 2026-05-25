@@ -1,36 +1,36 @@
-from domain.objects.types import UsernameOrID, Reason, RelativeDateTime, ID, Text, SettingName, Word
+from domain.objects.types import UsernameOrTelegramID, Reason, RelativeDateTime, ID, Text, SettingName, Word, TelegramID
 from typing import Optional
 from .base import BaseDTO
 
 
 class BanCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
     expires_at: Optional[RelativeDateTime] = None
     reason: Reason
 
 
 class PreventivelyBanCommandDTO(BaseDTO):
-    id: ID
+    id: TelegramID
     expires_at: Optional[RelativeDateTime] = None
     reason: Reason
 
 
 class UnbanCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class MuteCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
     expires_at: Optional[RelativeDateTime] = None
     reason: Reason
 
 
 class UnmuteCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class WarnCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
     expires_at: Optional[RelativeDateTime] = None
     reason: Reason
 
@@ -40,7 +40,7 @@ class UnwarnCommandDTO(BaseDTO):
 
 
 class ViolationsCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class SetSettingCommandDTO(BaseDTO):
@@ -49,19 +49,19 @@ class SetSettingCommandDTO(BaseDTO):
 
 
 class AddModeratorCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class RemoveModeratorCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class CheckCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class SetReputationCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
 
 
 class AddBanWordCommandDTO(BaseDTO):
@@ -73,5 +73,5 @@ class RemoveBanWordCommandDTO(BaseDTO):
 
 
 class GetViolationsCountCommandDTO(BaseDTO):
-    username: Optional[UsernameOrID] = None
+    username: Optional[UsernameOrTelegramID] = None
     start_date: Optional[RelativeDateTime] = None

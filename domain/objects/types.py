@@ -96,7 +96,7 @@ def parse_username(v: Any) -> Union[str, int]:
     raise ValueError("Username must be a string or ID must be an integer")
 
 
-UsernameOrID = Annotated[
+UsernameOrTelegramID = Annotated[
     Union[str, int],
     Field(description="@username / ID пользователя"),
     BeforeValidator(parse_username),
@@ -136,6 +136,8 @@ Username = Annotated[
 Reason = Annotated[str, Field(max_length=255, description="Причина (до 255 символов)")]
 
 ID = Annotated[int, Field(ge=0, le=2147483647, description="ID")]
+
+TelegramID = Annotated[int, Field(ge=0, description="Telegram ID")]
 
 IDSet = Annotated[
     Set[ID],
