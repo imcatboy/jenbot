@@ -165,13 +165,13 @@ def get_report_keyboard(report: entities.ReportWithUserEntity) -> InlineKeyboard
 def get_check_keyboard(reports: List[entities.ReportEntity]) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    for index, report in enumerate(reports):
+    for report in reports:
         builder.button(
-            text=f"📌 Репорт №{index + 1}",
+            text=f"📌 Репорт #{report.id}",
             callback_data=CheckCallback(report_id=report.id).pack(),
         )
 
-    return builder.adjust(3).as_markup()
+    return builder.adjust(2).as_markup()
 
 
 def get_violations_keyboard(

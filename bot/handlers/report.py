@@ -58,10 +58,10 @@ async def report_callback_handler(
     )
 
 
-@report_router.message(states.ReportState.accused_user_id, flags={"cast": types.ID})
+@report_router.message(states.ReportState.accused_user_id, flags={"cast": int})
 async def accused_user_id_handler(
     message: Message,
-    state_data: types.ID,
+    state_data: int,
     user_service: UserService,
     state: FSMContext,
 ):
