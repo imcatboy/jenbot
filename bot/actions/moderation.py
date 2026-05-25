@@ -143,7 +143,7 @@ class ModerationActions:
         if user.role != UserRole.USER:
             raise exceptions.ModerationException(dto.user_id, ViolationType.MUTE)
 
-        permissions = ChatPermissions.model_validate(
+        permissions = ChatPermissions.model_validate_json(
             await self.config_service.get("muted_user_permissions", {})
         )
 
@@ -165,7 +165,7 @@ class ModerationActions:
 
     async def unmute_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
-        permissions = ChatPermissions.model_validate(
+        permissions = ChatPermissions.model_validate_json(
             await self.config_service.get("user_permissions", {})
         )
 
