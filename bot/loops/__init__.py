@@ -50,7 +50,7 @@ class SchedulerService:
                         user_repository=user_repository,
                         config_service=config_service,
                     )
-                    await actualize_violations_loop(self.bot, moderation_service)
+                    await actualize_violations_loop(self.bot, moderation_service, config_service)
             except asyncio.CancelledError:
                 break
             except Exception as e:
