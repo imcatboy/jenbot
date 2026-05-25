@@ -358,6 +358,6 @@ def get_violations_count_message(
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
     if start_date:
-        message += f"От: {start_date.strftime('%d.%m.%Y %H:%M')}"
+        message += f"\nОт: {start_date.strftime('%d.%m.%Y %H:%M')}"
     
     return message

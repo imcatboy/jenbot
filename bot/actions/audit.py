@@ -24,7 +24,7 @@ class AuditActions:
         self, violation_id: int, message: Optional[Message] = None
     ) -> None:
         violation = await self.moderation_service.get_violation(violation_id)
-        audit_chat_id = await self.config_service.get("audit_chat_id")
+        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
 
         if message:
             await self.bot.forward_message(
@@ -41,7 +41,7 @@ class AuditActions:
         applied_by_user: entities.UserEntity,
         violation_id: Optional[int] = None,
     ) -> None:
-        audit_chat_id = await self.config_service.get("audit_chat_id")
+        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
         await self.bot.send_message(
             audit_chat_id,
             text.get_action_audit_message(action, user, applied_by_user, violation_id),

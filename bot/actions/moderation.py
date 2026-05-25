@@ -1,4 +1,8 @@
-from typing import List
+import logging
+import asyncio
+
+from typing import List, Optional
+from datetime import datetime
 from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
 from aiogram.exceptions import TelegramAPIError
 
@@ -7,6 +11,9 @@ from domain.objects.types import UserRole, ViolationType
 from domain.objects import dtos, entities, exceptions
 from bot.data import text, keyboards
 from bot.core import BotProtocol
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModerationActions:
@@ -23,9 +30,35 @@ class ModerationActions:
         self.user_service = user_service
         self.bot = bot
 
+    async def _safe_ban(
+        self, chat_id: int, user: entities.UserEntity, expires_at: Optional[datetime]
+    ) -> None:
+        try:
+            await self.bot.ban_chat_member(chat_id, user.telegram_id, expires_at)
+        except TelegramAPIError as e:
+            logger.warning(
+                f"Failed to ban user {user.telegram_id} in chat {chat_id}: {e}"
+            )
+
+    async def _execute_global_ban(
+        self, user: entities.UserEntity, dto: dtos.GlobalBanUserDTO
+    ) -> entities.ChatViolationEntity:
+        if user.role != UserRole.USER:
+            raise exceptions.ModerationException(user.id, ViolationType.BAN)
+
+        chats: List[int] = await self.config_service.get("chats", [])
+
+        if chats:
+            await asyncio.gather(
+                *[self._safe_ban(chat_id, user, dto.expires_at) for chat_id in chats]
+            )
+
+        violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
+        return await self.moderation_service.add_violation(violation_dto)
+
     async def publish_report(self, report_id: int) -> None:
         report = await self.moderation_service.get_report(report_id)
-        admin_chat_id = await self.config_service.get("admin_chat_id")
+        admin_chat_id = await self.config_service.get("admin_chat_id", 0)
 
         if report.attachments:
             attachments = []
@@ -82,45 +115,13 @@ class ModerationActions:
         self, dto: dtos.GlobalBanUserDTO
     ) -> entities.ChatViolationEntity:
         user = await self.user_service.get_by_id(dto.user_id)
-
-        if user.role != UserRole.USER:
-            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
-
-        chats: List[int] = await self.config_service.get("chats")
-
-        for chat_id in chats:
-            try:
-                await self.bot.ban_chat_member(
-                    chat_id, user.telegram_id, dto.expires_at
-                )
-            except TelegramAPIError:
-                continue
-
-        violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
-        violation = await self.moderation_service.add_violation(violation_dto)
-        return violation
+        return await self._execute_global_ban(user, dto)
 
     async def preventively_ban_user(
         self, dto: dtos.GlobalBanUserDTO
     ) -> entities.ChatViolationEntity:
         user = await self.user_service.get_or_create(dto.user_id)
-
-        if user.role != UserRole.USER:
-            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
-
-        chats: List[int] = await self.config_service.get("chats")
-
-        for chat_id in chats:
-            try:
-                await self.bot.ban_chat_member(
-                    chat_id, user.telegram_id, dto.expires_at
-                )
-            except TelegramAPIError:
-                continue
-
-        violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
-        violation = await self.moderation_service.add_violation(violation_dto)
-        return violation
+        return await self._execute_global_ban(user, dto)
 
     async def unban_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
@@ -143,7 +144,7 @@ class ModerationActions:
             raise exceptions.ModerationException(dto.user_id, ViolationType.MUTE)
 
         permissions = ChatPermissions.model_validate(
-            await self.config_service.get("muted_user_permissions", ChatPermissions())
+            await self.config_service.get("muted_user_permissions", {})
         )
 
         try:
@@ -165,7 +166,7 @@ class ModerationActions:
     async def unmute_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
         permissions = ChatPermissions.model_validate(
-            await self.config_service.get("user_permissions", ChatPermissions())
+            await self.config_service.get("user_permissions", {})
         )
 
         try:
