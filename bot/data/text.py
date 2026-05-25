@@ -348,14 +348,16 @@ def get_report_updated_message(report: entities.ReportWithUserEntity) -> str:
 
 
 def get_violations_count_message(
-    start_date: datetime,
     user: entities.UserEntity,
     violations_count: Dict[types.ViolationType, int],
+    start_date: Optional[datetime],
 ) -> str:
     message = f"🔎 <b>Статистика нарушений {format_user_handle(user.username, user.telegram_id)}</b>\n\n"
 
     for violation_type, count in violations_count.items():
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
-    message += f"От: {start_date.strftime('%d.%m.%Y %H:%M')}\n"
+    if start_date:
+        message += f"От: {start_date.strftime('%d.%m.%Y %H:%M')}"
+    
     return message

@@ -494,5 +494,5 @@ async def violationscount_handler(
     )
     violations_count = await moderation_service.get_violations_count(dto)
     await message.answer(
-        text.get_violations_count_message(start_date, purpose_user, violations_count)
+        text.get_violations_count_message(purpose_user, violations_count, start_date)
     )
