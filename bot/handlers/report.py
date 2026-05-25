@@ -66,7 +66,7 @@ async def accused_user_id_handler(
     state: FSMContext,
 ):
     try:
-        accused_user = await user_service.get_by_id(state_data)
+        accused_user = await user_service.get_by_telegram_id(state_data)
     except exceptions.ObjectNotFoundException:
         await state.update_data(accused_user_id=state_data)
         await state.set_state(states.ReportState.username)
