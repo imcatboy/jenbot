@@ -4,7 +4,7 @@ import asyncio
 from typing import List, Optional
 from datetime import datetime
 from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 
 from domain.services import ModerationService, ConfigService, UserService
 from domain.objects.types import UserRole, ViolationType
@@ -32,13 +32,21 @@ class ModerationActions:
 
     async def _safe_ban(
         self, chat_id: int, user: entities.UserEntity, expires_at: Optional[datetime]
-    ) -> None:
-        try:
-            await self.bot.ban_chat_member(chat_id, user.telegram_id, expires_at)
-        except TelegramAPIError as e:
-            logger.warning(
-                f"Failed to ban user {user.telegram_id} in chat {chat_id}: {e}"
-            )
+    ) -> bool:
+        max_retries = 3
+
+        for _ in range(max_retries):
+            try:
+                await self.bot.ban_chat_member(chat_id, user.telegram_id, expires_at)
+                return True
+            except TelegramRetryAfter as e:
+                logger.info(f"FloodWait in chat {chat_id}, waiting {e.retry_after}s")
+                await asyncio.sleep(e.retry_after)
+            except TelegramAPIError as e:
+                logger.warning(f"Ban failed in chat {chat_id}: {e}")
+                return False
+
+        return False
 
     async def _execute_global_ban(
         self, user: entities.UserEntity, dto: dtos.GlobalBanUserDTO
@@ -48,9 +56,23 @@ class ModerationActions:
 
         chats: List[int] = await self.config_service.get("chats", [])
 
-        if chats:
-            await asyncio.gather(
-                *[self._safe_ban(chat_id, user, dto.expires_at) for chat_id in chats]
+        if not chats:
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
+
+        semaphore = asyncio.Semaphore(5)
+
+        async def ban_with_limit(chat_id: int) -> bool:
+            async with semaphore:
+                return await self._safe_ban(chat_id, user, dto.expires_at)
+
+        results = await asyncio.gather(*(ban_with_limit(chat_id) for chat_id in chats))
+        success_count = sum(results)
+        failed_count = len(results) - success_count
+
+        if failed_count > 0:
+            logger.warning(
+                f"Global ban for {user.telegram_id}: {success_count}/{len(results)} chats succeeded. "
+                f"Failed chats: {[chat_id for chat_id, success in zip(chats, results) if not success]}"
             )
 
         violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
@@ -110,18 +132,6 @@ class ModerationActions:
         violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
         violation = await self.moderation_service.add_violation(violation_dto)
         return violation
-
-    async def global_ban_user(
-        self, dto: dtos.GlobalBanUserDTO
-    ) -> entities.ChatViolationEntity:
-        user = await self.user_service.get_by_id(dto.user_id)
-        return await self._execute_global_ban(user, dto)
-
-    async def preventively_ban_user(
-        self, dto: dtos.GlobalBanUserDTO
-    ) -> entities.ChatViolationEntity:
-        user = await self.user_service.get_or_create(dto.user_id)
-        return await self._execute_global_ban(user, dto)
 
     async def unban_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)

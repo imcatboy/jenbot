@@ -76,13 +76,19 @@ async def globalban_handler(
     command_data: dtos.BanCommandDTO,
     user: entities.UserEntity,
     user_actions: UserActions,
+    user_service: UserService,
     moderation_actions: ModerationActions,
     audit_actions: AuditActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
 ):
-    if command_data.username:
+    if isinstance(command_data.username, str):
         purpose_user = await user_actions.get_telegram_user(
             command_data.username, message.chat.id
         )
+    elif isinstance(command_data.username, int):
+        purpose_user = await user_service.get_or_create(command_data.username)
+    elif reply_to_user:
+        purpose_user = reply_to_user
     else:
         return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
 
@@ -97,38 +103,6 @@ async def globalban_handler(
     await message.answer(
         text.get_ban_user_success_message(
             text.format_user_handle(purpose_user.username, purpose_user.telegram_id),
-            command_data.expires_at,
-            escape(command_data.reason),
-        )
-    )
-
-
-@moderation_router.message(
-    GroupsFilter([ChatType.GROUP, ChatType.SUPERGROUP]),
-    Command("preventivelyban", "pb", ignore_case=True),
-    flags={
-        "command_model": dtos.PreventivelyBanCommandDTO,
-        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
-    },
-)
-async def preventivelyban_handler(
-    message: Message,
-    command_data: dtos.PreventivelyBanCommandDTO,
-    user: entities.UserEntity,
-    moderation_actions: ModerationActions,
-    audit_actions: AuditActions,
-):
-    dto = dtos.GlobalBanUserDTO(
-        user_id=command_data.id,
-        reason=command_data.reason,
-        applied_by_user_id=user.id,
-        expires_at=command_data.expires_at,
-    )
-    violation = await moderation_actions.preventively_ban_user(dto)
-    await audit_actions.upload_audit(violation.id)
-    await message.answer(
-        text.get_ban_user_success_message(
-            str(command_data.id),
             command_data.expires_at,
             escape(command_data.reason),
         )
