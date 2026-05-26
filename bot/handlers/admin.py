@@ -1,3 +1,5 @@
+import json
+
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
@@ -27,7 +29,7 @@ async def setsetting_handler(
     command_data: dtos.SetSettingCommandDTO,
     config_service: ConfigService,
 ):
-    await config_service.set(command_data.name, command_data.value)
+    await config_service.set(command_data.name, json.loads(command_data.value))
     await message.answer(text.SET_SETTING_SUCCESS.format(escape(command_data.name)))
 
 

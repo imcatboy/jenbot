@@ -1,3 +1,4 @@
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
 from typing import Optional
 
@@ -30,7 +31,11 @@ class AuditActions:
             await self.bot.forward_message(
                 audit_chat_id, message.chat.id, message.message_id
             )
-            await message.delete()
+
+            try:
+                await message.delete()
+            except TelegramBadRequest:
+                pass
 
         await self.bot.send_message(audit_chat_id, text.get_audit_message(violation))
 
@@ -54,4 +59,6 @@ class AuditActions:
         telegram_chat_id: int,
     ) -> None:
         audit_chat_id = await self.config_service.get("audit_chat_id", 0)
-        await self.bot.send_message(audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id))
+        await self.bot.send_message(
+            audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id)
+        )
