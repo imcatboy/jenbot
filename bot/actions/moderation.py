@@ -1,10 +1,10 @@
 import logging
 import asyncio
 
-from typing import List, Optional
-from datetime import datetime
+from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter, TelegramBadRequest
 from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
-from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
+from datetime import datetime
+from typing import List, Optional
 
 from domain.services import ModerationService, ConfigService, UserService
 from domain.objects.types import UserRole, ViolationType
@@ -42,6 +42,9 @@ class ModerationActions:
             except TelegramRetryAfter as e:
                 logger.info(f"FloodWait in chat {chat_id}, waiting {e.retry_after}s")
                 await asyncio.sleep(e.retry_after)
+            except TelegramBadRequest as e:
+                logger.warning(f"Ban failed in chat {chat_id}: {e}")
+                return False
             except TelegramAPIError as e:
                 logger.warning(f"Ban failed in chat {chat_id}: {e}")
                 return False
@@ -74,6 +77,9 @@ class ModerationActions:
                 f"Global ban for {user.telegram_id}: {success_count}/{len(results)} chats succeeded. "
                 f"Failed chats: {[chat_id for chat_id, success in zip(chats, results) if not success]}"
             )
+        
+        if success_count == 0:
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
 
         violation_dto = dtos.AddViolationDTO(**dto.model_dump(), type=ViolationType.BAN)
         return await self.moderation_service.add_violation(violation_dto)
@@ -163,7 +169,7 @@ class ModerationActions:
         if user.role != UserRole.USER:
             raise exceptions.ModerationException(dto.user_id, ViolationType.MUTE)
 
-        permissions = ChatPermissions.model_validate_json(
+        permissions = ChatPermissions.model_validate(
             await self.config_service.get("muted_user_permissions", {})
         )
 
@@ -185,7 +191,7 @@ class ModerationActions:
 
     async def unmute_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
-        permissions = ChatPermissions.model_validate_json(
+        permissions = ChatPermissions.model_validate(
             await self.config_service.get("user_permissions", {})
         )
 

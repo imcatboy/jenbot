@@ -37,7 +37,7 @@ async def exception_handler(event: ErrorEvent):
             await message.answer(text.OBJECT_ALREADY_EXISTS)
             return True
         case exceptions.ModerationException():
-            await message.answer(text.CANNOT_USE_ACTION_ON_MODERATOR)
+            await message.answer(text.CANNOT_USE_ACTION_ON_USER)
             return True
 
     logger.exception(

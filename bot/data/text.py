@@ -32,8 +32,8 @@ WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
 REPORT_ACCUSED_USER_ID_MESSAGE = (
     "🔍 Введите ID пользователя, которого вы хотите обвинить в нарушении."
 )
-CANNOT_USE_ACTION_ON_MODERATOR = (
-    "❌ Вы не можете использовать это действие на модераторе."
+CANNOT_USE_ACTION_ON_USER = (
+    "❌ Вы не можете использовать это действие на этом пользователе."
 )
 STATE_VALIDATION_ERROR = "❌ Ошибка введённого значения, попробуйте ещё раз."
 SET_SETTING_SUCCESS = "💬 Настройка <b>{0}</b> установлена."
