@@ -50,7 +50,7 @@ class ConfigRepository(BaseRepository):
         if value is not None:
             await self.redis.set(f"config:{key}", json.dumps(value), ex=self.ttl)
 
-        return json.loads(value)
+        return value
 
     async def set_cached(self, key: str, value: Any) -> None:
         await self.redis.delete(f"config:{key}")
