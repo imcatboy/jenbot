@@ -8,8 +8,9 @@ from aiogram.types import Message
 from typing import List
 from html import escape
 
-from domain.objects.types import UserRole
+from domain.objects.types import UserRole, ChatEvent
 from domain.services import ConfigService
+from bot.actions import AuditActions
 from domain.objects import entities
 from bot.data import text
 
@@ -23,6 +24,7 @@ class WordsMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         user: entities.UserEntity = data["user"]
+        audit_actions: AuditActions = data["audit_actions"]
 
         if (
             user.role in [UserRole.ADMIN, UserRole.MODERATOR]
@@ -43,6 +45,11 @@ class WordsMiddleware(BaseMiddleware):
                         escape(event.from_user.username or event.from_user.first_name),
                         escape(word),
                     )
+                )
+                await audit_actions.upload_event_audit(
+                    ChatEvent.BAN_WORD,
+                    user,
+                    event.chat.id,
                 )
                 await asyncio.sleep(5)
                 await message.delete()

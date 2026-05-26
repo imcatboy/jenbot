@@ -306,10 +306,16 @@ def get_event_audit_message(
     event: types.ChatEvent,
     user: entities.UserEntity,
     telegram_chat_id: int,
+    comment: Optional[str] = None,
 ) -> str:
     message = f"<b>{CHAT_EVENTS[event]}</b>\n\n"
     message += f"Пользователь: {format_user_handle(user.username, user.telegram_id)}\n"
     message += f"В чате: <code>{telegram_chat_id}</code>\n"
+
+    if comment:
+        message += f"\n<b>Комментарий:</b>"
+        message += f"<blockquote>{escape(comment)}</blockquote>"
+
     return message
 
 

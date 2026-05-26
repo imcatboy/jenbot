@@ -90,6 +90,7 @@ class ChatAction(StrEnum):
 class ChatEvent(StrEnum):
     JOIN = "join"
     LEAVE = "leave"
+    BAN_WORD = "ban_word"
 
 
 def parse_username(v: Any) -> Union[str, int]:
