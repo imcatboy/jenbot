@@ -186,11 +186,11 @@ def get_ban_user_success_message(
 ) -> str:
     if expires_at:
         return BAN_USER_SUCCESS.format(
-            escape(username), expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
         return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            escape(username), escape(reason)
+            username, escape(reason)
         )
 
 
@@ -199,11 +199,11 @@ def get_mute_user_success_message(
 ) -> str:
     if expires_at:
         return MUTE_USER_SUCCESS.format(
-            escape(username), expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
         return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            escape(username), escape(reason)
+            username, escape(reason)
         )
 
 
@@ -212,11 +212,11 @@ def get_warn_user_success_message(
 ) -> str:
     if expires_at:
         return WARN_USER_SUCCESS.format(
-            escape(username), expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
         return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            escape(username), escape(reason)
+            username, escape(reason)
         )
 
 
@@ -362,7 +362,7 @@ def get_check_success_message(reputation: entities.ReputationUserWithUserEntity)
 
 def get_check_error_message(username: str) -> str:
     message = f"<b>👤 Пользователь</b>\n\n"
-    message += f"<i>Пользователь <b>{escape(username)}</b> не имеет репутации.</i>"
+    message += f"<i>Пользователь <b>{username}</b> не имеет репутации.</i>"
     return message
 
 

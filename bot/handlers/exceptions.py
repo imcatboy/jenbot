@@ -24,7 +24,7 @@ async def exception_handler(event: ErrorEvent):
     match event.exception:
         case exceptions.UserNotFoundException():
             await message.answer(
-                text.USER_NOT_FOUND.format(escape(event.exception.username))
+                text.USER_NOT_FOUND.format(event.exception.username)
             )
             return True
         case exceptions.UserNotAllowedToActionException():
