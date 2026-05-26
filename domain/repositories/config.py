@@ -8,6 +8,7 @@ from typing import Any
 from domain.objects.models import ConfigModel
 from .base import BaseRepository
 
+
 class ConfigRepository(BaseRepository):
 
     def __init__(self, session: AsyncSession, redis: Redis) -> None:
@@ -49,7 +50,7 @@ class ConfigRepository(BaseRepository):
         if value is not None:
             await self.redis.set(f"config:{key}", json.dumps(value), ex=self.ttl)
 
-        return value
+        return json.loads(value)
 
     async def set_cached(self, key: str, value: Any) -> None:
         await self.redis.delete(f"config:{key}")
