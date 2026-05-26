@@ -113,6 +113,10 @@ REPUTATION_ROLES = {
     types.UserReputationRole.DEPOSITOR: "💰 Депозитчик",
     types.UserReputationRole.ADMIN: "👑 Админ",
 }
+CHAT_EVENTS = {
+    types.ChatEvent.JOIN: "👋 Вход",
+    types.ChatEvent.LEAVE: "⛓️‍💥 Выход",
+}
 HOMOGLYPHS = str.maketrans("ayBkKMnoPpCcTyXxeE", "ауВкКМноРрСсТуХхеЕ")
 
 
@@ -295,6 +299,17 @@ def get_action_audit_message(
     if violation_id:
         message += f"Нарушение: <code>{violation_id}</code>"
 
+    return message
+
+
+def get_event_audit_message(
+    event: types.ChatEvent,
+    user: entities.UserEntity,
+    telegram_chat_id: int,
+) -> str:
+    message = f"<b>{CHAT_EVENTS[event]}</b>\n\n"
+    message += f"Пользователь: {format_user_handle(user.username, user.telegram_id)}\n"
+    message += f"В чате: <code>{telegram_chat_id}</code>\n"
     return message
 
 

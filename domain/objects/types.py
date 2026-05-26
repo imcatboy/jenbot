@@ -87,6 +87,11 @@ class ChatAction(StrEnum):
     UNBAN = "unban"
 
 
+class ChatEvent(StrEnum):
+    JOIN = "join"
+    LEAVE = "leave"
+
+
 def parse_username(v: Any) -> Union[str, int]:
     if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
         return v.replace("@", "")

@@ -76,7 +76,12 @@ dp.message.middleware(CommandValidationMiddleware())
 dp.message.middleware(StateMiddleware())
 dp.message.middleware(MediaCheckMiddleware())
 dp.include_routers(
-    moderation_router, exception_router, report_router, admin_router, user_router
+    moderation_router,
+    exception_router,
+    report_router,
+    admin_router,
+    user_router,
+    event_router,
 )
 
 

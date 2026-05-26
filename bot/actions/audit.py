@@ -2,10 +2,10 @@ from aiogram.types import Message
 from typing import Optional
 
 from domain.services import ModerationService, ConfigService
+from domain.objects.types import ChatAction, ChatEvent
+from domain.objects import entities
 from bot.core import BotProtocol
 from bot.data import text
-from domain.objects import entities
-from domain.objects.types import ChatAction
 
 
 class AuditActions:
@@ -46,3 +46,12 @@ class AuditActions:
             audit_chat_id,
             text.get_action_audit_message(action, user, applied_by_user, violation_id),
         )
+
+    async def upload_event_audit(
+        self,
+        event: ChatEvent,
+        user: entities.UserEntity,
+        telegram_chat_id: int,
+    ) -> None:
+        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
+        await self.bot.send_message(audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id))
