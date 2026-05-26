@@ -26,16 +26,22 @@ async def exception_handler(event: ErrorEvent):
             await message.answer(
                 text.USER_NOT_FOUND.format(escape(event.exception.username))
             )
+            return True
         case exceptions.UserNotAllowedToActionException():
             await message.answer(text.USER_NOT_ALLOWED_TO_ACTION)
+            return True
         case exceptions.ObjectNotFoundException():
             await message.answer(text.OBJECT_NOT_FOUND)
+            return True
         case exceptions.ObjectAlreadyExistsException():
             await message.answer(text.OBJECT_ALREADY_EXISTS)
+            return True
         case exceptions.ModerationException():
             await message.answer(text.CANNOT_USE_ACTION_ON_MODERATOR)
+            return True
 
     logger.exception(
         f"Unhandled exception: {event.exception}", exc_info=event.exception
     )
+    await message.answer(text.UNKNOWN_ERROR)
     return True

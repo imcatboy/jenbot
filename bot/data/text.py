@@ -82,6 +82,7 @@ BAN_WORD_ERROR = (
 VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = (
     "❌ Просмотр статистики нарушений только других модераторов и администраторов."
 )
+UNKNOWN_ERROR = "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
 VIOLATIONS = {
     types.ViolationType.WARN: "⚠️ Предупреждение",
     types.ViolationType.MUTE: "🔇 Мьют",
