@@ -1,6 +1,6 @@
-from aiogram.filters import F, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
+from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import ChatMemberUpdated
-from aiogram import Router
+from aiogram import Router, F
 
 from domain.services import UserService
 from domain.objects.types import ChatEvent
