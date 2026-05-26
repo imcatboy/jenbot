@@ -133,6 +133,16 @@ class ModerationActions:
         violation = await self.moderation_service.add_violation(violation_dto)
         return violation
 
+    async def global_ban_user(
+        self, dto: dtos.GlobalBanUserDTO
+    ) -> entities.ChatViolationEntity:
+        user = await self.user_service.get_by_id(dto.user_id)
+
+        if user.role != UserRole.USER:
+            raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
+
+        await self._execute_global_ban(user, dto)
+
     async def unban_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
 
