@@ -94,10 +94,10 @@ class ChatEvent(StrEnum):
 
 
 def parse_username(v: Any) -> Union[str, int]:
-    if isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
-        return v.replace("@", "")
-    elif isinstance(v, str) and v.isdigit():
+    if isinstance(v, str) and v.isdigit():
         return int(v)
+    elif isinstance(v, str) and re.match(r"^@[a-zA-Z0-9_]+$", v):
+        return v.replace("@", "")
 
     raise ValueError("Username must be a string or ID must be an integer")
 

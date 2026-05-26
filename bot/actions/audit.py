@@ -28,11 +28,10 @@ class AuditActions:
         audit_chat_id = await self.config_service.get("audit_chat_id", 0)
 
         if message:
-            await self.bot.forward_message(
-                audit_chat_id, message.chat.id, message.message_id
-            )
-
             try:
+                await self.bot.forward_message(
+                    audit_chat_id, message.chat.id, message.message_id
+                )
                 await message.delete()
             except TelegramBadRequest:
                 pass

@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.enums import ChatMemberStatus
@@ -48,7 +47,7 @@ async def actualize_violations_loop(
 ):
     violations = await moderation_service.get_violations_to_actualize()
     inactive_violations_ids: List[int] = []
-    chat_ids: List[int] = json.loads(await config_service.get("chats", []))
+    chat_ids: List[int] = await config_service.get("chats", [])
 
     for violation in violations:
         if violation.type == ViolationType.WARN:

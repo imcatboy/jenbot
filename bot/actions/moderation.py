@@ -141,7 +141,7 @@ class ModerationActions:
         if user.role != UserRole.USER:
             raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
 
-        await self._execute_global_ban(user, dto)
+        return await self._execute_global_ban(user, dto)
 
     async def unban_user(self, user_id: int, telegram_chat_id: int) -> None:
         user = await self.user_service.get_by_id(user_id)
