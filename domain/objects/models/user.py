@@ -165,7 +165,7 @@ class UserModel(EntityModel):
         foreign_keys="TrackerModel.tracking_user_id",
         cascade="all, delete-orphan",
     )
-    tracked_users: Mapped[List[TrackerModel]] = relationship(
+    trackers: Mapped[List[TrackerModel]] = relationship(
         back_populates="tracked_user",
         foreign_keys="TrackerModel.tracked_user_id",
         cascade="all, delete-orphan",
