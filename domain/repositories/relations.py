@@ -110,6 +110,6 @@ def get_advertisement_option_relations() -> List[Any]:
 
 def get_tracker_relations() -> List[Any]:
     return [
-        joinedload(models.TrackerModel.user),
+        joinedload(models.TrackerModel.tracked_user),
         joinedload(models.TrackerModel.tracking_user),
     ]
