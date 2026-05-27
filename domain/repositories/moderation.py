@@ -212,7 +212,7 @@ class ModerationRepository(BaseRepository):
         )
         self.session.add(tracker)
         await self.session.flush()
-        tracker = await self.get_by_id(models.TrackerModel, tracker.id)
+        tracker = await self.get_by_id(models.TrackerModel, tracker.id, get_tracker_relations())
         return entities.TrackerWithUserEntity.model_validate(tracker)
 
     async def disable_tracker(
