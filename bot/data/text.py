@@ -86,6 +86,7 @@ UNKNOWN_ERROR = (
     "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
 )
 CHAT_NOT_FOUND = "❌ Чат с ботом не найден или закрыт."
+TRACKER_ADDED = "🔍 Трекер на пользователя {0} успешно добавлен."
 TRACKER_REMOVED = "🔍 Трекер на пользователя {0} успешно удален."
 TRACKER_MESSAGE = "🔍 Новое <a href='{0}'>сообщение</a> от пользователя {1}."
 VIOLATIONS = {
@@ -389,15 +390,5 @@ def get_violations_count_message(
 
     if start_date:
         message += f"\nОт: {start_date.strftime('%d.%m.%Y %H:%M')}"
-
-    return message
-
-
-def get_tracker_message(tracker: entities.TrackerWithUserEntity) -> str:
-    message = f"<b>🔍 Трекер {format_user_handle(tracker.tracked_user.username, tracker.tracked_user.telegram_id)}</b>\n\n"
-    message += f"От: {tracker.created_at.strftime('%d.%m.%Y %H:%M')}"
-
-    if tracker.expires_at:
-        message += f"\nДо: {tracker.expires_at.strftime('%d.%m.%Y %H:%M')}"
 
     return message

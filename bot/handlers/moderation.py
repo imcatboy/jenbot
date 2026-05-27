@@ -529,5 +529,5 @@ async def removetracker_handler(
     else:
         return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
 
-    await moderation_actions.remove_tracker(purpose_user.id, user.id)
+    await moderation_actions.remove_tracker(purpose_user, user)
     await message.delete()

@@ -213,20 +213,25 @@ class ModerationActions:
         try:
             await self.bot.send_message(
                 tracker.tracking_user.telegram_id,
-                text.get_tracker_message(tracker),
+                text.TRACKER_ADDED.format(
+                    text.format_user_handle(
+                        tracker.tracked_user.username, tracker.tracked_user.telegram_id
+                    )
+                ),
             )
         except TelegramAPIError:
             raise exceptions.ChatNotFoundException(tracker.tracking_user.telegram_id)
 
         return tracker
 
-    async def remove_tracker(self, tracked_user_id: int, tracking_user_id: int) -> None:
-        await self.moderation_service.disable_tracker(tracked_user_id, tracking_user_id)
-        tracked_user = await self.user_service.get_by_id(tracked_user_id)
+    async def remove_tracker(
+        self, tracked_user: entities.UserEntity, tracking_user: entities.UserEntity
+    ) -> None:
+        await self.moderation_service.disable_tracker(tracked_user.id, tracking_user.id)
 
         try:
             await self.bot.send_message(
-                tracking_user_id,
+                tracking_user.telegram_id,
                 text.TRACKER_REMOVED.format(
                     text.format_user_handle(
                         tracked_user.username, tracked_user.telegram_id
@@ -234,4 +239,4 @@ class ModerationActions:
                 ),
             )
         except TelegramAPIError:
-            raise exceptions.ChatNotFoundException(tracking_user_id)
+            raise exceptions.ChatNotFoundException(tracking_user.telegram_id)
