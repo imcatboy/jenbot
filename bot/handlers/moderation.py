@@ -470,3 +470,64 @@ async def violationscount_handler(
     await message.answer(
         text.get_violations_count_message(purpose_user, violations_count, start_date)
     )
+
+
+@moderation_router.message(
+    Command("addtracker", "at", ignore_case=True),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.AddTrackerCommandDTO,
+    },
+)
+async def addtracker_handler(
+    message: Message,
+    command_data: dtos.AddTrackerCommandDTO,
+    user: entities.UserEntity,
+    moderation_actions: ModerationActions,
+    user_actions: UserActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.AddTrackerDTO(
+        tracked_user_id=purpose_user.id,
+        tracking_user_id=user.id,
+        expires_at=command_data.expires_at,
+    )
+    await moderation_actions.add_tracker(dto)
+    await message.delete()
+
+
+@moderation_router.message(
+    Command("removetracker", "rt", ignore_case=True),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.RemoveTrackerCommandDTO,
+    },
+)
+async def removetracker_handler(
+    message: Message,
+    command_data: dtos.RemoveTrackerCommandDTO,
+    user: entities.UserEntity,
+    moderation_actions: ModerationActions,
+    user_actions: UserActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    await moderation_actions.remove_tracker(purpose_user.id, user.id)
+    await message.delete()

@@ -1,10 +1,11 @@
 import logging
 import asyncio
 
-from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter, TelegramBadRequest
 from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
-from datetime import datetime
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
+from aiogram.enums import ChatMemberStatus
 from typing import List, Optional
+from datetime import datetime
 
 from domain.services import ModerationService, ConfigService, UserService
 from domain.objects.types import UserRole, ViolationType
@@ -33,23 +34,20 @@ class ModerationActions:
     async def _safe_ban(
         self, chat_id: int, user: entities.UserEntity, expires_at: Optional[datetime]
     ) -> bool:
-        max_retries = 3
+        try:
+            member = await self.bot.get_chat_member(chat_id, user.telegram_id)
 
-        for _ in range(max_retries):
-            try:
-                await self.bot.ban_chat_member(chat_id, user.telegram_id, expires_at)
-                return True
-            except TelegramRetryAfter as e:
-                logger.info(f"FloodWait in chat {chat_id}, waiting {e.retry_after}s")
-                await asyncio.sleep(e.retry_after)
-            except TelegramBadRequest as e:
-                logger.warning(f"Ban failed in chat {chat_id}: {e}")
+            if member.status == ChatMemberStatus.KICKED:
                 return False
-            except TelegramAPIError as e:
-                logger.warning(f"Ban failed in chat {chat_id}: {e}")
-                return False
+        except TelegramBadRequest:
+            pass
 
-        return False
+        try:
+            await self.bot.ban_chat_member(chat_id, user.telegram_id, expires_at)
+            return True
+        except TelegramAPIError as e:
+            logger.warning(f"Ban failed in chat {chat_id}: {e}")
+            return False
 
     async def _execute_global_ban(
         self, user: entities.UserEntity, dto: dtos.GlobalBanUserDTO
@@ -77,7 +75,7 @@ class ModerationActions:
                 f"Global ban for {user.telegram_id}: {success_count}/{len(results)} chats succeeded. "
                 f"Failed chats: {[chat_id for chat_id, success in zip(chats, results) if not success]}"
             )
-        
+
         if success_count == 0:
             raise exceptions.ModerationException(dto.user_id, ViolationType.BAN)
 
@@ -208,3 +206,32 @@ class ModerationActions:
         await self.moderation_service.set_violations_inactive(
             user_id, ViolationType.MUTE
         )
+
+    async def add_tracker(self, dto: dtos.AddTrackerDTO) -> entities.TrackerEntity:
+        tracker = await self.moderation_service.add_tracker(dto)
+
+        try:
+            await self.bot.send_message(
+                tracker.tracking_user.telegram_id,
+                text.get_tracker_message(tracker),
+            )
+        except TelegramAPIError:
+            raise exceptions.ChatNotFoundException(tracker.tracking_user.telegram_id)
+
+        return tracker
+
+    async def remove_tracker(self, tracked_user_id: int, tracking_user_id: int) -> None:
+        await self.moderation_service.disable_tracker(tracked_user_id, tracking_user_id)
+        tracked_user = await self.user_service.get_by_id(tracked_user_id)
+
+        try:
+            await self.bot.send_message(
+                tracking_user_id,
+                text.TRACKER_REMOVED.format(
+                    text.format_user_handle(
+                        tracked_user.username, tracked_user.telegram_id
+                    )
+                ),
+            )
+        except TelegramAPIError:
+            raise exceptions.ChatNotFoundException(tracking_user_id)

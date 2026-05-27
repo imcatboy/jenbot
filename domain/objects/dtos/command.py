@@ -1,4 +1,13 @@
-from domain.objects.types import UsernameOrTelegramID, Reason, RelativeDateTime, ID, Text, SettingName, Word, TelegramID
+from domain.objects.types import (
+    UsernameOrTelegramID,
+    Reason,
+    RelativeDateTime,
+    ID,
+    Text,
+    SettingName,
+    Word,
+    TelegramID,
+)
 from typing import Optional
 from .base import BaseDTO
 
@@ -75,3 +84,12 @@ class RemoveBanWordCommandDTO(BaseDTO):
 class GetViolationsCountCommandDTO(BaseDTO):
     username: Optional[UsernameOrTelegramID] = None
     start_date: Optional[RelativeDateTime] = None
+
+
+class AddTrackerCommandDTO(BaseDTO):
+    username: Optional[UsernameOrTelegramID] = None
+    expires_at: Optional[RelativeDateTime] = None
+
+
+class RemoveTrackerCommandDTO(BaseDTO):
+    username: Optional[UsernameOrTelegramID] = None

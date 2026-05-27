@@ -40,10 +40,12 @@ class DIMiddleware(BaseMiddleware):
         )
         data["user_service"] = user_service
         moderation_repository = ModerationRepository(session=uow.session)
+        moderation_cache = ModerationCache(redis=self.redis, tracker_ttl=60 * 60 * 24)
         moderation_service = ModerationService(
             moderation_repository=moderation_repository,
             user_repository=user_repository,
             config_service=config_service,
+            moderation_cache=moderation_cache,
         )
         data["moderation_service"] = moderation_service
         audit_actions = AuditActions(

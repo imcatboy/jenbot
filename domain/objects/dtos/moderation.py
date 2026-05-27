@@ -79,3 +79,9 @@ class GetViolationsDTO(BaseDTO):
     end_date: Optional[datetime] = None
     limit: Optional[int] = None
     offset: Optional[int] = None
+
+
+class AddTrackerDTO(BaseDTO):
+    tracked_user_id: int
+    tracking_user_id: int
+    expires_at: Optional[datetime] = None

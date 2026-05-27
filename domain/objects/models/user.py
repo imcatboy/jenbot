@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, String, BigInteger, Numeric
+from sqlalchemy import (
+    CheckConstraint,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    BigInteger,
+    Numeric,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime
@@ -10,7 +18,12 @@ from .base import EntityModel, BaseModel, MetadataModel
 
 if TYPE_CHECKING:
     from .messaging import ChatModel, ChatParticipantModel, MessageModel, FileModel
-    from .moderation import ChatViolationModel, ViolationModel, ReportModel
+    from .moderation import (
+        ChatViolationModel,
+        ViolationModel,
+        ReportModel,
+        TrackerModel,
+    )
     from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
     from .marketplace import AdvertisementModel, ProductModel, CategoryModel
     from .trading import DealModel
@@ -22,7 +35,9 @@ class UserModel(EntityModel):
 
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True)
     username: Mapped[Optional[str]] = mapped_column(String(32), unique=True)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="USER_ROLE"), default=UserRole.USER, index=True)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="USER_ROLE"), default=UserRole.USER, index=True
+    )
     reputation_user: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="user",
         foreign_keys="ReputationUserModel.user_id",
@@ -145,6 +160,16 @@ class UserModel(EntityModel):
         foreign_keys="CategoryModel.author_id",
         cascade="all, delete-orphan",
     )
+    controlled_trackers: Mapped[List[TrackerModel]] = relationship(
+        back_populates="tracking_user",
+        foreign_keys="TrackerModel.tracking_user_id",
+        cascade="all, delete-orphan",
+    )
+    tracked_users: Mapped[List[TrackerModel]] = relationship(
+        back_populates="tracked_user",
+        foreign_keys="TrackerModel.tracked_user_id",
+        cascade="all, delete-orphan",
+    )
 
 
 class ReputationUserModel(BaseModel, MetadataModel):
@@ -193,9 +218,7 @@ class ChatUserModel(BaseModel, MetadataModel):
     experience: Mapped[int] = mapped_column(default=0)
     message_count: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[bool] = mapped_column(default=True)
-    last_activity_at: Mapped[datetime] = mapped_column(
-        default=datetime.now, index=True
-    )
+    last_activity_at: Mapped[datetime] = mapped_column(default=datetime.now, index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="chat_user",
         foreign_keys=[user_id],

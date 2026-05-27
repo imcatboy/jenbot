@@ -2,7 +2,6 @@ import logging
 
 from aiogram.types import ErrorEvent, Message
 from aiogram import Router
-from html import escape
 
 from domain.objects import exceptions
 from bot.data import text
@@ -23,9 +22,7 @@ async def exception_handler(event: ErrorEvent):
 
     match event.exception:
         case exceptions.UserNotFoundException():
-            await message.answer(
-                text.USER_NOT_FOUND.format(event.exception.username)
-            )
+            await message.answer(text.USER_NOT_FOUND.format(event.exception.username))
             return True
         case exceptions.UserNotAllowedToActionException():
             await message.answer(text.USER_NOT_ALLOWED_TO_ACTION)
@@ -38,6 +35,9 @@ async def exception_handler(event: ErrorEvent):
             return True
         case exceptions.ModerationException():
             await message.answer(text.CANNOT_USE_ACTION_ON_USER)
+            return True
+        case exceptions.ChatNotFoundException():
+            await message.answer(text.CHAT_NOT_FOUND)
             return True
 
     logger.exception(

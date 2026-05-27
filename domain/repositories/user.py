@@ -31,6 +31,7 @@ class UserRepository(BaseRepository):
             self.session.add(user)
             await self.session.flush()
         except IntegrityError:
+            await self.session.rollback()
             user = await self.get_one_by_data(models.UserModel, telegram_id=telegram_id)
 
         return entities.UserEntity.model_validate(user)

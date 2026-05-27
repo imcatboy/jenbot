@@ -48,3 +48,15 @@ class ReportWithUserEntity(ReportEntity):
     user: UserEntity
     accused_user: Optional[UserEntity] = None
     applied_by_user: Optional[UserEntity] = None
+
+
+class TrackerEntity(EntityWithMetadata):
+    expires_at: Optional[datetime] = None
+    is_active: bool
+    tracked_user_id: int
+    tracking_user_id: int
+
+
+class TrackerWithUserEntity(TrackerEntity):
+    tracked_user: UserEntity
+    tracking_user: UserEntity

@@ -82,7 +82,12 @@ BAN_WORD_ERROR = (
 VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = (
     "❌ Просмотр статистики нарушений только других модераторов и администраторов."
 )
-UNKNOWN_ERROR = "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
+UNKNOWN_ERROR = (
+    "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
+)
+CHAT_NOT_FOUND = "❌ Чат с ботом не найден или закрыт."
+TRACKER_REMOVED = "🔍 Трекер на пользователя {0} успешно удален."
+TRACKER_MESSAGE = "🔍 Новое <a href='{0}'>сообщение</a> от пользователя {1}."
 VIOLATIONS = {
     types.ViolationType.WARN: "⚠️ Предупреждение",
     types.ViolationType.MUTE: "🔇 Мьют",
@@ -189,9 +194,7 @@ def get_ban_user_success_message(
             username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
-        return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            username, escape(reason)
-        )
+        return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
 
 
 def get_mute_user_success_message(
@@ -202,9 +205,7 @@ def get_mute_user_success_message(
             username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
-        return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            username, escape(reason)
-        )
+        return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
 
 
 def get_warn_user_success_message(
@@ -215,9 +216,7 @@ def get_warn_user_success_message(
             username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
         )
     else:
-        return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
-            username, escape(reason)
-        )
+        return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
 
 
 def get_violations_message(
@@ -390,5 +389,15 @@ def get_violations_count_message(
 
     if start_date:
         message += f"\nОт: {start_date.strftime('%d.%m.%Y %H:%M')}"
+
+    return message
+
+
+def get_tracker_message(tracker: entities.TrackerWithUserEntity) -> str:
+    message = f"<b>🔍 Трекер {format_user_handle(tracker.tracked_user.username, tracker.tracked_user.telegram_id)}</b>\n\n"
+    message += f"От: {tracker.created_at.strftime('%d.%m.%Y %H:%M')}"
+
+    if tracker.expires_at:
+        message += f"\nДо: {tracker.expires_at.strftime('%d.%m.%Y %H:%M')}"
 
     return message

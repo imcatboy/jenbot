@@ -49,9 +49,7 @@ class TooManyObjectsFoundException(DomainException):
 
 class ModerationException(DomainException):
 
-    def __init__(
-        self, user_id: int, violation_type: ViolationType
-    ):
+    def __init__(self, user_id: int, violation_type: ViolationType):
         self.user_id = user_id
         self.violation_type = violation_type
         super().__init__(
@@ -155,3 +153,10 @@ class FileNotFoundException(DomainException):
     def __init__(self, *file_ids: int):
         self.file_ids = file_ids
         super().__init__(f"File {', '.join(map(str, file_ids))} not found")
+
+
+class ChatNotFoundException(DomainException):
+
+    def __init__(self, chat_id: int):
+        self.chat_id = chat_id
+        super().__init__(f"Chat {chat_id} not found")

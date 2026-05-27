@@ -57,7 +57,9 @@ class ReportModel(EntityModel):
 
     reason: Mapped[str] = mapped_column(String(1024))
     status: Mapped[ReportStatus] = mapped_column(
-        Enum(ReportStatus, name="REPORT_STATUS"), index=True, default=ReportStatus.PENDING,
+        Enum(ReportStatus, name="REPORT_STATUS"),
+        index=True,
+        default=ReportStatus.PENDING,
     )
     attachments: Mapped[List[str]] = mapped_column(ARRAY(String(255)))
     type: Mapped[ReportType] = mapped_column(
@@ -69,7 +71,9 @@ class ReportModel(EntityModel):
         back_populates="reports",
         foreign_keys=[user_id],
     )
-    accused_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    accused_user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id"), index=True
+    )
     accused_user: Mapped[Optional[UserModel]] = relationship(
         back_populates="accused_reports",
         foreign_keys=[accused_user_id],
@@ -78,4 +82,31 @@ class ReportModel(EntityModel):
     applied_by_user: Mapped[Optional[UserModel]] = relationship(
         back_populates="applied_reports",
         foreign_keys=[applied_by_user_id],
+    )
+
+
+class TrackerModel(EntityModel):
+    __tablename__ = "trackers"
+    fk_name = "tracker_id"
+    __table_args__ = (
+        Index(
+            "ix_trackers_user_id_tracking_user_id_is_active",
+            "tracked_user_id",
+            "tracking_user_id",
+            unique=True,
+            postgresql_where="is_active = TRUE",
+        ),
+    )
+
+    expires_at: Mapped[Optional[datetime]] = mapped_column(index=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    tracked_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    tracked_user: Mapped[UserModel] = relationship(
+        back_populates="trackers",
+        foreign_keys=[tracked_user_id],
+    )
+    tracking_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    tracking_user: Mapped[UserModel] = relationship(
+        back_populates="controlled_trackers",
+        foreign_keys=[tracking_user_id],
     )

@@ -4,6 +4,7 @@ from domain.repositories import ModerationRepository, UserRepository
 from domain.objects.types import ViolationType, UserRole
 from domain.objects import dtos, entities, exceptions
 from domain.services import ConfigService
+from domain.cache import ModerationCache
 
 
 class ModerationService:
@@ -13,10 +14,12 @@ class ModerationService:
         moderation_repository: ModerationRepository,
         user_repository: UserRepository,
         config_service: ConfigService,
+        moderation_cache: ModerationCache,
     ) -> None:
         self.moderation_repository = moderation_repository
         self.user_repository = user_repository
         self.config_service = config_service
+        self.moderation_cache = moderation_cache
 
     async def add_violation(
         self, dto: dtos.AddViolationDTO
@@ -27,7 +30,7 @@ class ModerationService:
         self, dto: dtos.GetViolationsDTO
     ) -> List[entities.ChatViolationWithUserEntity]:
         return await self.moderation_repository.get_violations(dto)
-    
+
     async def get_violations_count(
         self, dto: dtos.GetViolationsDTO
     ) -> Dict[ViolationType, int]:
@@ -111,3 +114,31 @@ class ModerationService:
         return await self.moderation_repository.set_violations_inactive(
             user_id, violation_type
         )
+
+    async def add_tracker(self, dto: dtos.AddTrackerDTO) -> entities.TrackerWithUserEntity:
+        tracker = await self.moderation_repository.add_tracker(dto)
+        trackers = await self.moderation_repository.get_trackers(dto.tracked_user_id)
+        await self.moderation_cache.set_trackers(dto.tracked_user_id, trackers)
+        return tracker
+
+    async def get_trackers(
+        self, tracked_user_id: int
+    ) -> List[entities.TrackerWithUserEntity]:
+        trackers = await self.moderation_cache.get_trackers(tracked_user_id)
+
+        if trackers:
+            return trackers
+
+        trackers = await self.moderation_repository.get_trackers(tracked_user_id)
+        await self.moderation_cache.set_trackers(tracked_user_id, trackers)
+        return trackers
+
+    async def set_tracker_message(self, tracker_id: int, message_id: int) -> None:
+        await self.moderation_cache.set_tracker_message(tracker_id, message_id)
+
+    async def get_tracker_message(self, tracker_id: int) -> int | None:
+        return await self.moderation_cache.get_tracker_message(tracker_id)
+
+    async def disable_tracker(self, tracked_user_id: int, tracking_user_id: int) -> None:
+        await self.moderation_repository.disable_tracker(tracked_user_id, tracking_user_id)
+        await self.moderation_cache.invalidate_trackers(tracked_user_id)

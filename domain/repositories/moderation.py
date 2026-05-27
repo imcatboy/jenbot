@@ -4,7 +4,11 @@ from sqlalchemy import update
 from typing import Dict, List
 
 from domain.objects.types import ViolationType
-from .relations import get_report_relations, get_violation_relations
+from .relations import (
+    get_report_relations,
+    get_violation_relations,
+    get_tracker_relations,
+)
 from domain.objects import models, dtos, entities, exceptions
 from .base import BaseRepository
 
@@ -188,4 +192,50 @@ class ModerationRepository(BaseRepository):
         return [
             entities.ChatViolationWithUserEntity.model_validate(violation)
             for violation in violations
+        ]
+
+    async def add_tracker(
+        self, dto: dtos.AddTrackerDTO
+    ) -> entities.TrackerWithUserEntity:
+        await self.validator.validate_data_not_exists(
+            models.TrackerModel,
+            tracked_user_id=dto.tracked_user_id,
+            tracking_user_id=dto.tracking_user_id,
+            is_active=True,
+        )
+        tracker = models.TrackerModel(**dto.model_dump())
+        await self.create_relation(
+            tracker, models.UserModel, dto.tracked_user_id, "tracked_user_id"
+        )
+        await self.create_relation(
+            tracker, models.UserModel, dto.tracking_user_id, "tracking_user_id"
+        )
+        self.session.add(tracker)
+        await self.session.flush()
+        tracker = await self.get_by_id(models.TrackerModel, tracker.id)
+        return entities.TrackerWithUserEntity.model_validate(tracker)
+
+    async def disable_tracker(
+        self, tracked_user_id: int, tracking_user_id: int
+    ) -> None:
+        await self.session.execute(
+            update(models.TrackerModel)
+            .where(
+                models.TrackerModel.tracked_user_id == tracked_user_id,
+                models.TrackerModel.tracking_user_id == tracking_user_id,
+            )
+            .values(is_active=False)
+        )
+        await self.session.flush()
+
+    async def get_trackers(self, user_id: int) -> List[entities.TrackerWithUserEntity]:
+        trackers = await self.get_all_by_data(
+            models.TrackerModel,
+            tracked_user_id=user_id,
+            is_active=True,
+            options=get_tracker_relations(),
+        )
+        return [
+            entities.TrackerWithUserEntity.model_validate(tracker)
+            for tracker in trackers
         ]

@@ -106,3 +106,10 @@ def get_advertisement_option_relations() -> List[Any]:
         selectinload(models.AdvertisementOptionModel.trades),
         selectinload(models.AdvertisementOptionModel.product_options),
     ]
+
+
+def get_tracker_relations() -> List[Any]:
+    return [
+        joinedload(models.TrackerModel.user),
+        joinedload(models.TrackerModel.tracking_user),
+    ]
