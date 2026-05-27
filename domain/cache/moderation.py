@@ -1,9 +1,13 @@
+from pydantic import TypeAdapter
 from redis.asyncio import Redis
 from typing import List
 
-from .base import BaseCache
-from domain.cache import keys
 from domain.objects import entities
+from domain.cache import keys
+from .base import BaseCache
+
+
+TrackersAdapter = TypeAdapter(List[entities.TrackerWithUserEntity])
 
 
 class ModerationCache(BaseCache):
@@ -18,10 +22,7 @@ class ModerationCache(BaseCache):
         trackers = await self.get(keys.get_trackers_key(user_id))
 
         if trackers:
-            return [
-                entities.TrackerWithUserEntity.model_validate_json(tracker)
-                for tracker in trackers
-            ]
+            return TrackersAdapter.validate_json(trackers)
 
         return None
 
@@ -30,7 +31,7 @@ class ModerationCache(BaseCache):
     ) -> None:
         await self.set(
             keys.get_trackers_key(user_id),
-            [tracker.model_dump() for tracker in trackers],
+            TrackersAdapter.dump_json(trackers),
             expire=self.tracker_ttl,
         )
 
