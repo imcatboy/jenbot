@@ -10,6 +10,7 @@ from domain.repositories import ModerationRepository, UserRepository, ConfigRepo
 from domain.services import ModerationService, ConfigService
 from .violations import actualize_violations_loop
 from domain.uow import SQLAlchemyUnitOfWork
+from domain.cache import ModerationCache
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +46,12 @@ class SchedulerService:
                     user_repository = UserRepository(uow.session)
                     config_repository = ConfigRepository(uow.session, self.redis)
                     config_service = ConfigService(config_repository=config_repository)
+                    moderation_cache = ModerationCache(redis=self.redis, tracker_ttl=60 * 60 * 24)
                     moderation_service = ModerationService(
                         moderation_repository=moderation_repository,
                         user_repository=user_repository,
                         config_service=config_service,
+                        moderation_cache=moderation_cache,
                     )
                     await actualize_violations_loop(self.bot, moderation_service, config_service)
             except asyncio.CancelledError:
