@@ -160,3 +160,10 @@ class ChatNotFoundException(DomainException):
     def __init__(self, chat_id: int):
         self.chat_id = chat_id
         super().__init__(f"Chat {chat_id} not found")
+
+
+class ConfigNotFoundException(DomainException):
+
+    def __init__(self, key: str):
+        self.key = key
+        super().__init__(f"Config {key} not found")

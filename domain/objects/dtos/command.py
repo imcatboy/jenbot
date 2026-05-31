@@ -66,7 +66,7 @@ class RemoveModeratorCommandDTO(BaseDTO):
 
 
 class CheckCommandDTO(BaseDTO):
-    username: Optional[UsernameOrTelegramID] = None
+    username: UsernameOrTelegramID
 
 
 class SetReputationCommandDTO(BaseDTO):

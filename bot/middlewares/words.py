@@ -29,20 +29,22 @@ class WordsMiddleware(BaseMiddleware):
         if (
             user.role in [UserRole.ADMIN, UserRole.MODERATOR]
             or event.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
-            or not event.text
+            or (not event.text and not event.caption)
         ):
             return await handler(event, data)
 
         config_service: ConfigService = data["config_service"]
         words: List[str] = await config_service.get("ban_words", [])
-        normalized_message = self._normalize_message(event.text)
+        normalized_message = self._normalize_message(event.text or event.caption)
 
         for word in words:
             if word.lower() in normalized_message:
                 await event.delete()
                 message = await event.answer(
                     text.BAN_WORD_ERROR.format(
-                        escape(event.from_user.username or event.from_user.first_name),
+                        text.format_user_handle(
+                            event.from_user.username, event.from_user.id
+                        ),
                         escape(word),
                     )
                 )

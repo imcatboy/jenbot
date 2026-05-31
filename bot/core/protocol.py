@@ -119,3 +119,34 @@ class BotProtocol(Protocol):
         ChatMemberLeft,
         ChatMemberBanned,
     ]: ...
+
+    async def send_photo(
+        self,
+        chat_id: Union[int, str],
+        photo: Union[InputFile, str],
+        business_connection_id: Optional[str] = None,
+        message_thread_id: Optional[int] = None,
+        caption: Optional[str] = None,
+        parse_mode: Optional[Union[str, Default]] = Default("parse_mode"),
+        caption_entities: Optional[list[MessageEntity]] = None,
+        show_caption_above_media: Optional[Union[bool, Default]] = Default(
+            "show_caption_above_media"
+        ),
+        has_spoiler: Optional[bool] = None,
+        disable_notification: Optional[bool] = None,
+        protect_content: Optional[Union[bool, Default]] = Default("protect_content"),
+        allow_paid_broadcast: Optional[bool] = None,
+        message_effect_id: Optional[str] = None,
+        reply_parameters: Optional[ReplyParameters] = None,
+        reply_markup: Optional[
+            Union[
+                InlineKeyboardMarkup,
+                ReplyKeyboardMarkup,
+                ReplyKeyboardRemove,
+                ForceReply,
+            ]
+        ] = None,
+        allow_sending_without_reply: Optional[bool] = None,
+        reply_to_message_id: Optional[int] = None,
+        request_timeout: Optional[int] = None,
+    ) -> Message: ...

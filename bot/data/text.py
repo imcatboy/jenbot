@@ -89,6 +89,7 @@ CHAT_NOT_FOUND = "❌ Чат с ботом не найден или закрыт
 TRACKER_ADDED = "🔍 Трекер на пользователя {0} успешно добавлен."
 TRACKER_REMOVED = "🔍 Трекер на пользователя {0} успешно удален."
 TRACKER_MESSAGE = "🔍 Новое <a href='{0}'>сообщение</a> от пользователя {1}."
+MODERATORS_MENTIONED = "👮 Отчёт отправлен модераторам."
 VIOLATIONS = {
     types.ViolationType.WARN: "⚠️ Предупреждение",
     types.ViolationType.MUTE: "🔇 Мьют",
@@ -322,8 +323,10 @@ def get_event_audit_message(
 
 def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
     message = "👮 <b>Модераторы</b>\n\n"
+
     for moderator in moderators:
-        message += f"{format_user_handle(moderator.username, moderator.telegram_id)}\n"
+        message += moderator.username + " "
+
     return message
 
 
@@ -362,7 +365,7 @@ def get_check_success_message(reputation: entities.ReputationUserWithUserEntity)
 
 def get_check_error_message(username: str) -> str:
     message = f"<b>👤 Пользователь</b>\n\n"
-    message += f"<i>Пользователь <b>{username}</b> не имеет репутации.</i>"
+    message += f"<i>Пользователь {escape(username)} не имеет репутации.</i>"
     return message
 
 

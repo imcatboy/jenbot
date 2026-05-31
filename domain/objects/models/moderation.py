@@ -110,3 +110,12 @@ class TrackerModel(EntityModel):
         back_populates="controlled_trackers",
         foreign_keys=[tracking_user_id],
     )
+
+
+class TelegramFileModel(EntityModel):
+    __tablename__ = "telegram_files"
+    fk_name = "telegram_file_id"
+
+    name: Mapped[str] = mapped_column(String(100), index=True, unique=True)
+    file_id: Mapped[str] = mapped_column(String(100), index=True, unique=True)
+    

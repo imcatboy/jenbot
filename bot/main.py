@@ -6,6 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
+from aiogram.types import BotCommand
 from redis.asyncio import Redis
 from contextlib import suppress
 from sqlalchemy import text
@@ -67,8 +68,8 @@ dp.update.outer_middleware(DIMiddleware(redis=redis, settings=settings))
 dp.message.outer_middleware(AlbumMiddleware(latency=0.5))
 dp.message.outer_middleware(UserMiddleware())
 dp.callback_query.outer_middleware(UserMiddleware())
+dp.message.outer_middleware(WordsMiddleware())
 dp.message.outer_middleware(TrackerMiddleware())
-dp.message.middleware(WordsMiddleware())
 dp.message.middleware(SubscriptionsMiddleware())
 dp.callback_query.middleware(SubscriptionsMiddleware())
 dp.message.middleware(RoleMiddleware())
@@ -87,7 +88,10 @@ dp.include_routers(
 
 
 async def set_bot_commands(bot: Bot):
-    commands = []
+    commands = [
+        BotCommand(command="check", description="Проверить репутацию пользователя"),
+        BotCommand(command="report", description="Создать жалобу"),
+    ]
     await bot.set_my_commands(commands)
     logger.info("Commands set")
 

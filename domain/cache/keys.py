@@ -4,6 +4,7 @@ from domain.objects import entities
 NAMESPACE = "jenbot:v1"
 USER_PREFIX = "user"
 MODERATION_PREFIX = "moderation"
+MEDIA_PREFIX = "media"
 
 
 def get_key(key: str) -> str:
@@ -58,3 +59,11 @@ def get_trackers_key(user_id: int) -> str:
 
 def get_tracker_message_key(tracker_id: int) -> str:
     return get_moderation_key(f"tracker_message:{tracker_id}")
+
+
+def get_media_key(key: str) -> str:
+    return get_key(f"{MEDIA_PREFIX}:{key}")
+
+
+def get_telegram_file_key(name: str) -> str:
+    return get_media_key(f"telegram_file:{name}")

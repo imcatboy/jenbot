@@ -60,3 +60,8 @@ class TrackerEntity(EntityWithMetadata):
 class TrackerWithUserEntity(TrackerEntity):
     tracked_user: UserEntity
     tracking_user: UserEntity
+
+
+class TelegramFileEntity(EntityWithMetadata):
+    name: str
+    file_id: str

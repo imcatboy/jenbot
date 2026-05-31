@@ -57,3 +57,13 @@ class MediaRepository(BaseRepository):
             models.FileModel, message_id=message_id, id=file_id
         )
         return entities.FileEntity.model_validate(file)
+
+    async def get_telegram_file(self, name: str) -> entities.TelegramFileEntity:
+        file = await self.get_one_by_data(models.TelegramFileModel, name=name)
+        return entities.TelegramFileEntity.model_validate(file)
+    
+    async def create_telegram_file(self, name: str, file_id: str) -> entities.TelegramFileEntity:
+        file = models.TelegramFileModel(name=name, file_id=file_id)
+        self.session.add(file)
+        await self.session.flush()
+        return entities.TelegramFileEntity.model_validate(file)

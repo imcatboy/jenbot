@@ -12,9 +12,12 @@ TrackersAdapter = TypeAdapter(List[entities.TrackerWithUserEntity])
 
 class ModerationCache(BaseCache):
 
-    def __init__(self, redis: Redis, tracker_ttl: int = 60 * 60):
+    def __init__(
+        self, redis: Redis, tracker_ttl: int = 60 * 60, telegram_file_ttl: int = 60 * 60
+    ):
         super().__init__(redis)
         self.tracker_ttl = tracker_ttl
+        self.telegram_file_ttl = telegram_file_ttl
 
     async def get_trackers(
         self, user_id: int

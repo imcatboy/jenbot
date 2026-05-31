@@ -4,7 +4,7 @@ from typing import Optional
 
 from domain.services import ModerationService, ConfigService
 from domain.objects.types import ChatAction, ChatEvent
-from domain.objects import entities
+from domain.objects import entities, exceptions
 from bot.core import BotProtocol
 from bot.data import text
 
@@ -25,7 +25,10 @@ class AuditActions:
         self, violation_id: int, message: Optional[Message] = None
     ) -> None:
         violation = await self.moderation_service.get_violation(violation_id)
-        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
+        audit_chat_id = await self.config_service.get("audit_chat_id")
+
+        if not audit_chat_id:
+            raise exceptions.ConfigNotFoundException("audit_chat_id")
 
         if message:
             try:
@@ -45,7 +48,11 @@ class AuditActions:
         applied_by_user: entities.UserEntity,
         violation_id: Optional[int] = None,
     ) -> None:
-        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
+        audit_chat_id = await self.config_service.get("audit_chat_id")
+
+        if not audit_chat_id:
+            raise exceptions.ConfigNotFoundException("audit_chat_id")
+
         await self.bot.send_message(
             audit_chat_id,
             text.get_action_audit_message(action, user, applied_by_user, violation_id),
@@ -57,7 +64,11 @@ class AuditActions:
         user: entities.UserEntity,
         telegram_chat_id: int,
     ) -> None:
-        audit_chat_id = await self.config_service.get("audit_chat_id", 0)
+        audit_chat_id = await self.config_service.get("audit_chat_id")
+
+        if not audit_chat_id:
+            raise exceptions.ConfigNotFoundException("audit_chat_id")
+
         await self.bot.send_message(
             audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id)
         )

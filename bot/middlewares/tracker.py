@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class TrackerMiddleware(BaseMiddleware):
+
     async def __call__(
         self,
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],

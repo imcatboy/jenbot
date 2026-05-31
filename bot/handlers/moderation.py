@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.enums import ChatType
 from typing import Optional
-from aiogram import Router
+from aiogram import F, Router
 from html import escape
 
 from bot.data.keyboards import get_violations_keyboard
@@ -424,12 +424,14 @@ async def rules_handler(
 
 
 @moderation_router.message(Command("moderators", "mod", ignore_case=True))
+@moderation_router.message(F.text.lower() == "@admin")
 async def moderators_handler(
     message: Message,
     user_service: UserService,
 ):
     moderators = await user_service.get_by_role(UserRole.MODERATOR)
-    await message.answer(text.get_moderators_message(moderators))
+    message = await message.answer(text.get_moderators_message(moderators))
+    await message.edit_text(text.MODERATORS_MENTIONED)
 
 
 @moderation_router.message(

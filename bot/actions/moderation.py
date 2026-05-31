@@ -84,7 +84,10 @@ class ModerationActions:
 
     async def publish_report(self, report_id: int) -> None:
         report = await self.moderation_service.get_report(report_id)
-        admin_chat_id = await self.config_service.get("admin_chat_id", 0)
+        admin_chat_id = await self.config_service.get("admin_chat_id")
+
+        if not admin_chat_id:
+            raise exceptions.ConfigNotFoundException("admin_chat_id")
 
         if report.attachments:
             attachments = []

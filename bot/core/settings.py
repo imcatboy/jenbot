@@ -10,3 +10,14 @@ class Settings(BaseSettings):
     PROXY_URL: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
+MEDIA_MAP = {
+    "admin": "assets/admin.jpg",
+    "big_guarantor": "assets/big_guarantor.png",
+    "small_guarantor": "assets/small_guarantor.jpg",
+    "user": "assets/user.png",
+    "scammer": "assets/scammer.png",
+    "depositor": "assets/depositor.png",
+    "guarantor": "assets/guarantor.png",
+}
