@@ -1,17 +1,17 @@
-from datetime import datetime
-from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
+from aiogram.filters import Command
 from aiogram.enums import ChatType
-from typing import Optional
 from aiogram import F, Router
+from datetime import datetime
+from typing import Optional
 from html import escape
 
-from bot.data.keyboards import get_violations_keyboard
-from domain.services import ModerationService, ConfigService
 from bot.actions import UserActions, ModerationActions, AuditActions
-from domain.objects import dtos, entities
-from bot.filters import GroupsFilter, UsersFilter
+from domain.services import ModerationService, ConfigService
+from bot.data.keyboards import get_violations_keyboard
 from domain.objects.types import UserRole, ChatAction
+from bot.filters import GroupsFilter, UsersFilter
+from domain.objects import dtos, entities
 from domain.services import UserService
 from bot.data import text, callbacks
 
@@ -533,3 +533,35 @@ async def removetracker_handler(
 
     await moderation_actions.remove_tracker(purpose_user, user)
     await message.delete()
+
+
+@moderation_router.message(
+    Command("addbanword", "abw", ignore_case=True),
+    flags={
+        "command_model": dtos.AddBanWordCommandDTO,
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+    },
+)
+async def addbanword_handler(
+    message: Message,
+    command_data: dtos.AddBanWordCommandDTO,
+    moderation_service: ModerationService,
+):
+    await moderation_service.add_ban_word(command_data.word)
+    await message.answer(text.ADD_BAN_WORD_SUCCESS.format(escape(command_data.word)))
+
+
+@moderation_router.message(
+    Command("removebanword", "rbw", ignore_case=True),
+    flags={
+        "command_model": dtos.RemoveBanWordCommandDTO,
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+    },
+)
+async def removebanword_handler(
+    message: Message,
+    command_data: dtos.RemoveBanWordCommandDTO,
+    moderation_service: ModerationService,
+):
+    await moderation_service.remove_ban_word(command_data.word)
+    await message.answer(text.REMOVE_BAN_WORD_SUCCESS.format(escape(command_data.word)))

@@ -9,8 +9,8 @@ from html import escape
 from domain.services import ConfigService, ModerationService, UserService
 from domain.objects.types import UserRole, UserReputationRole
 from bot.data import text, callbacks, states, keyboards
-from domain.objects import dtos, types, entities
 from bot.actions import UserActions, ModerationActions
+from domain.objects import dtos, types, entities
 from bot.filters import UsersFilter
 
 admin_router = Router()
@@ -177,33 +177,3 @@ async def reputationdescription_handler(
     )
     await user_service.create_or_update_user_reputation(dto)
     await message.answer(text.SET_REPUTATION_SUCCESS)
-
-
-@admin_router.message(
-    Command("addbanword", "abw", ignore_case=True),
-    flags={
-        "command_model": dtos.AddBanWordCommandDTO,
-    },
-)
-async def addbanword_handler(
-    message: Message,
-    command_data: dtos.AddBanWordCommandDTO,
-    moderation_service: ModerationService,
-):
-    await moderation_service.add_ban_word(command_data.word)
-    await message.answer(text.ADD_BAN_WORD_SUCCESS.format(escape(command_data.word)))
-
-
-@admin_router.message(
-    Command("removebanword", "rbw", ignore_case=True),
-    flags={
-        "command_model": dtos.RemoveBanWordCommandDTO,
-    },
-)
-async def removebanword_handler(
-    message: Message,
-    command_data: dtos.RemoveBanWordCommandDTO,
-    moderation_service: ModerationService,
-):
-    await moderation_service.remove_ban_word(command_data.word)
-    await message.answer(text.REMOVE_BAN_WORD_SUCCESS.format(escape(command_data.word)))
