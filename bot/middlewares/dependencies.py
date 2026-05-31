@@ -47,6 +47,12 @@ class DIMiddleware(BaseMiddleware):
             config_service=config_service,
             moderation_cache=moderation_cache,
         )
+        media_actions = MediaActions(
+            media_repository=media_repository,
+            bot=bot,
+            config_service=config_service,
+        )
+        data["media_actions"] = media_actions
         data["moderation_service"] = moderation_service
         audit_actions = AuditActions(
             moderation_service=moderation_service,
