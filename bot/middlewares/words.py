@@ -52,7 +52,7 @@ class WordsMiddleware(BaseMiddleware):
                     user,
                     event.chat.id,
                     word,
-                    message,
+                    event,
                 )
                 await asyncio.sleep(5)
                 await message.delete()
