@@ -33,6 +33,11 @@ class DIMiddleware(BaseMiddleware):
         user_repository = UserRepository(session=uow.session)
         user_cache = UserCache(redis=self.redis)
         media_repository = MediaRepository(session=uow.session)
+        media_cache = MediaCache(redis=self.redis)
+        media_service = MediaService(
+            media_repository=media_repository, media_cache=media_cache
+        )
+        data["media_service"] = media_service
         user_service = UserService(
             user_repository=user_repository,
             user_cache=user_cache,
@@ -48,7 +53,7 @@ class DIMiddleware(BaseMiddleware):
             moderation_cache=moderation_cache,
         )
         media_actions = MediaActions(
-            media_repository=media_repository,
+            media_service=media_service,
             bot=bot,
             config_service=config_service,
         )
