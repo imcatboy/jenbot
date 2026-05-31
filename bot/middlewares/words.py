@@ -39,7 +39,6 @@ class WordsMiddleware(BaseMiddleware):
 
         for word in words:
             if word.lower() in normalized_message:
-                await event.delete()
                 message = await event.answer(
                     text.BAN_WORD_ERROR.format(
                         text.format_user_handle(
@@ -53,6 +52,7 @@ class WordsMiddleware(BaseMiddleware):
                     user,
                     event.chat.id,
                     word,
+                    message,
                 )
                 await asyncio.sleep(5)
                 await message.delete()

@@ -64,6 +64,7 @@ class AuditActions:
         user: entities.UserEntity,
         telegram_chat_id: int,
         comment: Optional[str] = None,
+        message: Optional[Message] = None,
     ) -> None:
         audit_chat_id = await self.config_service.get("audit_chat_id")
 
@@ -71,5 +72,15 @@ class AuditActions:
             raise exceptions.ConfigNotFoundException("audit_chat_id")
 
         await self.bot.send_message(
-            audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id, comment)
+            audit_chat_id,
+            text.get_event_audit_message(event, user, telegram_chat_id, comment),
         )
+
+        if message:
+            try:
+                await self.bot.forward_message(
+                    audit_chat_id, message.chat.id, message.message_id
+                )
+                await message.delete()
+            except TelegramBadRequest:
+                pass
