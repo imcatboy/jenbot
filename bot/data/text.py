@@ -76,9 +76,7 @@ REPORT_ACCUSED_USER_UPDATED = "📌 Пользователь успешно от
 SET_REPUTATION_SUCCESS = "📌 Репутация пользователя успешно установлена."
 ADD_BAN_WORD_SUCCESS = "📌 Слово <b>{0}</b> успешно добавлено в список запрещённых."
 REMOVE_BAN_WORD_SUCCESS = "📌 Слово <b>{0}</b> успешно удалено из списка запрещённых."
-BAN_WORD_ERROR = (
-    "❌ {0} использовал запрещённое слово <tg-spoiler>{1}</tg-spoiler>."
-)
+BAN_WORD_ERROR = "❌ {0} использовал запрещённое слово <tg-spoiler>{1}</tg-spoiler>."
 VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = (
     "❌ Просмотр статистики нарушений только других модераторов и администраторов."
 )
@@ -326,7 +324,7 @@ def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
     message = "👮 <b>Модераторы</b>\n\n"
 
     for moderator in moderators:
-        message += moderator.username + " "
+        message += f"@{moderator.username} "
 
     return message
 
