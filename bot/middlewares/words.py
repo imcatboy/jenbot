@@ -1,4 +1,3 @@
-import logging
 import asyncio
 import re
 
@@ -14,9 +13,6 @@ from domain.services import ConfigService
 from bot.actions import AuditActions
 from domain.objects import entities
 from bot.data import text
-
-
-logger = logging.getLogger(__name__)
 
 
 class WordsMiddleware(BaseMiddleware):
@@ -35,9 +31,6 @@ class WordsMiddleware(BaseMiddleware):
             or event.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]
             or (not event.text and not event.caption)
         ):
-            logger.info(
-                f"WordsMiddleware: {event.text} {event.caption} {user.role} {event.chat.type}"
-            )
             return await handler(event, data)
 
         config_service: ConfigService = data["config_service"]
@@ -64,11 +57,10 @@ class WordsMiddleware(BaseMiddleware):
                 await message.delete()
                 return
 
-        logger.info(f"WordsMiddleware: {words} {normalized_message}")
         return await handler(event, data)
 
     def _normalize_message(self, message: str) -> str:
         message = message.lower()
         message = message.translate(text.HOMOGLYPHS)
-        message = re.sub(r"[^а-яёa-z]", "", message)
+        message = re.sub(r"[^а-яёa-z0-9]", "", message)
         return message
