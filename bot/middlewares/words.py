@@ -52,6 +52,7 @@ class WordsMiddleware(BaseMiddleware):
                     ChatEvent.BAN_WORD,
                     user,
                     event.chat.id,
+                    word,
                 )
                 await asyncio.sleep(5)
                 await message.delete()

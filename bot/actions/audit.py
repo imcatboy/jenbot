@@ -63,6 +63,7 @@ class AuditActions:
         event: ChatEvent,
         user: entities.UserEntity,
         telegram_chat_id: int,
+        comment: Optional[str] = None,
     ) -> None:
         audit_chat_id = await self.config_service.get("audit_chat_id")
 
@@ -70,5 +71,5 @@ class AuditActions:
             raise exceptions.ConfigNotFoundException("audit_chat_id")
 
         await self.bot.send_message(
-            audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id)
+            audit_chat_id, text.get_event_audit_message(event, user, telegram_chat_id, comment)
         )

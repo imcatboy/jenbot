@@ -117,7 +117,7 @@ REPUTATION_ROLES = {
     types.UserReputationRole.SCAMMER: "🚫 Скамер",
     types.UserReputationRole.GUARANTOR: "💵 Гарант",
     types.UserReputationRole.BIG_GUARANTOR: "💎 Большой гарант",
-    types.UserReputationRole.SMALL_GUARANTOR: "🪙 Малый гарант",
+    types.UserReputationRole.SMALL_GUARANTOR: "🪙 Младший гарант",
     types.UserReputationRole.DEPOSITOR: "💰 Депозитчик",
     types.UserReputationRole.ADMIN: "👑 Админ",
 }

@@ -66,7 +66,7 @@ REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
                 ).pack(),
             ),
             InlineKeyboardButton(
-                text="🪙 Малый гарант",
+                text="🪙 Младший гарант",
                 callback_data=ReputationRoleCallback(
                     role=UserReputationRole.SMALL_GUARANTOR
                 ).pack(),
