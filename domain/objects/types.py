@@ -165,8 +165,16 @@ Text = Annotated[str, Field(max_length=1024, description="Текст (до 1024 
 
 Rating = Annotated[int, Field(ge=1, le=5, description="Оценка (от 1 до 5)")]
 
+
+def clean_word(value: Any) -> Any:
+    if isinstance(value, str):
+        return value.lower()
+    return value
+
+
 Word = Annotated[
     str,
+    BeforeValidator(clean_word),
     Field(
         max_length=30,
         pattern=r"^[a-zA-ZА-Яа-я0-9_]+$",
