@@ -15,6 +15,9 @@ from domain.objects import entities
 from bot.data import text
 
 
+WORD_CHAR_CLASS = r"а-яёa-z0-9"
+
+
 class WordsMiddleware(BaseMiddleware):
 
     async def __call__(
@@ -35,10 +38,14 @@ class WordsMiddleware(BaseMiddleware):
 
         config_service: ConfigService = data["config_service"]
         words: List[str] = await config_service.get("ban_words", [])
-        normalized_message = self._normalize_message(event.text or event.caption)
+        raw = event.text or event.caption
+        spaced_message = self._normalize_spaced(raw)
 
         for word in words:
-            if word.lower() in normalized_message:
+            if not word.strip():
+                continue
+
+            if self._matches_ban_word(spaced_message, word):
                 message = await event.answer(
                     text.BAN_WORD_ERROR.format(
                         text.format_user_handle(
@@ -60,8 +67,19 @@ class WordsMiddleware(BaseMiddleware):
 
         return await handler(event, data)
 
-    def _normalize_message(self, message: str) -> str:
+    def _normalize_spaced(self, message: str) -> str:
         message = message.lower()
         message = message.translate(text.HOMOGLYPHS)
-        message = re.sub(r"[^а-яёa-z0-9]", "", message)
-        return message
+        message = re.sub(rf"[^{WORD_CHAR_CLASS}]+", " ", message)
+        return re.sub(r" +", " ", message).strip()
+
+    def _matches_ban_word(self, spaced_message: str, word: str) -> bool:
+        translated = word.lower().strip().translate(text.HOMOGLYPHS)
+
+        if not translated:
+            return False
+
+        pattern = (
+            rf"(?<![{WORD_CHAR_CLASS}]){re.escape(translated)}(?![{WORD_CHAR_CLASS}])"
+        )
+        return re.search(pattern, spaced_message, re.IGNORECASE) is not None
