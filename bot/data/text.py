@@ -124,6 +124,7 @@ REPUTATION_ROLES = {
 CHAT_EVENTS = {
     types.ChatEvent.JOIN: "👋 Вход",
     types.ChatEvent.LEAVE: "⛓️‍💥 Выход",
+    types.ChatEvent.BAN_WORD: "❌ Запрещённое слово",
 }
 HOMOGLYPHS = str.maketrans("ayBkKMnoPpCcTyXxeE", "ауВкКМноРрСсТуХхеЕ")
 

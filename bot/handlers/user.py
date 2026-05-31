@@ -35,14 +35,15 @@ async def check_handler(
     except (exceptions.UserNotFoundException, exceptions.ObjectNotFoundException):
         image = await media_actions.get_telegram_file("user")
         await message.answer_photo(
-            image, text.get_check_error_message(str(command_data.username))
+            photo=image,
+            caption=text.get_check_error_message(str(command_data.username)),
         )
         return
 
     image = await media_actions.get_telegram_file(reputation.role.value)
     await message.answer_photo(
-        image,
-        text.get_check_success_message(reputation),
+        photo=image,
+        caption=text.get_check_success_message(reputation),
         reply_markup=keyboards.get_check_keyboard(reports),
     )
 
