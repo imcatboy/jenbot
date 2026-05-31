@@ -74,7 +74,7 @@ class SetReputationCommandDTO(BaseDTO):
 
 
 class AddBanWordCommandDTO(BaseDTO):
-    word: Text
+    word: Word
 
 
 class RemoveBanWordCommandDTO(BaseDTO):

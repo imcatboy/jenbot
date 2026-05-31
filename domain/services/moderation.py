@@ -94,7 +94,7 @@ class ModerationService:
         words: List[str] = await self.config_service.get("ban_words", [])
 
         if word in words:
-            raise exceptions.ObjectAlreadyExistsException("ban_word", [word])
+            raise exceptions.ObjectAlreadyExistsException("ban_word", word=word)
 
         words.append(word)
         await self.config_service.set("ban_words", words)
@@ -103,7 +103,7 @@ class ModerationService:
         words: List[str] = await self.config_service.get("ban_words", [])
 
         if word not in words:
-            raise exceptions.ObjectNotFoundException("ban_word", [word])
+            raise exceptions.ObjectNotFoundException("ban_word", word=word)
 
         words.remove(word)
         await self.config_service.set("ban_words", words)
