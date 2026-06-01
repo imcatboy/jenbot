@@ -2,7 +2,7 @@ from typing import Annotated, Dict, Type, get_args, get_origin, List
 from aiogram.filters import CommandObject
 from pydantic.fields import FieldInfo
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from html import escape
 
@@ -175,6 +175,13 @@ def format_user_handle(username: Optional[str], telegram_id: int) -> str:
     )
 
 
+def format_date(date: datetime) -> str:
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=timezone.utc)
+    
+    return date.astimezone("Europe/Moscow").strftime("%d.%m.%Y %H:%M")
+
+
 def get_command_usage(command: CommandObject, model: Type[BaseModel]) -> str:
     fields = []
 
@@ -192,7 +199,7 @@ def get_ban_user_success_message(
 ) -> str:
     if expires_at:
         return BAN_USER_SUCCESS.format(
-            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, format_date(expires_at), escape(reason)
         )
     else:
         return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
@@ -203,7 +210,7 @@ def get_mute_user_success_message(
 ) -> str:
     if expires_at:
         return MUTE_USER_SUCCESS.format(
-            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, format_date(expires_at), escape(reason)
         )
     else:
         return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
@@ -214,7 +221,7 @@ def get_warn_user_success_message(
 ) -> str:
     if expires_at:
         return WARN_USER_SUCCESS.format(
-            username, expires_at.strftime("%d.%m.%Y %H:%M"), escape(reason)
+            username, format_date(expires_at), escape(reason)
         )
     else:
         return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
@@ -239,10 +246,10 @@ def get_violations_message(
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
         message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
-        message += f"От {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
+        message += f"От {format_date(violation.created_at)}"
 
         if violation.expires_at:
-            message += f"\nДо {violation.expires_at.strftime('%d.%m.%Y %H:%M')}"
+            message += f"\nДо {format_date(violation.expires_at)}"
 
         message += "</blockquote>\n\n"
 
@@ -256,10 +263,10 @@ def get_violations_message(
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
         message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
-        message += f"От {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
+        message += f"От {format_date(violation.created_at)}"
 
         if violation.expires_at:
-            message += f"\nДо {violation.expires_at.strftime('%d.%m.%Y %H:%M')}"
+            message += f"\nДо {format_date(violation.expires_at)}"
 
         message += "</blockquote>\n\n"
 
@@ -277,10 +284,10 @@ def get_audit_message(violation: entities.ChatViolationWithUserEntity) -> str:
         message += f"В чате: <code>{violation.telegram_chat_id}</code>\n"
 
     message += f"Пользователь: {format_user_handle(violation.user.username, violation.user.telegram_id)}\n"
-    message += f"От: {violation.created_at.strftime('%d.%m.%Y %H:%M')}"
+    message += f"От: {format_date(violation.created_at)}"
 
     if violation.expires_at:
-        message += f"\nДо: {violation.expires_at.strftime('%d.%m.%Y %H:%M')}"
+        message += f"\nДо: {format_date(violation.expires_at)}"
 
     message += f"\n\n<blockquote>{escape(violation.reason)}</blockquote>"
 
@@ -339,10 +346,10 @@ def get_report_message(report: entities.ReportWithUserEntity) -> str:
     if report.applied_by_user:
         message += f"Изменил статус: {format_user_handle(report.applied_by_user.username, report.applied_by_user.telegram_id)}\n"
 
-    message += f"Дата: {report.created_at.strftime('%d.%m.%Y %H:%M')}\n"
+    message += f"Дата: {format_date(report.created_at)}\n"
 
     if report.created_at != report.updated_at:
-        message += f"Обновлено: {report.updated_at.strftime('%d.%m.%Y %H:%M')}\n"
+        message += f"Обновлено: {format_date(report.updated_at)}\n"
 
     message += "\n<b>Причина:</b>\n"
     message += f"<blockquote>{escape(report.reason)}</blockquote>\n\n"
@@ -357,7 +364,7 @@ def get_report_message(report: entities.ReportWithUserEntity) -> str:
 def get_check_success_message(reputation: entities.ReputationUserWithUserEntity) -> str:
     message = f"<b>{REPUTATION_ROLES[reputation.role]}</b>\n\n"
     message += f"Пользователь: {format_user_handle(reputation.user.username, reputation.user.telegram_id)}\n"
-    message += f"От: {reputation.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+    message += f"От: {format_date(reputation.created_at)}\n\n"
     message += f"<blockquote>{escape(reputation.description)}</blockquote>\n"
     return message
 
@@ -391,6 +398,6 @@ def get_violations_count_message(
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
     if start_date:
-        message += f"\nОт: {start_date.strftime('%d.%m.%Y %H:%M')}"
+        message += f"\nОт: {format_date(start_date)}"
 
     return message
