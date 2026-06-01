@@ -1,8 +1,10 @@
+import zoneinfo
+
 from typing import Annotated, Dict, Type, get_args, get_origin, List
 from aiogram.filters import CommandObject
+from datetime import datetime, timezone
 from pydantic.fields import FieldInfo
 from pydantic import BaseModel
-from datetime import datetime, timezone
 from typing import Optional
 from html import escape
 
@@ -178,8 +180,9 @@ def format_user_handle(username: Optional[str], telegram_id: int) -> str:
 def format_date(date: datetime) -> str:
     if date.tzinfo is None:
         date = date.replace(tzinfo=timezone.utc)
-    
-    return date.astimezone("Europe/Moscow").strftime("%d.%m.%Y %H:%M")
+
+    moscow_timezone = zoneinfo.ZoneInfo("Europe/Moscow")
+    return date.astimezone(moscow_timezone).strftime("%d.%m.%Y %H:%M")
 
 
 def get_command_usage(command: CommandObject, model: Type[BaseModel]) -> str:
