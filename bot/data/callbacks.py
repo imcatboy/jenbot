@@ -35,3 +35,7 @@ class CancelCallback(CallbackData, prefix="cancel"):
 
 class SkipCallback(CallbackData, prefix="skip"):
     user_id: int
+
+
+class ReputationUserCallback(CallbackData, prefix="reputation_user"):
+    id: int

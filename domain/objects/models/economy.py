@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from sqlalchemy import Enum, ForeignKey, String, CheckConstraint, Index
+from sqlalchemy import (
+    Enum,
+    ForeignKey,
+    String,
+    CheckConstraint,
+    Index,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
@@ -9,8 +16,8 @@ from domain.objects.types import TransactionType
 from .base import EntityModel
 
 if TYPE_CHECKING:
-    from .user import UserModel
-    from .trading import DealModel
+    from .user import UserModel, ReputationUserModel
+    from .trading import DealModel, ExternalDealModel
 
 
 class TransactionModel(EntityModel):
@@ -88,20 +95,47 @@ class ReviewModel(EntityModel):
             "rating >= 1 and rating <= 5",
             name="ck_rating_range",
         ),
+        CheckConstraint(
+            "deal_id is null or external_deal_id is null",
+            name="ck_review_deal_or_external_deal_not_null",
+        ),
+        UniqueConstraint(
+            "author_id",
+            "subject_user_id",
+            name="uq_reviews_author_id_subject_user_id",
+        ),
+        UniqueConstraint(
+            "author_id",
+            "subject_reputation_user_id",
+            name="uq_reviews_author_id_subject_reputation_user_id",
+        ),
     )
     message: Mapped[str] = mapped_column(String(255))
     rating: Mapped[int]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    subject_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    deal_id: Mapped[int] = mapped_column(ForeignKey("deals.id"), index=True)
     author: Mapped[UserModel] = relationship(
         foreign_keys=[author_id],
         back_populates="reviews_written",
     )
-    subject: Mapped[UserModel] = relationship(
-        foreign_keys=[subject_id],
+    subject_reputation_user_id: Mapped[int] = mapped_column(
+        ForeignKey("reputation_users.id"), index=True
+    )
+    subject_reputation_user: Mapped[ReputationUserModel] = relationship(
+        foreign_keys=[subject_reputation_user_id],
         back_populates="reviews_received",
     )
-    deal: Mapped[DealModel] = relationship(
+    subject_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    subject_user: Mapped[UserModel] = relationship(
+        foreign_keys=[subject_user_id],
+        back_populates="reviews_received",
+    )
+    deal_id: Mapped[Optional[int]] = mapped_column(ForeignKey("deals.id"), index=True)
+    deal: Mapped[Optional[DealModel]] = relationship(
         back_populates="reviews", foreign_keys=[deal_id]
+    )
+    external_deal_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("external_deals.id"), index=True
+    )
+    external_deal: Mapped[Optional[ExternalDealModel]] = relationship(
+        back_populates="reviews", foreign_keys=[external_deal_id]
     )

@@ -1,8 +1,8 @@
 from typing import Optional, List
 from datetime import datetime
 
+from domain.objects.types import DealCondition, DealStatus, DealType, ReportStatus
 from .base import BaseDTO
-from domain.objects.types import DealCondition, DealStatus, DealType
 
 
 class BuyAdvertisementOptionDTO(BaseDTO):
@@ -47,3 +47,39 @@ class GetDealsDTO(BaseDTO):
     expires_at: Optional[datetime] = None
     status: Optional[DealStatus] = None
     product_id: Optional[int] = None
+
+
+class CreateScamReportDTO(BaseDTO):
+    description: Optional[str] = None
+    contact_info: Optional[str] = None
+    attachments: List[str]
+    user_id: int
+
+
+class UpdateScamReportDTO(BaseDTO):
+    status: Optional[ReportStatus] = None
+    comment: Optional[str] = None
+    applied_by_user_id: Optional[int] = None
+    accused_reputation_user_id: Optional[int] = None
+
+
+class CreateReviewDTO(BaseDTO):
+    message: str
+    rating: int
+    author_id: int
+    subject_user_id: int
+    external_deal_id: Optional[int] = None
+    deal_id: Optional[int] = None
+
+
+class InsertReviewDTO(CreateReviewDTO):
+    subject_reputation_user_id: int
+
+
+class CreateExternalDealDTO(BaseDTO):
+    amount: float
+    description: str
+    expires_at: datetime
+    seller_id: int
+    buyer_id: int
+    agent_id: Optional[int] = None

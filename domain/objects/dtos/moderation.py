@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from domain.objects.types import ViolationType, ReportStatus, ReportType, ChatAction
+from domain.objects.types import ViolationType, ReportStatus, ReportType
 from .base import BaseDTO
 
 

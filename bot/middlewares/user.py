@@ -1,4 +1,5 @@
 from typing import Callable, Dict, Any, Awaitable, Union
+from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 
@@ -20,9 +21,13 @@ class UserMiddleware(BaseMiddleware):
         if not getattr(event, "from_user", None):
             return await handler(event, data)
 
-        user = await user_service.get_or_create(
-            event.from_user.id, event.from_user.username
-        )
+        try:
+            chat = await event.bot.get_chat(event.from_user.id)
+            usernames = chat.active_usernames
+        except TelegramAPIError:
+            usernames = [event.from_user.username]
+
+        user = await user_service.get_or_create(event.from_user.id, usernames)
         data["user"] = user
 
         if (
@@ -30,9 +35,14 @@ class UserMiddleware(BaseMiddleware):
             and event.reply_to_message
             and event.reply_to_message.from_user
         ):
+            try:
+                chat = await event.bot.get_chat(event.reply_to_message.from_user.id)
+                usernames = chat.active_usernames
+            except TelegramAPIError:
+                usernames = [event.reply_to_message.from_user.username]
+
             reply_to_user = await user_service.get_or_create(
-                event.reply_to_message.from_user.id,
-                event.reply_to_message.from_user.username,
+                event.reply_to_message.from_user.id, usernames
             )
             data["reply_to_user"] = reply_to_user
 

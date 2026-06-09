@@ -1,12 +1,17 @@
 import json
+import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis.exceptions import ReadOnlyError
 from redis.asyncio import Redis
 from sqlalchemy import select
 from typing import Any
 
 from domain.objects.models import ConfigModel
 from .base import BaseRepository
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigRepository(BaseRepository):
@@ -48,10 +53,17 @@ class ConfigRepository(BaseRepository):
         value = await self.get(key, default)
 
         if value is not None:
-            await self.redis.set(f"config:{key}", json.dumps(value), ex=self.ttl)
+            try:
+                await self.redis.set(f"config:{key}", json.dumps(value), ex=self.ttl)
+            except ReadOnlyError:
+                logger.error("Error setting config cache: Redis is in read only mode")
 
         return value
 
     async def set_cached(self, key: str, value: Any) -> None:
-        await self.redis.delete(f"config:{key}")
+        try:
+            await self.redis.delete(f"config:{key}")
+        except ReadOnlyError:
+            logger.error("Error deleting config cache: Redis is in read only mode")
+
         await self.set(key, value)

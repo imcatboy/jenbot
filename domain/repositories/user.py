@@ -1,10 +1,13 @@
+import re
+
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
-from typing import List, Optional
+from sqlalchemy import select, or_, update
+from typing import List
 
-from .relations import get_user_reputation_relations, get_profile_relations
-from domain.objects import models, entities, dtos
+from .relations import get_reputation_user_relations, get_profile_relations
+from domain.objects import models, entities, dtos, exceptions
 from domain.objects.types import UserRole
 from .base import BaseRepository
 
@@ -15,37 +18,66 @@ class UserRepository(BaseRepository):
         super().__init__(session)
 
     async def get_or_create(
-        self, telegram_id: int, username: Optional[str]
+        self, telegram_id: int, usernames: List[str]
     ) -> entities.UserEntity:
         user = await self.get_one_by_data_or_none(
-            models.UserModel, telegram_id=telegram_id
+            models.UserModel,
+            [selectinload(models.UserModel.usernames)],
+            telegram_id=telegram_id,
         )
 
         if user:
-            user.username = username
+            await self.set_many_to_one_relation(
+                user, models.UsernameModel, "username", usernames
+            )
             await self.session.flush()
             return entities.UserEntity.model_validate(user)
 
+        user = models.UserModel(telegram_id=telegram_id)
+        self.session.add(user)
+
         try:
-            user = models.UserModel(telegram_id=telegram_id, username=username)
-            self.session.add(user)
             await self.session.flush()
+            await self.set_many_to_one_relation(
+                user, models.UsernameModel, "username", usernames
+            )
         except IntegrityError:
             await self.session.rollback()
-            user = await self.get_one_by_data(models.UserModel, telegram_id=telegram_id)
 
+        user = await self.get_one_by_data(
+            models.UserModel,
+            [selectinload(models.UserModel.usernames)],
+            telegram_id=telegram_id,
+        )
         return entities.UserEntity.model_validate(user)
 
     async def get(self, id: int) -> entities.UserEntity:
-        user = await self.get_by_id(models.UserModel, id)
+        user = await self.get_by_id(
+            models.UserModel, id, [selectinload(models.UserModel.usernames)]
+        )
         return entities.UserEntity.model_validate(user)
 
     async def get_by_telegram_id(self, telegram_id: int) -> entities.UserEntity:
-        user = await self.get_one_by_data(models.UserModel, telegram_id=telegram_id)
+        user = await self.get_one_by_data(
+            models.UserModel,
+            [selectinload(models.UserModel.usernames)],
+            telegram_id=telegram_id,
+        )
         return entities.UserEntity.model_validate(user)
 
     async def get_by_username(self, username: str) -> entities.UserEntity:
-        user = await self.get_one_by_data(models.UserModel, username=username)
+        result = await self.session.execute(
+            select(models.UserModel)
+            .join(models.UsernameModel)
+            .where(models.UsernameModel.username == username)
+        )
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise exceptions.ObjectNotFoundException(
+                models.UserModel.__name__, [username]
+            )
+
         return entities.UserEntity.model_validate(user)
 
     async def update_role(self, id: int, role: UserRole) -> None:
@@ -54,51 +86,138 @@ class UserRepository(BaseRepository):
         await self.session.flush()
 
     async def get_by_role(self, role: UserRole) -> List[entities.UserEntity]:
-        users = await self.get_all_by_data(models.UserModel, role=role)
+        users = await self.get_all_by_data(
+            models.UserModel, [selectinload(models.UserModel.usernames)], role=role
+        )
         return [entities.UserEntity.model_validate(user) for user in users]
 
-    async def create_user_reputation(
-        self, dto: dtos.CreateUserReputationDTO
+    async def create_reputation_user(
+        self, dto: dtos.CreateReputationUserDTO
     ) -> entities.ReputationUserEntity:
+        await self.validator.validate_values_not_exists(
+            models.UserDetailModel, "value", [detail.value for detail in dto.details]
+        )
         user_reputation = models.ReputationUserModel(
             description=dto.description,
             role=dto.role,
+            about=dto.about,
         )
-        await self.create_relation(user_reputation, models.UserModel, dto.user_id)
         await self.create_relation(
             user_reputation, models.UserModel, dto.added_by_user_id, "added_by_user_id"
         )
+        self.sync_children(
+            user_reputation.user_details,
+            dto.details,
+            create=lambda detail: models.UserDetailModel(
+                name=detail.name,
+                value=detail.value,
+                is_public=detail.is_public,
+            ),
+            update=lambda detail, dto: None,
+        )
         self.session.add(user_reputation)
         await self.session.flush()
+        await self.create_many_to_one_relation(
+            user_reputation, models.UserModel, dto.user_ids
+        )
         return entities.ReputationUserEntity.model_validate(user_reputation)
 
-    async def update_user_reputation(
-        self, user_id: int, dto: dtos.UpdateUserReputationDTO
+    async def update_reputation_user(
+        self, reputation_user_id: int, dto: dtos.UpdateReputationUserDTO
     ) -> entities.ReputationUserEntity:
-        user_reputation = await self.get_one_by_data(
-            models.ReputationUserModel, user_id=user_id
+        await self.validator.validate_values_not_exists(
+            models.UserDetailModel,
+            "value",
+            [detail.value for detail in dto.details if detail.id is None],
+        )
+        user_reputation = await self.get_by_id(
+            models.ReputationUserModel, reputation_user_id
         )
 
         if dto.description is not None:
             user_reputation.description = dto.description
         if dto.role is not None:
             user_reputation.role = dto.role
+        if dto.about is not None:
+            user_reputation.about = dto.about
 
         await self.update_relation(
             user_reputation, models.UserModel, dto.added_by_user_id, "added_by_user_id"
         )
+        await self.update_many_to_one_relation(
+            user_reputation, models.UserModel, dto.user_ids
+        )
+        await self.sync_many_to_one_relation(
+            user_reputation, models.UserDetailModel, dto.details
+        )
         await self.session.flush()
         return entities.ReputationUserEntity.model_validate(user_reputation)
 
-    async def get_user_reputation(
+    async def get_reputation_user_by_user_id(
         self, user_id: int
-    ) -> entities.ReputationUserWithUserEntity:
-        user_reputation = await self.get_one_by_data(
-            models.ReputationUserModel,
-            user_id=user_id,
-            options=get_user_reputation_relations(),
+    ) -> entities.ReputationUserWithRelationsEntity:
+        result = await self.session.execute(
+            select(models.ReputationUserModel)
+            .join(models.UserModel)
+            .where(models.UserModel.id == user_id)
+            .options(*get_reputation_user_relations())
         )
-        return entities.ReputationUserWithUserEntity.model_validate(user_reputation)
+        user_reputation = result.scalar_one_or_none()
+
+        if not user_reputation:
+            raise exceptions.ObjectNotFoundException(
+                models.ReputationUserModel.__name__, [user_id]
+            )
+
+        return entities.ReputationUserWithRelationsEntity.model_validate(
+            user_reputation
+        )
+
+    async def get_reputation_users(
+        self, search: str
+    ) -> List[entities.ReputationUserEntity]:
+        query = (
+            select(models.ReputationUserModel)
+            .join(models.UserModel, models.UserModel.reputation_user_id == models.ReputationUserModel.id)
+            .join(models.UsernameModel, isouter=True)
+            .join(models.UserDetailModel, isouter=True)
+            .options(*get_reputation_user_relations())
+        )
+        conditions = []
+
+        if search.isdigit() and len(search) >= 9:
+            conditions.append(models.UserModel.telegram_id == int(search))
+
+        if re.match(r"^@[a-zA-Z0-9_]+$", search):
+            conditions.append(
+                models.UsernameModel.username == search.replace("@", "").lower()
+            )
+        else:
+            conditions.append(models.UserDetailModel.value.ilike(f"%{search}%"))
+
+        query = query.where(or_(*conditions))
+        reputation_users = await self.session.execute(query)
+        return [
+            entities.ReputationUserEntity.model_validate(reputation_user)
+            for reputation_user in reputation_users.scalars().unique().all()
+        ]
+
+    async def get_reputation_user(
+        self, id: int
+    ) -> entities.ReputationUserWithRelationsEntity:
+        reputation_user = await self.get_by_id(
+            models.ReputationUserModel, id, options=get_reputation_user_relations()
+        )
+        return entities.ReputationUserWithRelationsEntity.model_validate(
+            reputation_user
+        )
+
+    async def add_search_count(self, reputation_user_ids: List[int]) -> None:
+        await self.session.execute(
+            update(models.ReputationUserModel)
+            .where(models.ReputationUserModel.id.in_(reputation_user_ids))
+            .values(search_count=models.ReputationUserModel.search_count + 1)
+        )
 
     async def get_or_create_marketplace_user(
         self, user_id: int
@@ -106,7 +225,10 @@ class UserRepository(BaseRepository):
         user = await self.get_one_by_data_or_none(
             models.UserModel,
             id=user_id,
-            options=[joinedload(models.UserModel.marketplace_user)],
+            options=[
+                joinedload(models.UserModel.marketplace_user),
+                selectinload(models.UserModel.usernames),
+            ],
         )
 
         if user and user.marketplace_user:
@@ -115,10 +237,13 @@ class UserRepository(BaseRepository):
         marketplace_user = models.MarketplaceUserModel(user_id=user_id)
         self.session.add(marketplace_user)
         await self.session.flush()
-        marketplace_user = await self.get_by_id(
+        user = await self.get_by_id(
             models.UserModel,
             id=user_id,
-            options=[joinedload(models.UserModel.marketplace_user)],
+            options=[
+                joinedload(models.UserModel.marketplace_user),
+                selectinload(models.UserModel.usernames),
+            ],
         )
         return entities.UserWithMarketplaceUserEntity.model_validate(user)
 

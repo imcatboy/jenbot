@@ -25,6 +25,7 @@ class UserReputationRole(StrEnum):
     BIG_GUARANTOR = "big_guarantor"
     DEPOSITOR = "depositor"
     SCAMMER = "scammer"
+    CLEAN_USER = "clean_user"
 
 
 class TransactionType(StrEnum):
@@ -36,7 +37,6 @@ class TransactionType(StrEnum):
 
 
 class ReportType(StrEnum):
-    SCAM = "scam"
     UNBAN = "unban"
     VIOLATION = "violation"
     FEEDBACK = "feedback"
@@ -51,10 +51,12 @@ class ReportStatus(StrEnum):
 
 
 class DealStatus(StrEnum):
+    DRAFT = "draft"
     PENDING = "pending"
     EXPIRED = "expired"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+    REJECTED = "rejected"
 
 
 class DealType(StrEnum):
@@ -164,6 +166,11 @@ NoZeroFloat = Annotated[
 Text = Annotated[str, Field(max_length=1024, description="Текст (до 1024 символов)")]
 
 Rating = Annotated[int, Field(ge=1, le=5, description="Оценка (от 1 до 5)")]
+
+
+Search = Annotated[
+    str, Field(min_length=3, max_length=100, description="Поиск (от 3 до 100 символов)")
+]
 
 
 def clean_word(value: Any) -> Any:

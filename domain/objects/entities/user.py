@@ -10,21 +10,39 @@ if TYPE_CHECKING:
     from .moderation import ViolationEntity
 
 
+class UsernameEntity(EntityWithMetadata):
+    username: str
+    user_id: int
+
+
 class UserEntity(EntityWithMetadata):
     telegram_id: int
-    username: Optional[str]
+    usernames: List[UsernameEntity]
+    reputation_user_id: Optional[int] = None
     role: UserRole
 
 
-class ReputationUserEntity(MetadataEntity):
-    user_id: int
-    description: str
+class ReputationUserEntity(EntityWithMetadata):
+    description: Optional[str] = None
+    about: Optional[str] = None
+    amount: float
+    search_count: int
+    applied_report_count: int
+    review_count: int
     role: UserReputationRole
     added_by_user_id: int
 
 
-class ReputationUserWithUserEntity(ReputationUserEntity):
-    user: UserEntity
+class UserDetailEntity(EntityWithMetadata):
+    name: str
+    value: str
+    is_public: bool
+    reputation_user_id: int
+
+
+class ReputationUserWithRelationsEntity(ReputationUserEntity):
+    users: List[UserEntity]
+    user_details: List[UserDetailEntity]
     added_by_user: UserEntity
 
 

@@ -167,3 +167,34 @@ class ConfigNotFoundException(DomainException):
     def __init__(self, key: str):
         self.key = key
         super().__init__(f"Config {key} not found")
+
+
+class UserIsScammerException(DomainException):
+
+    def __init__(self, *user_ids: int):
+        self.user_ids = user_ids
+        super().__init__(f"User {', '.join(map(str, user_ids))} is a scammer")
+
+
+class UserIsNotGuarantorException(DomainException):
+
+    def __init__(self, *user_ids: int):
+        self.user_ids = user_ids
+        super().__init__(f"User {', '.join(map(str, user_ids))} is not a guarantor")
+
+
+class NotEnoughAmountException(DomainException):
+
+    def __init__(self, reputation_id: int, amount: float):
+        self.reputation_id = reputation_id
+        self.amount = amount
+        super().__init__(
+            f"Reputation {reputation_id} does not have enough amount {amount}"
+        )
+
+
+class DealNotDraftException(DomainException):
+
+    def __init__(self, deal_id: int):
+        self.deal_id = deal_id
+        super().__init__(f"Deal {deal_id} is not draft")

@@ -1,8 +1,9 @@
+import logging
+
 from redis.exceptions import ReadOnlyError
 from redis.asyncio import Redis
 from typing import Any
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -22,5 +23,7 @@ class BaseCache:
             logger.error(f"Error setting cache: Redis is in read only mode")
 
     async def delete(self, *keys: str) -> None:
-        await self.redis.delete(*keys)
-
+        try:
+            await self.redis.delete(*keys)
+        except ReadOnlyError:
+            logger.error("Error deleting cache: Redis is in read only mode")

@@ -6,23 +6,38 @@ from domain.objects import models
 
 def get_report_relations() -> List[Any]:
     return [
-        joinedload(models.ReportModel.user),
-        joinedload(models.ReportModel.accused_user),
-        joinedload(models.ReportModel.applied_by_user),
+        joinedload(models.ReportModel.user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ReportModel.accused_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ReportModel.applied_by_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
     ]
 
 
-def get_user_reputation_relations() -> List[Any]:
+def get_reputation_user_relations() -> List[Any]:
     return [
-        joinedload(models.ReputationUserModel.user),
-        joinedload(models.ReputationUserModel.added_by_user),
+        selectinload(models.ReputationUserModel.users).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        selectinload(models.ReputationUserModel.user_details),
+        joinedload(models.ReputationUserModel.added_by_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
     ]
 
 
 def get_violation_relations() -> List[Any]:
     return [
-        joinedload(models.ChatViolationModel.user),
-        joinedload(models.ChatViolationModel.applied_by_user),
+        joinedload(models.ChatViolationModel.user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ChatViolationModel.applied_by_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
     ]
 
 
@@ -86,8 +101,9 @@ def get_full_advertisement_relations() -> List[Any]:
             selectinload(models.AdvertisementOptionModel.product_options),
         ),
         joinedload(models.AdvertisementModel.product).options(*get_product_relations()),
-        joinedload(models.AdvertisementModel.user).joinedload(
-            models.UserModel.marketplace_user
+        joinedload(models.AdvertisementModel.user).options(
+            selectinload(models.UserModel.usernames),
+            joinedload(models.UserModel.marketplace_user),
         ),
     ]
 
@@ -95,9 +111,12 @@ def get_full_advertisement_relations() -> List[Any]:
 def get_advertisement_option_relations() -> List[Any]:
     return [
         selectinload(models.AdvertisementOptionModel.advertisement).options(
-            joinedload(models.AdvertisementModel.product).options(*get_product_with_images_relations()),
-            joinedload(models.AdvertisementModel.user).joinedload(
-                models.UserModel.marketplace_user
+            joinedload(models.AdvertisementModel.product).options(
+                *get_product_with_images_relations()
+            ),
+            joinedload(models.AdvertisementModel.user).options(
+                selectinload(models.UserModel.usernames),
+                joinedload(models.UserModel.marketplace_user),
             ),
         ),
         selectinload(models.AdvertisementOptionModel.prices).joinedload(
@@ -110,6 +129,10 @@ def get_advertisement_option_relations() -> List[Any]:
 
 def get_tracker_relations() -> List[Any]:
     return [
-        joinedload(models.TrackerModel.tracked_user),
-        joinedload(models.TrackerModel.tracking_user),
+        joinedload(models.TrackerModel.tracked_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.TrackerModel.tracking_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
     ]

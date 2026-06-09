@@ -31,8 +31,24 @@ def get_marketplace_user_key(user_id: int) -> str:
     return get_user_key(f"marketplace_user:{user_id}")
 
 
-def get_reputation_user_key(user_id: int) -> str:
-    return get_user_key(f"reputation_user:{user_id}")
+def get_reputation_user_key(reputation_user_id: int) -> str:
+    return get_user_key(f"reputation_user:{reputation_user_id}")
+
+
+def get_reputation_user_by_user_id_key(user_id: int) -> str:
+    return get_user_key(f"reputation_user_by_user_id:{user_id}")
+
+
+def get_reputation_user_by_username_key(username: str) -> str:
+    return get_user_key(f"reputation_user_by_username:{username}")
+
+
+def get_reputation_user_by_telegram_id_key(telegram_id: int) -> str:
+    return get_user_key(f"reputation_user_by_telegram_id:{telegram_id}")
+
+
+def get_reputation_user_by_detail_key(detail: str) -> str:
+    return get_user_key(f"reputation_user_by_detail:{detail}")
 
 
 def get_auth_key(hash: str) -> str:
@@ -45,7 +61,6 @@ def get_user_keys(user: entities.UserEntity) -> list[str]:
         get_user_by_telegram_id_key(user.telegram_id),
         get_profile_key(user.id),
         get_marketplace_user_key(user.id),
-        get_reputation_user_key(user.id),
     ]
 
 

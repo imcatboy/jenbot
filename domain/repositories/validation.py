@@ -19,7 +19,7 @@ class EntityValidator:
     async def validate_ids_exist(self, model: Type[BaseModel], ids: List[int]) -> None:
         if not ids:
             return
-        
+
         ids = list(set(ids))
 
         existing_objects = await self.session.execute(
@@ -67,3 +67,21 @@ class EntityValidator:
 
         if len(objects) > 1:
             raise exceptions.TooManyObjectsFoundException(model.__name__, **data)
+
+    async def validate_values_not_exists(
+        self, model: Type[BaseModel], column: str, values: List[Any]
+    ) -> None:
+        if not values:
+            return
+
+        values = list(set(values))
+
+        existing_objects = await self.session.execute(
+            select(model.id).where(getattr(model, column).in_(values))
+        )
+        existing_values = set(existing_objects.scalars().all())
+
+        if existing_values:
+            raise exceptions.ObjectAlreadyExistsException(
+                model.__name__, **{column: existing_values}
+            )

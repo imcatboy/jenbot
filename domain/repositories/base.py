@@ -3,14 +3,14 @@ from typing import Any, Callable, Dict, List, Optional, Set, Type, TypeVar
 from sqlalchemy import Table, and_, select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from domain.objects.models import BaseModel
-from domain.objects.dtos import BaseDTO
+from domain.objects.dtos import EntityDTO
+from domain.objects.models import BaseModel, EntityModel
 from .validation import EntityValidator
 from domain.objects import exceptions
 
 
-T = TypeVar("T", bound=BaseModel)
-R = TypeVar("R", bound=BaseDTO)
+T = TypeVar("T", bound=EntityModel)
+R = TypeVar("R", bound=EntityDTO)
 
 
 class BaseRepository:
@@ -60,7 +60,7 @@ class BaseRepository:
 
     async def update_many_to_many_relation(
         self,
-        parent: BaseModel,
+        parent: EntityModel,
         association_table: Table,
         related_model: Type[BaseModel],
         new_related_ids: Optional[List[int]] = None,
@@ -113,7 +113,7 @@ class BaseRepository:
 
     async def create_many_to_many_relation(
         self,
-        parent: BaseModel,
+        parent: EntityModel,
         association_table: Table,
         related_model: Type[BaseModel],
         related_ids: List[int],
@@ -138,7 +138,7 @@ class BaseRepository:
 
     async def create_many_to_one_relation(
         self,
-        parent: BaseModel,
+        parent: EntityModel,
         child_model: Type[BaseModel],
         related_ids: List[int],
         foreign_key_column: Optional[str] = None,
@@ -157,7 +157,7 @@ class BaseRepository:
 
     async def update_many_to_one_relation(
         self,
-        parent: BaseModel,
+        parent: EntityModel,
         child_model: Type[BaseModel],
         new_related_ids: Optional[List[int]] = None,
         foreign_key_column: Optional[str] = None,
@@ -196,6 +196,122 @@ class BaseRepository:
                 .where(child_model.id.in_(ids_to_add))
                 .values({foreign_key_column or parent.fk_name: parent.id})
             )
+
+    async def set_many_to_one_relation(
+        self,
+        parent: EntityModel,
+        child_model: Type[BaseModel],
+        value_column: str,
+        values: Optional[List[Any]] = None,
+        foreign_key_column: Optional[str] = None,
+    ) -> None:
+        if values is None:
+            return
+        
+        values = set(values)
+
+        fk_column = foreign_key_column or parent.fk_name
+
+        if not values:
+            await self.session.execute(
+                delete(child_model).where(getattr(child_model, fk_column) == parent.id)
+            )
+            return
+
+        result = await self.session.execute(
+            select(child_model).where(getattr(child_model, fk_column) == parent.id)
+        )
+        current_objects = result.scalars().all()
+        current_values = set(
+            getattr(object, value_column) for object in current_objects
+        )
+
+        to_remove = [
+            object
+            for object in current_objects
+            if getattr(object, value_column) not in values
+        ]
+        to_add = values - current_values
+
+        if to_remove:
+            await self.session.execute(
+                delete(child_model).where(
+                    and_(
+                        getattr(child_model, fk_column) == parent.id,
+                        getattr(child_model, value_column).in_(
+                            [getattr(object, value_column) for object in to_remove]
+                        ),
+                    )
+                )
+            )
+
+        for value in to_add:
+            object = child_model(**{value_column: value, fk_column: parent.id})
+            self.session.add(object)
+
+        await self.session.flush()
+
+    async def sync_many_to_one_relation(
+        self,
+        parent: EntityModel,
+        child_model: Type[EntityModel],
+        values: Optional[List[EntityDTO]] = None,
+        foreign_key_column: Optional[str] = None,
+    ) -> None:
+        if values is None:
+            return
+
+        fk_column = foreign_key_column or parent.fk_name
+
+        if not values:
+            await self.session.execute(
+                delete(child_model).where(getattr(child_model, fk_column) == parent.id)
+            )
+            return
+
+        result = await self.session.execute(
+            select(child_model).where(getattr(child_model, fk_column) == parent.id)
+        )
+        current_objects = {object.id: object for object in result.scalars().all()}
+        incoming_with_id: Dict[int, EntityDTO] = {}
+        objects_to_add: List[child_model] = []
+
+        for item in values:
+            item_data = item.model_dump(exclude_unset=True)
+            item_data[fk_column] = parent.id
+
+            if item.id is not None:
+                incoming_with_id[item.id] = item_data
+            else:
+                objects_to_add.append(child_model(**item_data))
+
+        ids_to_remove = set(current_objects.keys()) - set(incoming_with_id.keys())
+
+        if ids_to_remove:
+            await self.session.execute(
+                delete(child_model).where(
+                    and_(
+                        getattr(child_model, fk_column) == parent.id,
+                        child_model.id.in_(ids_to_remove),
+                    )
+                )
+            )
+
+        for object_id, incoming_data in incoming_with_id.items():
+            object = current_objects.get(object_id)
+
+            if not object:
+                raise exceptions.ObjectNotFoundException(
+                    child_model.__name__, id=object_id
+                )
+
+            for key, value in incoming_data.model_dump().items():
+                setattr(object, key, value)
+
+        if objects_to_add:
+            self.session.add_all(objects_to_add)
+
+        await self.session.flush()
 
     async def get_by_id(
         self, model: Type[T], id: int, options: Optional[List[Any]] = None

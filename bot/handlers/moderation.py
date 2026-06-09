@@ -352,25 +352,6 @@ async def violations_callback(
 
 
 @moderation_router.message(
-    Command("getid", "gid", ignore_case=True),
-)
-async def getid_handler(
-    message: Message,
-):
-    if not message.reply_to_message or not message.reply_to_message.from_user:
-        return await message.answer(text.GET_MY_ID_SUCCESS.format(message.from_user.id))
-
-    await message.answer(
-        text.GET_USER_ID_SUCCESS.format(
-            text.format_user_handle(
-                message.reply_to_message.from_user.username,
-                message.reply_to_message.from_user.id,
-            )
-        )
-    )
-
-
-@moderation_router.message(
     Command("addmoderator", "am", ignore_case=True),
     flags={
         "user_role": [UserRole.ADMIN],

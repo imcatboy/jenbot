@@ -1,19 +1,37 @@
 from domain.objects.types import UserReputationRole
-from typing import Optional
+from typing import Optional, List
 from .base import BaseDTO
 
 
-class CreateUserReputationDTO(BaseDTO):
-    user_id: int
-    description: str
+class CreateUserDetailDTO(BaseDTO):
+    name: str
+    value: str
+    is_public: bool
+
+
+class CreateReputationUserDTO(BaseDTO):
+    user_ids: List[int]
+    description: Optional[str] = None
+    about: Optional[str] = None
     added_by_user_id: int
     role: UserReputationRole
+    details: List[CreateUserDetailDTO]
 
 
-class UpdateUserReputationDTO(BaseDTO):
+class UpdateUserDetailDTO(BaseDTO):
+    id: Optional[int] = None
+    name: str
+    value: str
+    is_public: bool
+
+
+class UpdateReputationUserDTO(BaseDTO):
+    user_ids: List[int]
     description: Optional[str] = None
+    about: Optional[str] = None
     role: Optional[UserReputationRole] = None
     added_by_user_id: Optional[int] = None
+    details: List[UpdateUserDetailDTO]
 
 
 class UpdateMarketplaceUserDTO(BaseDTO):

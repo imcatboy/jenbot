@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 
-from domain.objects.types import DealCondition, DealType, DealStatus
+from domain.objects.types import DealCondition, DealType, DealStatus, ReportStatus
 from .base import BaseEntity, EntityWithMetadata
 
 if TYPE_CHECKING:
@@ -45,3 +45,24 @@ class DealEntity(EntityWithMetadata):
     trade_count: Optional[int] = None
     trade_product_id: Optional[int] = None
     currency_id: Optional[int] = None
+
+
+class ExternalDealEntity(EntityWithMetadata):
+    amount: float
+    description: str
+    expires_at: datetime
+    status: DealStatus
+    seller_id: int
+    buyer_id: int
+    agent_id: Optional[int] = None
+
+
+class ScamReportEntity(EntityWithMetadata):
+    description: Optional[str] = None
+    contact_info: Optional[str] = None
+    attachments: List[str]
+    comment: Optional[str] = None
+    status: ReportStatus
+    user_id: int
+    accused_reputation_user_id: Optional[int] = None
+    applied_by_user_id: Optional[int] = None

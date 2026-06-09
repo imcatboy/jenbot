@@ -1,13 +1,4 @@
-from domain.objects.types import (
-    UsernameOrTelegramID,
-    Reason,
-    RelativeDateTime,
-    ID,
-    Text,
-    SettingName,
-    Word,
-    TelegramID,
-)
+from domain.objects.types import *
 from typing import Optional
 from .base import BaseDTO
 
@@ -66,7 +57,7 @@ class RemoveModeratorCommandDTO(BaseDTO):
 
 
 class CheckCommandDTO(BaseDTO):
-    username: UsernameOrTelegramID
+    search: Search
 
 
 class SetReputationCommandDTO(BaseDTO):

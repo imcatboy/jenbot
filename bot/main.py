@@ -17,10 +17,10 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
 
+from bot.handlers import handler_routers
 from bot.core.settings import Settings
-from bot.middlewares import *
-from bot.handlers import *
 from bot.loops import SchedulerService
+from bot.middlewares import *
 
 
 logging.basicConfig(
@@ -53,7 +53,7 @@ fsm_storage = RedisStorage(redis)
 bot = Bot(
     token=settings.BOT_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    session=AiohttpSession(proxy=settings.PROXY_URL),
+    # session=AiohttpSession(proxy=settings.PROXY_URL),
 )
 dp = Dispatcher(storage=fsm_storage)
 
@@ -77,14 +77,7 @@ dp.callback_query.middleware(RoleMiddleware())
 dp.message.middleware(CommandValidationMiddleware())
 dp.message.middleware(StateMiddleware())
 dp.message.middleware(MediaCheckMiddleware())
-dp.include_routers(
-    moderation_router,
-    exception_router,
-    report_router,
-    admin_router,
-    user_router,
-    event_router,
-)
+dp.include_routers(*handler_routers)
 
 
 async def set_bot_commands(bot: Bot):

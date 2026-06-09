@@ -1,3 +1,4 @@
+from aiogram.dispatcher.event.handler import HandlerObject
 from typing import Callable, Dict, Any, Awaitable, Union
 from aiogram.types import Message, CallbackQuery
 from aiogram.exceptions import TelegramAPIError
@@ -18,6 +19,11 @@ class SubscriptionsMiddleware(BaseMiddleware):
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
+        handler_object: HandlerObject | None = data["handler"]
+
+        if not handler_object or not handler_object.flags.get("subscriptions"):
+            return await handler(event, data)
+
         config_service: ConfigService = data["config_service"]
 
         if not getattr(event, "from_user", None):

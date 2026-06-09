@@ -1,16 +1,15 @@
-from aiogram.exceptions import TelegramAPIError
-from aiogram.types import InputMediaPhoto, InputMediaVideo, Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
-from aiogram import Bot, Router
+from aiogram import Router
 from typing import List
 
 from bot.data import states, callbacks, keyboards, text
 from domain.objects import exceptions, dtos, types, entities
 from domain.services import UserService, ModerationService
-from domain.objects.types import ReportStatus, ReportType, UserRole
-from bot.actions import ModerationActions, UserActions
+from domain.objects.types import ReportStatus, UserRole
+from bot.actions import ModerationActions
 from bot.filters import GroupsFilter
 
 
@@ -44,7 +43,7 @@ async def report_callback_handler(
 
     await state.update_data(type=callback_data.type)
 
-    if callback_data.type in [types.ReportType.SCAM, types.ReportType.VIOLATION]:
+    if callback_data.type == types.ReportType.VIOLATION:
         await state.set_state(states.ReportState.accused_user_id)
         await callback.message.edit_text(
             text.REPORT_ACCUSED_USER_ID_MESSAGE,
@@ -93,7 +92,7 @@ async def username_handler(
 ):
     state_payload = await state.get_data()
     telegram_id = state_payload["accused_user_id"]
-    accused_user = await user_service.get_or_create(telegram_id, state_data)
+    accused_user = await user_service.get_or_create(telegram_id, [state_data])
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(

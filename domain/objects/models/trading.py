@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Numeric
+from sqlalchemy import ARRAY, CheckConstraint, Enum, ForeignKey, Index, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
@@ -10,15 +10,15 @@ from .associate_tables import (
     trade_deals_product_options,
     trades_product_options,
 )
-from domain.objects.types import DealCondition, DealStatus, DealType
+from domain.objects.types import DealCondition, DealStatus, DealType, ReportStatus
 from .base import EntityModel
 
 if TYPE_CHECKING:
     from .marketplace import AdvertisementOptionPriceModel, CurrencyModel, ProductModel
     from .marketplace import AdvertisementOptionModel, ProductOptionModel
+    from .user import UserModel, ReputationUserModel
     from .economy import ReviewModel
     from .messaging import ChatModel
-    from .user import UserModel
 
 
 class TradeModel(EntityModel):
@@ -70,6 +70,14 @@ class DealModel(EntityModel):
              AND amount IS NULL AND currency_id IS NULL)
             """,
             name="ck_deal_type_matches_money_or_trade_snapshot",
+        ),
+        CheckConstraint(
+            "expires_at > created_at",
+            name="ck_deals_expires_at_in_future",
+        ),
+        CheckConstraint(
+            "seller_id != buyer_id AND seller_id != agent_id AND buyer_id != agent_id",
+            name="ck_deals_seller_and_buyer_and_agent_different",
         ),
         Index("ix_deals_status_expires_at", "status", "expires_at"),
     )
@@ -150,4 +158,81 @@ class DealModel(EntityModel):
     )
     chats: Mapped[List[ChatModel]] = relationship(
         back_populates="deal", cascade="all, delete-orphan"
+    )
+
+
+class ExternalDealModel(EntityModel):
+    __tablename__ = "external_deals"
+    fk_name = "external_deal_id"
+    __table_args__ = (
+        CheckConstraint(
+            "amount > 0",
+            name="ck_external_deals_amount_positive",
+        ),
+        CheckConstraint(
+            "expires_at > created_at",
+            name="ck_external_deals_expires_at_in_future",
+        ),
+        Index(
+            "ix_external_deals_agent_id_status",
+            "agent_id",
+            postgresql_where="status IN ('PENDING', 'EXPIRED', 'REJECTED')",
+        ),
+        CheckConstraint(
+            "seller_id != buyer_id AND seller_id != agent_id AND buyer_id != agent_id",
+            name="ck_external_deals_seller_and_buyer_and_agent_different",
+        ),
+    )
+
+    amount: Mapped[float] = mapped_column(Numeric(precision=10, scale=2))
+    description: Mapped[str] = mapped_column(String(255))
+    expires_at: Mapped[datetime] = mapped_column(index=True)
+    status: Mapped[DealStatus] = mapped_column(
+        Enum(DealStatus, name="DEAL_STATUS"), default=DealStatus.DRAFT, index=True
+    )
+    seller_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    seller: Mapped[UserModel] = relationship(
+        back_populates="external_seller_deals", foreign_keys=[seller_id]
+    )
+    buyer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    buyer: Mapped[UserModel] = relationship(
+        back_populates="external_buyer_deals", foreign_keys=[buyer_id]
+    )
+    agent_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
+    agent: Mapped[Optional[UserModel]] = relationship(
+        back_populates="external_agent_deals", foreign_keys=[agent_id]
+    )
+    reviews: Mapped[List[ReviewModel]] = relationship(
+        back_populates="external_deal", cascade="all, delete-orphan"
+    )
+
+
+class ScamReportModel(EntityModel):
+    __tablename__ = "scam_reports"
+    fk_name = "scam_report_id"
+
+    description: Mapped[str] = mapped_column(String(1024))
+    contact_info: Mapped[Optional[str]] = mapped_column(String(255))
+    attachments: Mapped[List[str]] = mapped_column(ARRAY(String(255)))
+    comment: Mapped[Optional[str]] = mapped_column(String(1024))
+    status: Mapped[ReportStatus] = mapped_column(
+        Enum(ReportStatus, name="REPORT_STATUS"),
+        default=ReportStatus.PENDING,
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user: Mapped[UserModel] = relationship(
+        back_populates="scam_reports", foreign_keys=[user_id]
+    )
+    accused_reputation_user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("reputation_users.id"), index=True
+    )
+    accused_reputation_user: Mapped[Optional[ReputationUserModel]] = relationship(
+        back_populates="accused_reports",
+        foreign_keys=[accused_reputation_user_id],
+    )
+    applied_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    applied_by_user: Mapped[Optional[UserModel]] = relationship(
+        back_populates="applied_scam_reports",
+        foreign_keys=[applied_by_user_id],
     )

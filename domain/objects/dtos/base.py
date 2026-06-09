@@ -10,3 +10,7 @@ class GetDTO(BaseDTO):
     limit: int
     offset: int
     search: Optional[str] = None
+
+
+class EntityDTO(BaseDTO):
+    id: Optional[int] = None

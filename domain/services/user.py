@@ -19,14 +19,14 @@ class UserService:
         self.media_repository = media_repository
 
     async def get_or_create(
-        self, telegram_id: int, username: Optional[str] = None
+        self, telegram_id: int, usernames: List[str]
     ) -> entities.UserEntity:
         user = await self.user_cache.get_user_by_telegram_id(telegram_id)
 
         if user:
             return user
 
-        user = await self.user_repository.get_or_create(telegram_id, username)
+        user = await self.user_repository.get_or_create(telegram_id, usernames)
         await self.user_cache.set_user(user)
         return user
 
@@ -61,45 +61,77 @@ class UserService:
     async def get_by_role(self, role: UserRole) -> List[entities.UserEntity]:
         return await self.user_repository.get_by_role(role)
 
-    async def create_user_reputation(
-        self, dto: dtos.CreateUserReputationDTO
+    async def create_reputation_user(
+        self, dto: dtos.CreateReputationUserDTO
     ) -> entities.ReputationUserEntity:
-        user_reputation = await self.user_repository.create_user_reputation(dto)
-        user = await self.get_by_id(dto.user_id)
-        await self.user_cache.invalidate_user(user)
+        user_reputation = await self.user_repository.create_reputation_user(dto)
+        await self.user_cache.set_reputation_user(user_reputation)
         return user_reputation
 
-    async def update_user_reputation(
-        self, user_id: int, dto: dtos.UpdateUserReputationDTO
+    async def update_reputation_user(
+        self, user_id: int, dto: dtos.UpdateReputationUserDTO
     ) -> entities.ReputationUserEntity:
-        user_reputation = await self.user_repository.update_user_reputation(
+        user_reputation = await self.user_repository.update_reputation_user(
             user_id, dto
         )
-        user = await self.get_by_id(user_id)
-        await self.user_cache.invalidate_user(user)
+        await self.user_cache.set_reputation_user(user_reputation)
         return user_reputation
 
-    async def get_user_reputation(
+    async def get_reputation_user_by_user_id(
         self, user_id: int
-    ) -> entities.ReputationUserWithUserEntity:
-        user_reputation = await self.user_cache.get_user_reputation(user_id)
+    ) -> entities.ReputationUserWithRelationsEntity:
+        user_reputation = await self.user_cache.get_reputation_user_by_user_id(user_id)
 
         if user_reputation:
             return user_reputation
 
-        user_reputation = await self.user_repository.get_user_reputation(user_id)
-        await self.user_cache.set_user_reputation(user_id, user_reputation)
+        user_reputation = await self.user_repository.get_reputation_user_by_user_id(
+            user_id
+        )
+        await self.user_cache.set_reputation_user_by_user_id(user_id, user_reputation)
         return user_reputation
 
-    async def create_or_update_user_reputation(
-        self, dto: dtos.CreateUserReputationDTO
+    async def get_reputation_users(
+        self, search: str
+    ) -> List[entities.ReputationUserWithRelationsEntity]:
+        user_reputations = await self.user_cache.get_reputation_users_by_search(search)
+
+        if user_reputations:
+            reputation_user_ids = [
+                user_reputation.id for user_reputation in user_reputations
+            ]
+            await self.user_repository.add_search_count(reputation_user_ids)
+            return user_reputations
+
+        user_reputations = await self.user_repository.get_reputation_users(search)
+        reputation_user_ids = [
+            user_reputation.id for user_reputation in user_reputations
+        ]
+        await self.user_repository.add_search_count(reputation_user_ids)
+        await self.user_cache.set_reputation_users_by_search(search, user_reputations)
+        return user_reputations
+
+    async def get_reputation_user(
+        self, id: int
+    ) -> entities.ReputationUserWithRelationsEntity:
+        user_reputation = await self.user_cache.get_reputation_user(id)
+
+        if user_reputation:
+            return user_reputation
+
+        user_reputation = await self.user_repository.get_reputation_user(id)
+        await self.user_cache.set_reputation_user(user_reputation)
+        return user_reputation
+
+    async def create_or_update_reputation_user(
+        self, dto: dtos.CreateReputationUserDTO
     ) -> entities.ReputationUserEntity:
         try:
-            await self.user_repository.get_user_reputation(dto.user_id)
+            await self.get_reputation_user_by_user_id(dto.user_id)
         except exceptions.ObjectNotFoundException:
-            return await self.create_user_reputation(dto)
+            return await self.create_reputation_user(dto)
 
-        return await self.update_user_reputation(dto.user_id, dto)
+        return await self.update_reputation_user(dto.user_id, dto)
 
     async def get_or_create_marketplace_user(
         self, user_id: int

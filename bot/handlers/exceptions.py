@@ -39,6 +39,18 @@ async def exception_handler(event: ErrorEvent):
         case exceptions.ChatNotFoundException():
             await message.answer(text.CHAT_NOT_FOUND)
             return True
+        case exceptions.UserIsScammerException():
+            await message.answer(text.USER_IS_SCAMMER)
+            return True
+        case exceptions.UserIsNotGuarantorException():
+            await message.answer(text.USER_IS_NOT_GUARANTOR)
+            return True
+        case exceptions.NotEnoughAmountException():
+            await message.answer(text.NOT_ENOUGH_AMOUNT)
+            return True
+        case exceptions.DealNotDraftException():
+            await message.answer(text.DEAL_NOT_DRAFT)
+            return True
 
     logger.exception(
         f"Unhandled exception: {event.exception}", exc_info=event.exception

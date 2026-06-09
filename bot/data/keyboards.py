@@ -11,11 +11,6 @@ REPORT_TYPE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="⚠️ Скам", callback_data=ReportCallback(type=ReportType.SCAM).pack()
-            )
-        ],
-        [
-            InlineKeyboardButton(
                 text="💬 Снятие нарушения",
                 callback_data=ReportCallback(type=ReportType.UNBAN).pack(),
             )
@@ -86,6 +81,14 @@ REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
                 ).pack(),
             ),
         ],
+        [
+            InlineKeyboardButton(
+                text="👤 Чистый пользователь",
+                callback_data=ReputationRoleCallback(
+                    role=UserReputationRole.CLEAN_USER
+                ).pack(),
+            )
+        ],
     ]
 )
 
@@ -153,22 +156,42 @@ def get_report_keyboard(report: entities.ReportWithUserEntity) -> InlineKeyboard
             ).pack(),
         )
 
-    if report.type == ReportType.SCAM and report.accused_user:
-        builder.button(
-            text=f"📌 Отметить как скам",
-            callback_data=ReportAccusedUserCallback(id=report.accused_user.id).pack(),
-        )
-
     return builder.adjust(3).as_markup()
 
 
-def get_check_keyboard(reports: List[entities.ReportEntity]) -> InlineKeyboardMarkup:
+def get_reputation_user_keyboard(
+    reputation_users: List[entities.ReputationUserWithRelationsEntity],
+) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    for report in reports:
+    for reputation_user in reputation_users:
+        if not reputation_user.users:
+            continue
+
+        primary_user = reputation_user.users[0]
+
+        if primary_user.usernames and primary_user.usernames[0].username:
+            text = f"@{primary_user.usernames[0].username}"
+        else:
+            text = f"ID: {primary_user.telegram_id}"
+
         builder.button(
-            text=f"📌 Репорт #{report.id}",
-            callback_data=CheckCallback(report_id=report.id).pack(),
+            text=text,
+            callback_data=ReputationUserCallback(id=reputation_user.id).pack(),
+        )
+
+    return builder.as_markup()
+
+
+def get_check_keyboard(
+    scam_reports: List[entities.ScamReportEntity],
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    for scam_report in scam_reports:
+        builder.button(
+            text=f"📌 Репорт #{scam_report.id}",
+            callback_data=CheckCallback(report_id=scam_report.id).pack(),
         )
 
     return builder.adjust(2).as_markup()

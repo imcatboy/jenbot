@@ -70,6 +70,16 @@ class DIMiddleware(BaseMiddleware):
             config_service=config_service,
             bot=bot,
         )
+        marketplace_repository = MarketplaceRepository(session=uow.session)
+        trading_repository = TradingRepository(session=uow.session)
+        messaging_repository = MessagingRepository(session=uow.session)
+        trading_service = TradingService(
+            trading_repository=trading_repository,
+            marketplace_repository=marketplace_repository,
+            messaging_repository=messaging_repository,
+            user_repository=user_repository,
+        )
+        data["trading_service"] = trading_service
         data["audit_actions"] = audit_actions
         data["moderation_actions"] = moderation_actions
         user_actions = UserActions(user_service=user_service, bot=bot)

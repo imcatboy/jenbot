@@ -1,0 +1,130 @@
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo
+from aiogram.exceptions import TelegramAPIError
+from aiogram.filters import Command
+from aiogram import Router, Bot
+
+from domain.services import UserService, TradingService
+from bot.data import text, keyboards, callbacks
+from bot.actions import MediaActions
+from domain.objects import dtos
+
+
+reputation_router = Router()
+
+
+@reputation_router.message(
+    Command("check", ignore_case=True),
+    flags={"command_model": dtos.CheckCommandDTO, "subscriptions": True},
+)
+async def check_handler(
+    message: Message,
+    command_data: dtos.CheckCommandDTO,
+    media_actions: MediaActions,
+    user_service: UserService,
+    trading_service: TradingService,
+):
+    reputation_users = await user_service.get_reputation_users(command_data.search)
+
+    if not reputation_users:
+        image = await media_actions.get_telegram_file("user")
+        await message.answer_photo(
+            photo=image,
+            caption=text.get_check_error_message(command_data.search),
+        )
+        return
+
+    if len(reputation_users) > 1:
+        await message.answer(
+            text.MANY_REPUTATION_USERS,
+            reply_markup=keyboards.get_reputation_user_keyboard(reputation_users),
+        )
+        return
+
+    reputation = reputation_users[0]
+    scam_reports = await trading_service.get_scam_reports(reputation.id)
+    image = await media_actions.get_telegram_file(reputation.role.value)
+    await message.answer_photo(
+        photo=image,
+        caption=text.get_check_success_message(reputation),
+        reply_markup=keyboards.get_check_keyboard(scam_reports),
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.ReputationUserCallback.filter(), flags={"subscriptions": True}
+)
+async def reputation_user_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReputationUserCallback,
+    user_service: UserService,
+    media_actions: MediaActions,
+    trading_service: TradingService,
+):
+    reputation_user = await user_service.get_reputation_user(callback_data.id)
+
+    if not reputation_user:
+        image = await media_actions.get_telegram_file("user")
+        await callback.message.answer_photo(
+            photo=image,
+            caption=text.get_check_error_message(),
+        )
+        return
+
+    scam_reports = await trading_service.get_scam_reports(reputation_user.id)
+    image = await media_actions.get_telegram_file(reputation_user.role.value)
+    await callback.message.answer_photo(
+        photo=image,
+        caption=text.get_check_success_message(reputation_user),
+        reply_markup=keyboards.get_check_keyboard(scam_reports),
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.CheckCallback.filter(), flags={"subscriptions": True}
+)
+async def check_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.CheckCallback,
+    trading_service: TradingService,
+    bot: Bot,
+):
+    scam_report = await trading_service.get_scam_report(
+        callback_data.report_id,
+    )
+
+    if scam_report.attachments:
+        attachments = []
+        has_caption = False
+
+        for attachment in scam_report.attachments:
+            try:
+                file = await bot.get_file(attachment)
+
+                if "photo" in file.file_path:
+                    attachments.append(
+                        InputMediaPhoto(
+                            media=file.file_id,
+                            caption=(
+                                scam_report.description if not has_caption else None
+                            ),
+                        )
+                    )
+                elif "video" in file.file_path:
+                    attachments.append(
+                        InputMediaVideo(
+                            media=file.file_id,
+                            caption=(
+                                scam_report.description if not has_caption else None
+                            ),
+                        )
+                    )
+
+                has_caption = True
+            except TelegramAPIError:
+                continue
+
+        if attachments:
+            await callback.message.answer_media_group(attachments)
+            return
+
+    await callback.message.answer(scam_report.description)
