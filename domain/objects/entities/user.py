@@ -8,6 +8,7 @@ from .base import EntityWithMetadata, MetadataEntity
 
 if TYPE_CHECKING:
     from .moderation import ViolationEntity
+    from .trading import ScamReportEntity
 
 
 class UsernameEntity(EntityWithMetadata):
@@ -26,6 +27,7 @@ class ReputationUserEntity(EntityWithMetadata):
     description: Optional[str] = None
     about: Optional[str] = None
     amount: float
+    version: int
     search_count: int
     applied_report_count: int
     review_count: int
@@ -44,6 +46,7 @@ class ReputationUserWithRelationsEntity(ReputationUserEntity):
     users: List[UserEntity]
     user_details: List[UserDetailEntity]
     added_by_user: UserEntity
+    accused_reports: List[ScamReportEntity]
 
 
 class ChatUserEntity(MetadataEntity):

@@ -1,3 +1,5 @@
+import aiofiles
+
 from dependency_injector.wiring import inject, Provide
 from fastapi.concurrency import run_in_threadpool
 from fastapi import UploadFile, File, Depends
@@ -152,9 +154,11 @@ async def get_message_file(
         uploaded_by_user_id=user.id,
     )
     file_object = await media_service.create_file(dto)
-    await run_in_threadpool(
-        file.file.write,
-        f"{settings.MESSAGE_FILE_STORAGE_PATH}/{name}.{type.extension}",
-    )
+    file_location = f"{settings.MESSAGE_FILE_STORAGE_PATH}/{name}.{type.extension}"
+    content = await file.read()
+
+    async with aiofiles.open(file_location, "wb") as out_file:
+        await out_file.write(content)
+    
     file.close()
     return file_object

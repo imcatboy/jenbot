@@ -24,5 +24,6 @@ class Settings(BaseSettings):
     PRODUCT_IMAGE_STORAGE_PATH: str
     MESSAGE_FILE_STORAGE_PATH: str
     FILE_MAX_NAME_LENGTH: int
+    SENTRY_DSN: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

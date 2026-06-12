@@ -1,4 +1,6 @@
-from aiogram.types import FSInputFile
+from aiogram.types import FSInputFile, InputMediaPhoto, InputMediaVideo
+from aiogram.exceptions import TelegramAPIError
+from typing import List, Optional
 from pathlib import Path
 
 from domain.services import MediaService, ConfigService
@@ -36,3 +38,34 @@ class MediaActions:
         file_id = photo.photo[-1].file_id
         await self.media_service.create_telegram_file(name, file_id)
         return file_id
+
+    async def create_media_group(
+        self, files: List[str], caption: Optional[str] = None
+    ) -> List[InputMediaPhoto | InputMediaVideo]:
+        attachments: List[InputMediaPhoto | InputMediaVideo] = []
+        has_caption = False
+
+        for attachment in files:
+            try:
+                file = await self.bot.get_file(attachment)
+
+                if "photo" in file.file_path:
+                    attachments.append(
+                        InputMediaPhoto(
+                            media=file.file_id,
+                            caption=caption if not has_caption else None,
+                        )
+                    )
+                elif "video" in file.file_path:
+                    attachments.append(
+                        InputMediaVideo(
+                            media=file.file_id,
+                            caption=caption if not has_caption else None,
+                        )
+                    )
+
+                has_caption = True
+            except TelegramAPIError:
+                continue
+
+        return attachments

@@ -1,8 +1,18 @@
 from typing import Optional, List
 from datetime import datetime
 
+from domain.objects.types import (
+    ID,
+    Name,
+    Rating,
+    Reason,
+    IDSet,
+    NoZeroFloat,
+    TelegramID,
+    Username,
+    NoZeroInt,
+)
 from domain.objects import UserRole, UserReputationRole, ViolationType
-from domain.objects.types import ID, Name, Rating, Reason
 from .base import BaseRequest, BaseResponse
 
 
@@ -17,7 +27,14 @@ class MarketplaceUserResponse(BaseResponse):
 
 
 class ReputationUserResponse(BaseResponse):
-    description: str
+    id: int
+    description: Optional[str] = None
+    about: Optional[str] = None
+    amount: float
+    version: int
+    search_count: int
+    applied_report_count: int
+    review_count: int
     role: UserReputationRole
 
 
@@ -36,7 +53,19 @@ class ProfileResponse(BaseResponse):
     marketplace_user: Optional[MarketplaceUserResponse]
 
 
+class UsernameResponse(BaseResponse):
+    username: str
+    user_id: int
+
+
 class UserResponse(BaseResponse):
+    telegram_id: int
+    usernames: List[UsernameResponse]
+    role: UserRole
+    reputation_user_id: Optional[int] = None
+
+
+class UserWithMarketplaceUserResponse(BaseResponse):
     telegram_id: int
     username: Optional[str]
     role: UserRole
@@ -48,7 +77,7 @@ class ReviewResponse(BaseResponse):
     message: str
     rating: int
     created_at: datetime
-    author: UserResponse
+    author: UserWithMarketplaceUserResponse
 
 
 class ReviewsResponse(BaseResponse):
@@ -65,3 +94,45 @@ class CreateReviewRequest(BaseRequest):
 class UpdateMarketplaceUserRequest(BaseRequest):
     name: Optional[Name] = None
     description: Optional[Reason] = None
+
+
+class CreateUserDetailRequest(BaseRequest):
+    name: Name
+    value: Reason
+    is_public: bool
+
+
+class CreateReputationUserRequest(BaseRequest):
+    user_ids: IDSet
+    amount: Optional[NoZeroFloat] = None
+    description: Optional[Reason] = None
+    role: UserReputationRole
+    details: List[CreateUserDetailRequest]
+    scam_report_ids: IDSet
+
+
+class UpdateUserDetailRequest(BaseRequest):
+    id: Optional[ID] = None
+    name: Name
+    value: Reason
+    is_public: bool
+
+
+class UpdateReputationUserRequest(BaseRequest):
+    version: NoZeroInt
+    user_ids: Optional[IDSet] = None
+    amount: Optional[NoZeroFloat] = None
+    description: Optional[Reason] = None
+    role: Optional[UserReputationRole] = None
+    details: Optional[List[UpdateUserDetailRequest]] = None
+    scam_report_ids: Optional[IDSet] = None
+
+
+class CreateUserRequest(BaseRequest):
+    telegram_id: TelegramID
+    usernames: List[Username]
+
+
+class UpdateUserRequest(BaseRequest):
+    telegram_id: Optional[TelegramID] = None
+    usernames: Optional[List[Username]] = None

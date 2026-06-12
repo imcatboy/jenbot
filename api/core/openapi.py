@@ -34,6 +34,7 @@ TAGS_METADATA: List[TagMetadata] = [
     {"name": "Messaging", "description": "Messaging endpoints"},
     {"name": "Product", "description": "Product endpoints"},
     {"name": "Media", "description": "Media endpoints"},
+    {"name": "Reputation", "description": "Reputation endpoints"},
 ]
 
 
@@ -48,9 +49,29 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "description": "Get user information by ID",
         "tags": ["User"],
     },
-    "update_user": {
+    "update_me": {
         "summary": "Update current user information",
         "description": "Update current user information",
+        "tags": ["User"],
+    },
+    "create_user": {
+        "summary": "Create a user",
+        "description": "Create a user",
+        "tags": ["User"],
+    },
+    "update_user": {
+        "summary": "Update user information by ID",
+        "description": "Update user information by ID",
+        "tags": ["User"],
+    },
+    "get_users": {
+        "summary": "Get users",
+        "description": "Get users",
+        "tags": ["User"],
+    },
+    "get_user": {
+        "summary": "Get user by ID",
+        "description": "Get user by ID",
         "tags": ["User"],
     },
     "create_review": {
@@ -257,6 +278,26 @@ ENDPOINTS_METADATA: Dict[str, EndpointMetadata] = {
         "summary": "Get product attachment by ID",
         "description": "Get product attachment by ID",
         "tags": ["Product", "Media"],
+    },
+    "create_reputation_user": {
+        "summary": "Create a reputation user",
+        "description": "Create a reputation user",
+        "tags": ["Reputation"],
+    },
+    "update_reputation_user": {
+        "summary": "Update reputation user by ID",
+        "description": "Update reputation user by ID",
+        "tags": ["Reputation"],
+    },
+    "get_reputation_users": {
+        "summary": "Get reputation users",
+        "description": "Get reputation users",
+        "tags": ["Reputation"],
+    },
+    "get_reputation_user": {
+        "summary": "Get reputation user by ID",
+        "description": "Get reputation user by ID",
+        "tags": ["Reputation"],
     },
 }
 

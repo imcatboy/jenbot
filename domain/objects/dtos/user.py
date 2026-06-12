@@ -11,11 +11,12 @@ class CreateUserDetailDTO(BaseDTO):
 
 class CreateReputationUserDTO(BaseDTO):
     user_ids: List[int]
+    amount: Optional[float] = None
     description: Optional[str] = None
-    about: Optional[str] = None
     added_by_user_id: int
     role: UserReputationRole
     details: List[CreateUserDetailDTO]
+    scam_report_ids: List[int]
 
 
 class UpdateUserDetailDTO(BaseDTO):
@@ -26,12 +27,14 @@ class UpdateUserDetailDTO(BaseDTO):
 
 
 class UpdateReputationUserDTO(BaseDTO):
-    user_ids: List[int]
+    version: int
+    added_by_user_id: int
+    user_ids: Optional[List[int]] = None
+    amount: Optional[float] = None
     description: Optional[str] = None
-    about: Optional[str] = None
     role: Optional[UserReputationRole] = None
-    added_by_user_id: Optional[int] = None
-    details: List[UpdateUserDetailDTO]
+    details: Optional[List[UpdateUserDetailDTO]] = None
+    scam_report_ids: Optional[List[int]] = None
 
 
 class UpdateMarketplaceUserDTO(BaseDTO):

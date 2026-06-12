@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from typing import List
+from typing import List, Optional
 
 from domain.objects import entities
 from domain.objects.types import ReportType, ReportStatus, UserReputationRole
@@ -181,20 +181,6 @@ def get_reputation_user_keyboard(
         )
 
     return builder.as_markup()
-
-
-def get_check_keyboard(
-    scam_reports: List[entities.ScamReportEntity],
-) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-
-    for scam_report in scam_reports:
-        builder.button(
-            text=f"📌 Репорт #{scam_report.id}",
-            callback_data=CheckCallback(report_id=scam_report.id).pack(),
-        )
-
-    return builder.adjust(2).as_markup()
 
 
 def get_violations_keyboard(

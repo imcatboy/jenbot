@@ -27,6 +27,7 @@ def get_reputation_user_relations() -> List[Any]:
         joinedload(models.ReputationUserModel.added_by_user).options(
             selectinload(models.UserModel.usernames)
         ),
+        selectinload(models.ReputationUserModel.accused_reports),
     ]
 
 

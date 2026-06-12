@@ -49,7 +49,7 @@ class UserModel(EntityModel):
         Enum(UserRole, name="USER_ROLE"), default=UserRole.USER, index=True
     )
     reputation_user_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("reputation_users.id"), index=True
+        ForeignKey("reputation_users.id", use_alter=True), index=True
     )
     reputation_user: Mapped[Optional[ReputationUserModel]] = relationship(
         back_populates="users",
@@ -221,7 +221,7 @@ class UserDetailModel(EntityModel):
         ),
     )
 
-    name: Mapped[str] = mapped_column(String(32))
+    name: Mapped[str] = mapped_column(String(100))
     value: Mapped[str] = mapped_column(String(255), index=True)
     is_public: Mapped[bool] = mapped_column(default=False, index=True)
     reputation_user_id: Mapped[int] = mapped_column(
@@ -253,6 +253,9 @@ class ReputationUserModel(EntityModel):
             name="ck_reputation_user_review_count_positive",
         ),
     )
+    __mapper_args__ = {
+        "version_id_col": "version",
+    }
 
     description: Mapped[Optional[str]] = mapped_column(String(255))
     about: Mapped[Optional[str]] = mapped_column(String(255))
@@ -263,6 +266,7 @@ class ReputationUserModel(EntityModel):
     search_count: Mapped[int] = mapped_column(default=0)
     applied_report_count: Mapped[int] = mapped_column(default=0)
     review_count: Mapped[int] = mapped_column(default=0)
+    version: Mapped[int] = mapped_column(default=0)
     added_by_user_id: Mapped[int] = mapped_column(
         "added_by_user",
         ForeignKey("users.id"),

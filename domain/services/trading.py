@@ -161,10 +161,10 @@ class TradingService:
             await self.trading_repository.update_deal(
                 id, dtos.UpdateDealDTO(buyer_condition=condition)
             )
-
-        await self.trading_repository.update_deal(
-            id, dtos.UpdateDealDTO(seller_condition=condition)
-        )
+        elif deal.seller_id == user_id:
+            await self.trading_repository.update_deal(
+                id, dtos.UpdateDealDTO(seller_condition=condition)
+            )
 
     async def change_status(self, id: int) -> None:
         deal = await self.trading_repository.get_deal(id)
@@ -238,8 +238,10 @@ class TradingService:
 
     async def get_scam_report(self, id: int) -> entities.ScamReportEntity:
         return await self.trading_repository.get_scam_report(id)
-    
-    async def get_scam_reports(self, reputation_user_id: int) -> List[entities.ScamReportEntity]:
+
+    async def get_scam_reports(
+        self, reputation_user_id: int
+    ) -> List[entities.ScamReportEntity]:
         return await self.trading_repository.get_scam_reports(reputation_user_id)
 
     async def create_review(self, dto: dtos.CreateReviewDTO) -> entities.ReviewEntity:
@@ -338,5 +340,5 @@ class TradingService:
 
         if deal.status != types.DealStatus.DRAFT:
             raise exceptions.DealNotDraftException(deal.id)
-        
+
         await self.trading_repository.delete_external_deal(id)

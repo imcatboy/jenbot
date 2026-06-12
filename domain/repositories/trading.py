@@ -79,6 +79,7 @@ class TradingRepository(BaseRepository):
                     models.DealModel.seller_id == user_id,
                     models.DealModel.agent_id == user_id,
                 ),
+                models.DealModel.id == id,
             )
         else:
             query = select(models.DealModel).where(

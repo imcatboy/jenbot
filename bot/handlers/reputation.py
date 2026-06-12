@@ -1,12 +1,11 @@
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo
-from aiogram.exceptions import TelegramAPIError
+from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
-from aiogram import Router, Bot
+from aiogram import Router
 
 from domain.services import UserService, TradingService
 from bot.data import text, keyboards, callbacks
 from bot.actions import MediaActions
-from domain.objects import dtos
+from domain.objects import dtos, exceptions
 
 
 reputation_router = Router()
@@ -60,9 +59,9 @@ async def reputation_user_callback_handler(
     media_actions: MediaActions,
     trading_service: TradingService,
 ):
-    reputation_user = await user_service.get_reputation_user(callback_data.id)
-
-    if not reputation_user:
+    try:
+        reputation_user = await user_service.get_reputation_user(callback_data.id)
+    except exceptions.ObjectNotFoundException:
         image = await media_actions.get_telegram_file("user")
         await callback.message.answer_photo(
             photo=image,
@@ -86,45 +85,12 @@ async def check_callback_handler(
     callback: CallbackQuery,
     callback_data: callbacks.CheckCallback,
     trading_service: TradingService,
-    bot: Bot,
+    media_actions: MediaActions,
 ):
     scam_report = await trading_service.get_scam_report(
         callback_data.report_id,
     )
-
-    if scam_report.attachments:
-        attachments = []
-        has_caption = False
-
-        for attachment in scam_report.attachments:
-            try:
-                file = await bot.get_file(attachment)
-
-                if "photo" in file.file_path:
-                    attachments.append(
-                        InputMediaPhoto(
-                            media=file.file_id,
-                            caption=(
-                                scam_report.description if not has_caption else None
-                            ),
-                        )
-                    )
-                elif "video" in file.file_path:
-                    attachments.append(
-                        InputMediaVideo(
-                            media=file.file_id,
-                            caption=(
-                                scam_report.description if not has_caption else None
-                            ),
-                        )
-                    )
-
-                has_caption = True
-            except TelegramAPIError:
-                continue
-
-        if attachments:
-            await callback.message.answer_media_group(attachments)
-            return
-
-    await callback.message.answer(scam_report.description)
+    attachments = await media_actions.create_media_group(
+        scam_report.attachments, scam_report.description
+    )
+    await callback.message.answer_media_group(attachments)

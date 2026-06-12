@@ -13,7 +13,7 @@ export const Header = ({ children }: HeaderProps) => {
   return (
     <div className={styles.header}>
       <header className={styles.headerContent}>
-        <h1 className={styles.headerLabel}>Larion</h1>
+        <h1 className={styles.headerLabel}>LarionShop</h1>
         <div className={clsx(styles.elements, separatedElements && styles.separatedElements)}>
           {config.leftButton && <Button {...config.leftButton} type="floating" />}
           {config.search && <Search {...config.search} />}

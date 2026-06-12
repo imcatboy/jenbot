@@ -198,3 +198,31 @@ class DealNotDraftException(DomainException):
     def __init__(self, deal_id: int):
         self.deal_id = deal_id
         super().__init__(f"Deal {deal_id} is not draft")
+
+
+class UserNotAllowedToUpdateException(DomainException):
+
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"User {user_id} is not allowed to update")
+
+
+class UserNotAllowedToSetReputationUserException(DomainException):
+
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"User {user_id} is not allowed to set reputation user")
+
+
+class VersionMismatchException(DomainException):
+
+    def __init__(
+        self, object_name: str, object_id: int, current_version: int, new_version: int
+    ):
+        self.object_name = object_name
+        self.object_id = object_id
+        self.current_version = current_version
+        self.new_version = new_version
+        super().__init__(
+            f"{object_name} {object_id} has version {current_version}, but {new_version} is expected"
+        )

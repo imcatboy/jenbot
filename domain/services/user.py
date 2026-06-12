@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from domain.objects import entities, exceptions, dtos
 from domain.repositories import UserRepository, MediaRepository
-from domain.objects.types import UserRole
+from domain.objects import entities, exceptions, dtos
+from domain.objects.types import UserReputationRole, UserRole
 from domain.cache import UserCache
 
 
@@ -17,6 +17,30 @@ class UserService:
         self.user_repository = user_repository
         self.user_cache = user_cache
         self.media_repository = media_repository
+
+    async def create(
+        self, telegram_id: int, usernames: List[str]
+    ) -> entities.UserEntity:
+        user_id = await self.user_repository.create(telegram_id, usernames)
+        user = await self.get_by_id(user_id)
+        await self.user_cache.set_user(user)
+        return user
+
+    async def update(
+        self,
+        id: int,
+        telegram_id: Optional[int] = None,
+        usernames: Optional[List[str]] = None,
+    ) -> entities.UserEntity:
+        user = await self.get_by_id(id)
+
+        if user.role != UserRole.USER:
+            raise exceptions.UserNotAllowedToUpdateException(user.id)
+
+        await self.user_repository.update(id, telegram_id, usernames)
+        user = await self.get_by_id(id)
+        await self.user_cache.set_user(user)
+        return user
 
     async def get_or_create(
         self, telegram_id: int, usernames: List[str]
@@ -61,9 +85,23 @@ class UserService:
     async def get_by_role(self, role: UserRole) -> List[entities.UserEntity]:
         return await self.user_repository.get_by_role(role)
 
+    async def get_many(self, dto: dtos.GetDTO) -> List[entities.UserEntity]:
+        return await self.user_repository.get_many(dto)
+
     async def create_reputation_user(
         self, dto: dtos.CreateReputationUserDTO
     ) -> entities.ReputationUserEntity:
+        added_by_user = await self.get_by_id(dto.added_by_user_id)
+
+        if added_by_user.role != UserRole.ADMIN and (
+            dto.amount is not None
+            or dto.role
+            not in [UserReputationRole.SCAMMER, UserReputationRole.CLEAN_USER]
+        ):
+            raise exceptions.UserNotAllowedToSetReputationUserException(
+                added_by_user.id
+            )
+
         user_reputation = await self.user_repository.create_reputation_user(dto)
         await self.user_cache.set_reputation_user(user_reputation)
         return user_reputation
@@ -71,6 +109,17 @@ class UserService:
     async def update_reputation_user(
         self, user_id: int, dto: dtos.UpdateReputationUserDTO
     ) -> entities.ReputationUserEntity:
+        added_by_user = await self.get_by_id(dto.added_by_user_id)
+
+        if added_by_user.role != UserRole.ADMIN and (
+            dto.amount is not None
+            or dto.role
+            not in [UserReputationRole.SCAMMER, UserReputationRole.CLEAN_USER]
+        ):
+            raise exceptions.UserNotAllowedToSetReputationUserException(
+                added_by_user.id
+            )
+
         user_reputation = await self.user_repository.update_reputation_user(
             user_id, dto
         )

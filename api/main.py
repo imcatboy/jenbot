@@ -11,15 +11,13 @@ from api.core.openapi import API_METADATA
 from api.endpoints import *
 
 
-sentry_sdk.init(
-    dsn="https://c2f6f297c72626b94b4b15f1fe21d12a@o4511344344301568.ingest.de.sentry.io/4511344357605456",
-    send_default_pii=True,
-)
-
-
 logger = logging.getLogger(__name__)
 container = AppContainer()
 settings = Settings()
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+)
 
 container.wire(packages=["api.dependencies", "api.endpoints"])
 

@@ -1,0 +1,55 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { userService, type CreateUserRequest, type GetRequest, type UpdateUserRequest, type UserResponse } from "@/api";
+
+export const USER_KEYS = {
+  all: ['users'],
+  list: (request: GetRequest) => [...USER_KEYS.all, 'list', request],
+  user: (id: number) => [...USER_KEYS.all, 'user', id],
+}
+
+export const useUsers = (request: GetRequest) => {
+  return useQuery({
+    queryKey: USER_KEYS.list(request),
+    queryFn: () => userService.getUsers(request),
+    staleTime: 1000 * 60 * 5,
+    enabled: request.search.length >= 3,
+  });
+};
+
+export const useUser = (id: number) => {
+  return useQuery({
+    queryKey: USER_KEYS.user(id),
+    queryFn: () => userService.getUser(id),
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: CreateUserRequest) => userService.createUser(request),
+    onSuccess: (data: UserResponse) => {
+      queryClient.invalidateQueries({ queryKey: USER_KEYS.all });
+      queryClient.setQueryData(USER_KEYS.user(data.id), data);
+    },
+    onError: (error: Error) => {
+      console.error(error);
+    },
+  });
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, request }: { id: number, request: UpdateUserRequest }) => userService.updateUser(id, request),
+    onSuccess: (data: UserResponse) => {
+      queryClient.invalidateQueries({ queryKey: USER_KEYS.all });
+      queryClient.setQueryData(USER_KEYS.user(data.id), data);
+    },
+    onError: (error: Error) => {
+      console.error(error);
+    },
+  });
+};

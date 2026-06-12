@@ -140,3 +140,33 @@ async def file_not_found_exception_handler(
         status_code=status.HTTP_404_NOT_FOUND,
         content={"detail": "File not found"},
     )
+
+
+async def version_mismatch_exception_handler(
+    request: Request, exc: exceptions.VersionMismatchException
+) -> JSONResponse:
+    capture_exception(exc)
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": "Version mismatch"},
+    )
+
+
+async def user_not_allowed_to_update_exception_handler(
+    request: Request, exc: exceptions.UserNotAllowedToUpdateException
+) -> JSONResponse:
+    capture_exception(exc)
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": "User not allowed to update"},
+    )
+
+
+async def user_not_allowed_to_set_reputation_user_exception_handler(
+    request: Request, exc: exceptions.UserNotAllowedToSetReputationUserException
+) -> JSONResponse:
+    capture_exception(exc)
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": "User not allowed to set reputation user"},
+    )
