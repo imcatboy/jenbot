@@ -1,0 +1,42 @@
+.areaField {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background-color: $secondary-bg-color;
+  border-radius: 12px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.editIcon {
+  color: $hint-color;
+}
+
+.textarea {
+  width: 100%;
+  font-size: 16px;
+  color: $text-color;
+}
+
+.value {
+  font-size: 16px;
+  color: $text-color;
+}
+
+.placeholder {
+  font-size: 16px;
+  color: $hint-color;
+}

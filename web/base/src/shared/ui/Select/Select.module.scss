@@ -1,0 +1,97 @@
+.select {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.selectHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: $bg-color;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid $secondary-bg-color;
+  width: 100%;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.divider {
+  border: 1px solid $secondary-bg-color;
+  width: 100%;
+}
+
+.selectedOptionContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $main-color;
+  transition: all 0.15s ease-in-out;
+}
+
+.open {
+  transform: rotate(180deg);
+}
+
+.selectedOptionValue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .optionIcon {
+    color: $main-color;
+  }
+
+  .optionLabel {
+    font-size: 20px;
+    color: $text-color;
+  }
+}
+
+.selectedOptionPlaceholder {
+  color: $hint-color;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: $bg-color;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid $secondary-bg-color;
+  width: 100%;
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  z-index: 1000;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .optionIcon {
+    color: $main-color;
+  }
+
+  .optionLabel {
+    font-size: 20px;
+    color: $text-color;
+  }
+}

@@ -20,7 +20,9 @@ class UserActions:
 
         try:
             chat = await self.bot.get_chat(username)
-            usernames = chat.active_usernames
+            usernames = [
+                username.username.lower() for username in chat.active_usernames
+            ]
             return await self.user_service.get_or_create(chat.id, usernames)
         except TelegramAPIError:
             pass
@@ -31,9 +33,11 @@ class UserActions:
 
                 try:
                     chat = await self.bot.get_chat(member.user.id)
-                    usernames = chat.active_usernames
+                    usernames = [
+                        username.username.lower() for username in chat.active_usernames
+                    ]
                 except TelegramAPIError:
-                    usernames = [member.user.username]
+                    usernames = [member.user.username.lower()] if member.user.username else []
 
                 return await self.user_service.get_or_create(member.user.id, usernames)
             except TelegramAPIError:

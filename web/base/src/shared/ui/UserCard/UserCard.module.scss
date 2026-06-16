@@ -1,0 +1,22 @@
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 5px 10px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.title {
+  font-size: 20px;
+  color: $text-color;
+}
+
+.description {
+  font-size: 16px;
+  color: $hint-color;
+}

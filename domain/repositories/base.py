@@ -147,13 +147,11 @@ class BaseRepository:
             return
 
         await self.validator.validate_ids_exist(child_model, related_ids)
-        result = await self.session.execute(
-            select(child_model).where(child_model.id.in_(related_ids))
+        await self.session.execute(
+            update(child_model)
+            .where(child_model.id.in_(related_ids))
+            .values({foreign_key_column or parent.fk_name: parent.id})
         )
-        objects = result.scalars().all()
-
-        for obj in objects:
-            setattr(obj, foreign_key_column or parent.fk_name, parent.id)
 
     async def update_many_to_one_relation(
         self,
@@ -207,7 +205,7 @@ class BaseRepository:
     ) -> None:
         if values is None:
             return
-        
+
         values = set(values)
 
         fk_column = foreign_key_column or parent.fk_name

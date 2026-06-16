@@ -34,7 +34,6 @@ async def create_reputation_user(
     "/{reputation_user_id}",
     **ENDPOINTS_METADATA["update_reputation_user"],
     response_model=schemas.ReputationUserResponse,
-    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def update_reputation_user(
     data: schemas.UpdateReputationUserRequest,
@@ -51,7 +50,7 @@ async def update_reputation_user(
 @reputation_router.get(
     "/{reputation_user_id}",
     **ENDPOINTS_METADATA["get_reputation_user"],
-    response_model=schemas.ReputationUserResponse,
+    response_model=schemas.ReputationUserWithRelationsResponse,
 )
 async def get_reputation_user(
     reputation_user_id: int = Path(description="Reputation User ID"),
@@ -59,14 +58,14 @@ async def get_reputation_user(
         Authorize([UserRole.ADMIN, UserRole.MODERATOR])
     ),
     user_service: UserService = Depends(get_user_service),
-) -> schemas.ReputationUserResponse:
+) -> schemas.ReputationUserWithRelationsResponse:
     return await user_service.get_reputation_user(reputation_user_id)
 
 
 @reputation_router.get(
     "/",
     **ENDPOINTS_METADATA["get_reputation_users"],
-    response_model=List[schemas.ReputationUserResponse],
+    response_model=List[schemas.ReputationUserWithUsersResponse],
 )
 async def get_reputation_users(
     search: str = Query(description="Search"),
@@ -74,5 +73,5 @@ async def get_reputation_users(
         Authorize([UserRole.ADMIN, UserRole.MODERATOR])
     ),
     user_service: UserService = Depends(get_user_service),
-) -> List[schemas.ReputationUserResponse]:
+) -> List[schemas.ReputationUserWithUsersResponse]:
     return await user_service.get_reputation_users(search)

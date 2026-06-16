@@ -23,9 +23,13 @@ class UserMiddleware(BaseMiddleware):
 
         try:
             chat = await event.bot.get_chat(event.from_user.id)
-            usernames = chat.active_usernames
+            usernames = [
+                username.username.lower() for username in chat.active_usernames
+            ]
         except TelegramAPIError:
-            usernames = [event.from_user.username]
+            usernames = (
+                [event.from_user.username.lower()] if event.from_user.username else []
+            )
 
         user = await user_service.get_or_create(event.from_user.id, usernames)
         data["user"] = user
@@ -37,9 +41,15 @@ class UserMiddleware(BaseMiddleware):
         ):
             try:
                 chat = await event.bot.get_chat(event.reply_to_message.from_user.id)
-                usernames = chat.active_usernames
+                usernames = [
+                    username.username.lower() for username in chat.active_usernames
+                ]
             except TelegramAPIError:
-                usernames = [event.reply_to_message.from_user.username]
+                usernames = (
+                    [event.reply_to_message.from_user.username.lower()]
+                    if event.reply_to_message.from_user.username
+                    else []
+                )
 
             reply_to_user = await user_service.get_or_create(
                 event.reply_to_message.from_user.id, usernames

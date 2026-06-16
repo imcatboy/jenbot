@@ -103,7 +103,6 @@ class UserService:
             )
 
         user_reputation = await self.user_repository.create_reputation_user(dto)
-        await self.user_cache.set_reputation_user(user_reputation)
         return user_reputation
 
     async def update_reputation_user(
@@ -123,7 +122,7 @@ class UserService:
         user_reputation = await self.user_repository.update_reputation_user(
             user_id, dto
         )
-        await self.user_cache.set_reputation_user(user_reputation)
+        await self.user_cache.invalidate_reputation_user(user_reputation.id)
         return user_reputation
 
     async def get_reputation_user_by_user_id(
@@ -142,23 +141,23 @@ class UserService:
 
     async def get_reputation_users(
         self, search: str
-    ) -> List[entities.ReputationUserWithRelationsEntity]:
-        user_reputations = await self.user_cache.get_reputation_users_by_search(search)
+    ) -> List[entities.ReputationUserWithUsersEntity]:
+        reputation_users = await self.user_cache.get_reputation_users_by_search(search)
 
-        if user_reputations:
+        if reputation_users:
             reputation_user_ids = [
-                user_reputation.id for user_reputation in user_reputations
+                reputation_user.id for reputation_user in reputation_users
             ]
             await self.user_repository.add_search_count(reputation_user_ids)
-            return user_reputations
+            return reputation_users
 
-        user_reputations = await self.user_repository.get_reputation_users(search)
+        reputation_users = await self.user_repository.get_reputation_users(search)
         reputation_user_ids = [
-            user_reputation.id for user_reputation in user_reputations
+            reputation_user.id for reputation_user in reputation_users
         ]
         await self.user_repository.add_search_count(reputation_user_ids)
-        await self.user_cache.set_reputation_users_by_search(search, user_reputations)
-        return user_reputations
+        await self.user_cache.set_reputation_users_by_search(search, reputation_users)
+        return reputation_users
 
     async def get_reputation_user(
         self, id: int

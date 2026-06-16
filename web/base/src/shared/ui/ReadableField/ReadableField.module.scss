@@ -1,0 +1,49 @@
+.readableField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: $bg-color;
+  border-radius: 12px;
+  border: 1px solid $secondary-bg-color;
+  width: 100%;
+  cursor: pointer;
+  height: 52px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.value {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  .valueText {
+    font-size: 16px;
+    color: $hint-color;
+    font-weight: 600;
+  }
+
+}
+
+.editIcon {
+  color: $hint-color;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.input {
+  width: 100%;
+  font-size: 16px;
+  color: $hint-color;
+  font-weight: 600;
+  text-align: right;
+}

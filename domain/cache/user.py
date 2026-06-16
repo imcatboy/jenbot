@@ -187,7 +187,7 @@ class UserCache(BaseCache):
 
     async def get_reputation_users_by_detail(
         self, detail: str
-    ) -> List[entities.ReputationUserWithRelationsEntity]:
+    ) -> List[entities.ReputationUserWithRelationsEntity] | None:
         reputation_users = await self.get(
             keys.get_reputation_user_by_detail_key(detail)
         )
@@ -210,7 +210,7 @@ class UserCache(BaseCache):
 
     async def get_reputation_users_by_search(
         self, search: str
-    ) -> List[entities.ReputationUserWithRelationsEntity]:
+    ) -> List[entities.ReputationUserWithRelationsEntity] | None:
         if search.isdigit() and len(search) >= 9:
             reputation_user = await self.get_reputation_user_by_telegram_id(int(search))
 
@@ -231,15 +231,15 @@ class UserCache(BaseCache):
         search: str,
         reputation_users: List[entities.ReputationUserWithRelationsEntity],
     ) -> None:
-        if search.isdigit() and len(search) >= 9:
+        if search.isdigit():
             if reputation_users:
                 return await self.set_reputation_user_by_telegram_id(
                     int(search), reputation_users[0]
                 )
-        elif re.match(r"^@[a-zA-Z0-9_]+$", search):
+        elif re.match(r"^[a-zA-Z0-9_]+$", search):
             if reputation_users:
                 return await self.set_reputation_user_by_username(
-                    search.replace("@", "").lower(), reputation_users[0]
+                    search.lower(), reputation_users[0]
                 )
         else:
             await self.set_reputation_users_by_detail(search, reputation_users)

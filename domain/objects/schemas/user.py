@@ -8,6 +8,7 @@ from domain.objects.types import (
     Reason,
     IDSet,
     NoZeroFloat,
+    ReportStatus,
     TelegramID,
     Username,
     NoZeroInt,
@@ -36,6 +37,7 @@ class ReputationUserResponse(BaseResponse):
     applied_report_count: int
     review_count: int
     role: UserReputationRole
+    added_by_user_id: int
 
 
 class ViolationResponse(BaseResponse):
@@ -67,7 +69,7 @@ class UserResponse(BaseResponse):
 
 class UserWithMarketplaceUserResponse(BaseResponse):
     telegram_id: int
-    username: Optional[str]
+    usernames: List[UsernameResponse]
     role: UserRole
     marketplace_user: Optional[MarketplaceUserResponse]
 
@@ -83,6 +85,44 @@ class ReviewResponse(BaseResponse):
 class ReviewsResponse(BaseResponse):
     items: List[ReviewResponse]
     has_more: bool
+
+
+class ReputationUserWithUsersResponse(ReputationUserResponse):
+    id: int
+    description: Optional[str] = None
+    about: Optional[str] = None
+    amount: float
+    version: int
+    search_count: int
+    applied_report_count: int
+    review_count: int
+    users: List[UserResponse]
+    role: UserReputationRole
+
+
+class UserDetailResponse(BaseResponse):
+    id: int
+    name: str
+    value: str
+    is_public: bool
+
+
+class ScamReportResponse(BaseResponse):
+    description: Optional[str] = None
+    contact_info: Optional[str] = None
+    attachments: List[str]
+    comment: Optional[str] = None
+    status: ReportStatus
+    user_id: int
+    accused_reputation_user_id: Optional[int] = None
+    applied_by_user_id: Optional[int] = None
+
+
+class ReputationUserWithRelationsResponse(ReputationUserResponse):
+    users: List[UserResponse]
+    user_details: List[UserDetailResponse]
+    added_by_user: UserResponse
+    accused_reports: List[ScamReportResponse]
 
 
 class CreateReviewRequest(BaseRequest):

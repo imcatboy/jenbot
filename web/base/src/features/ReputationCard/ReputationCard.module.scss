@@ -1,0 +1,22 @@
+.reputationCard {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 12px;
+  background-color: $bg-color;
+  align-items: center;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+}

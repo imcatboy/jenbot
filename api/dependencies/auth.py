@@ -66,7 +66,10 @@ async def resolve_current_user(
     except Exception:
         raise HTTPException(401, "Telegram auth failed")
 
-    return await user_service.get_or_create(telegram_user.id, [telegram_user.username])
+    return await user_service.get_or_create(
+        telegram_user.id,
+        [telegram_user.username.lower()] if telegram_user.username else [],
+    )
 
 
 async def get_current_user(

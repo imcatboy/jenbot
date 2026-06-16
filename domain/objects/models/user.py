@@ -234,7 +234,7 @@ class UserDetailModel(EntityModel):
 
 class ReputationUserModel(EntityModel):
     __tablename__ = "reputation_users"
-    fk_name = "user_reputation_id"
+    fk_name = "reputation_user_id"
     __table_args__ = (
         CheckConstraint(
             "amount >= 0",
@@ -253,9 +253,6 @@ class ReputationUserModel(EntityModel):
             name="ck_reputation_user_review_count_positive",
         ),
     )
-    __mapper_args__ = {
-        "version_id_col": "version",
-    }
 
     description: Mapped[Optional[str]] = mapped_column(String(255))
     about: Mapped[Optional[str]] = mapped_column(String(255))
@@ -293,6 +290,10 @@ class ReputationUserModel(EntityModel):
         foreign_keys="ScamReportModel.accused_reputation_user_id",
         cascade="all, delete-orphan",
     )
+
+    __mapper_args__ = {
+        "version_id_col": version,
+    }
 
 
 class ChatUserModel(BaseModel, MetadataModel):

@@ -14,7 +14,14 @@ export interface ReputationUserDraft {
   description?: string;
   about?: string;
   amount: number;
-  role: "scammer" | "clean_user" | "small_guarantor" | "guarantor" | "big_guarantor" | "depositor" | "admin";
+  role:
+    | "scammer"
+    | "clean_user"
+    | "small_guarantor"
+    | "guarantor"
+    | "big_guarantor"
+    | "depositor"
+    | "admin";
   users: UserResponse[];
   user_details: UserDetailDraft[];
   accused_reports: ScamReportResponse[];

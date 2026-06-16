@@ -25,9 +25,11 @@ async def user_join_handler(
 
     try:
         chat = await event.bot.get_chat(user_data.id)
-        usernames = chat.active_usernames
+        usernames = [
+            username.username.lower() for username in chat.active_usernames
+        ]
     except TelegramAPIError:
-        usernames = [user_data.username]
+        usernames = [user_data.username.lower()] if user_data.username else []
 
     user = await user_service.get_or_create(
         telegram_id=user_data.id,
@@ -50,9 +52,11 @@ async def user_leave_handler(
 
     try:
         chat = await event.bot.get_chat(user_data.id)
-        usernames = chat.active_usernames
+        usernames = [
+            username.username.lower() for username in chat.active_usernames
+        ]
     except TelegramAPIError:
-        usernames = [user_data.username]
+        usernames = [user_data.username.lower()] if user_data.username else []
 
     user = await user_service.get_or_create(
         telegram_id=user_data.id,

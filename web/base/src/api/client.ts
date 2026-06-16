@@ -1,14 +1,14 @@
-import axios from 'axios';
-import WebApp from '@twa-dev/sdk';
-import qs from 'qs';
+import axios from "axios";
+import WebApp from "@twa-dev/sdk";
+import qs from "qs";
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   paramsSerializer: (params) => {
-    return qs.stringify(params, { arrayFormat: 'repeat', skipNulls: true });
+    return qs.stringify(params, { arrayFormat: "repeat", skipNulls: true });
   },
 });
 
@@ -22,12 +22,12 @@ apiClient.interceptors.request.use(
     }
 
     if (initData) {
-      config.headers['X-Telegram-Init-Data'] = initData;
+      config.headers["X-Telegram-Init-Data"] = initData;
     }
 
     return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
 );

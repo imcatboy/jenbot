@@ -32,6 +32,7 @@ class UpdateReputationUserDTO(BaseDTO):
     user_ids: Optional[List[int]] = None
     amount: Optional[float] = None
     description: Optional[str] = None
+    about: Optional[str] = None
     role: Optional[UserReputationRole] = None
     details: Optional[List[UpdateUserDetailDTO]] = None
     scam_report_ids: Optional[List[int]] = None
