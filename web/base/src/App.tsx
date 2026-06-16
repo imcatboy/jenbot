@@ -1,7 +1,12 @@
-import { MainButtonController } from "@/shared/components";
+import { ErrorAlert, MainButtonController } from "@/shared/components";
 import styles from "./App.module.scss";
-import { MainButtonMock } from "@/shared/components";
-import { MainSearch, ReputationCard } from "@/features";
+import {
+  MainSearch,
+  ReputationCard,
+  UserCreate,
+  UserSearch,
+  DetailCreate,
+} from "@/features";
 import { useUIStore } from "@/stores";
 
 function App() {
@@ -10,8 +15,11 @@ function App() {
     <div className={styles.app}>
       {view === "home" && <MainSearch />}
       {view === "card" && <ReputationCard />}
+      {view === "userSearch" && <UserSearch />}
+      {view === "createUser" && <UserCreate />}
+      {view === "createDetail" && <DetailCreate />}
       <MainButtonController />
-      <MainButtonMock />
+      <ErrorAlert />
     </div>
   );
 }

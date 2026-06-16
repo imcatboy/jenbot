@@ -20,3 +20,31 @@
   align-items: center;
   width: 100%;
 }
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  align-items: center;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.errorText {
+  text-align: center;
+  font-size: 20px;
+  color: $hint-color;
+}

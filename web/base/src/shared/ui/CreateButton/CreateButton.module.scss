@@ -1,0 +1,15 @@
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: $bg-color;
+  border: 1px solid $secondary-bg-color;
+  width: 100%;
+  color: $main-color;
+}
+
+.label {
+  font-size: 20px;
+}

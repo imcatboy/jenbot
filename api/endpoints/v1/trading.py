@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, status, Query
 from typing import List, Optional
 from datetime import datetime
 
-from domain.objects import schemas, entities, dtos
-from domain.objects.types import ID, DealStatus
-from domain.services import TradingService
+from api.dependencies.auth import get_current_user, Authorize
+from domain.objects.types import ID, DealStatus, UserRole
 from api.dependencies.uow import get_trading_service
-from api.dependencies.auth import get_current_user
+from domain.objects import schemas, entities, dtos
+from domain.services import TradingService
 
 trading_router = APIRouter(prefix="/trading", tags=["Marketplace"])
 
@@ -64,3 +64,16 @@ async def get_deals(
         product_id=product_id,
     )
     return await trading_service.get_deals(dto)
+
+
+@trading_router.get(
+    "/scam-reports/{report_id}", response_model=schemas.ScamReportResponse
+)
+async def get_scam_report(
+    report_id: ID,
+    trading_service: TradingService = Depends(get_trading_service),
+    user: entities.UserEntity = Depends(
+        Authorize([UserRole.ADMIN, UserRole.MODERATOR])
+    ),
+) -> schemas.ScamReportResponse:
+    return await trading_service.get_scam_report(report_id)

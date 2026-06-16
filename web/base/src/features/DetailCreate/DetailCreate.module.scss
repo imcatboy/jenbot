@@ -1,0 +1,40 @@
+.detailCreate {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 15px;
+  padding: 12px;
+  background-color: $bg-color;
+  width: 100%;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.separator {
+  width: 100%;
+  height: 1px;
+  border: 1px solid $secondary-bg-color;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+
+  svg {
+    color: $hint-color;
+  }
+}
+
+.errorText {
+  text-align: center;
+  font-size: 20px;
+  color: $hint-color;
+}

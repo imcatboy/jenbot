@@ -1,0 +1,42 @@
+.errorAlert {
+  position: fixed;
+  bottom: 44px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background-color: $bg-color;
+  border: 1px solid $destructive-color;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 12%);
+  animation: slide-up-in 250ms ease-out forwards;
+
+  &.closing {
+    animation: slide-up-out 250ms ease-in forwards;
+  }
+}
+
+.errorAlertText {
+  font-size: 16px;
+  color: $destructive-color;
+}
+
+.errorAlertButton {
+  padding: 12px;
+  border-radius: 12px;
+  background-color: $destructive-color;
+  color: $main-text-color;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}

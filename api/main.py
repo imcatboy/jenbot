@@ -73,6 +73,17 @@ app.add_exception_handler(
 app.add_exception_handler(
     exceptions.FileNotFoundException, file_not_found_exception_handler
 )
+app.add_exception_handler(
+    exceptions.VersionMismatchException, version_mismatch_exception_handler
+)
+app.add_exception_handler(
+    exceptions.UserNotAllowedToUpdateException,
+    user_not_allowed_to_update_exception_handler,
+)
+app.add_exception_handler(
+    exceptions.UserNotAllowedToSetReputationUserException,
+    user_not_allowed_to_set_reputation_user_exception_handler,
+)
 
 if __name__ == "__main__":
     uvicorn.run(

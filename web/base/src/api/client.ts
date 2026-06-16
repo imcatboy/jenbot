@@ -14,11 +14,10 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    let initData;
-    if (import.meta.env.PROD) {
-      initData = WebApp.initData;
-    } else {
-      initData = "XXXX";
+    let initData = WebApp.initData;
+
+    if (!initData && import.meta.env.DEV) {
+      initData = import.meta.env.VITE_DEV_TELEGRAM_INIT_DATA || "";
     }
 
     if (initData) {

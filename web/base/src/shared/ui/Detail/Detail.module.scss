@@ -1,0 +1,55 @@
+.detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px 12px 12px;
+  background-color: $bg-color;
+  border: 1px solid $secondary-bg-color;
+  border-radius: 12px;
+  width: 100%;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.valueContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.value {
+  font-size: 16px;
+  color: $hint-color;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.editButton {
+  color: $main-color;
+}
+
+.removeButton {
+  color: $destructive-color;
+}
+
+.icon {
+  color: $hint-color;
+}
+
+.public {
+  color: $main-color;
+}

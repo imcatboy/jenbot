@@ -1,0 +1,1 @@
+export { DetailCreate } from "./DetailCreate";

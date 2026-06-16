@@ -5,6 +5,7 @@ import {
   SmallUserIcon,
 } from "@/assets";
 import type { SelectOption } from "@/shared/ui/Select";
+import type { ReputationUserDraft } from "@/types/draft";
 
 export const REPUTATION_ROLES: SelectOption[] = [
   {
@@ -42,4 +43,12 @@ export const REPUTATION_ROLES: SelectOption[] = [
     label: "Чистый пользователь",
     icon: <SmallUserIcon />,
   },
+];
+
+export const DISABLED_MODERATION_ROLES: ReputationUserDraft["role"][] = [
+  "guarantor",
+  "big_guarantor",
+  "small_guarantor",
+  "depositor",
+  "admin",
 ];

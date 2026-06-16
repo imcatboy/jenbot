@@ -271,7 +271,7 @@ class BaseRepository:
             select(child_model).where(getattr(child_model, fk_column) == parent.id)
         )
         current_objects = {object.id: object for object in result.scalars().all()}
-        incoming_with_id: Dict[int, EntityDTO] = {}
+        incoming_with_id: Dict[int, dict[str, Any]] = {}
         objects_to_add: List[child_model] = []
 
         for item in values:
@@ -303,7 +303,7 @@ class BaseRepository:
                     child_model.__name__, id=object_id
                 )
 
-            for key, value in incoming_data.model_dump().items():
+            for key, value in incoming_data.items():
                 setattr(object, key, value)
 
         if objects_to_add:

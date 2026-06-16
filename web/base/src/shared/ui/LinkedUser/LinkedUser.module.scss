@@ -1,0 +1,40 @@
+.linkedUser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px 12px 12px;
+  background-color: $bg-color;
+  border: 1px solid $secondary-bg-color;
+  border-radius: 12px;
+  width: 100%;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.title {
+  font-size: 16px;
+  color: $text-color;
+}
+
+.description {
+  font-size: 14px;
+  color: $hint-color;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.editButton {
+  color: $main-color;
+}
+
+.removeButton {
+  color: $destructive-color;
+}

@@ -1,2 +1,2 @@
 export { MainButtonController } from "./MainButtonController";
-export { MainButtonMock } from "./MainButtonMock";
+export { ErrorAlert } from "./ErrorAlert";

@@ -163,10 +163,17 @@ NoZeroFloat = Annotated[
     float, Field(ge=0.01, le=2147483647, description="Число не равное 0")
 ]
 
+NoNegativeFloat = Annotated[
+    float, Field(ge=0.0, le=2147483647, description="Положительное число")
+]
+
+NoNegativeInt = Annotated[
+    int, Field(ge=0, le=2147483647, description="Положительное целое число")
+]
+
 Text = Annotated[str, Field(max_length=1024, description="Текст (до 1024 символов)")]
 
 Rating = Annotated[int, Field(ge=1, le=5, description="Оценка (от 1 до 5)")]
-
 
 Search = Annotated[
     str, Field(min_length=3, max_length=100, description="Поиск (от 3 до 100 символов)")

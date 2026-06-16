@@ -1,7 +1,7 @@
 import type { SelectProps } from "./types";
 import styles from "./Select.module.scss";
 import { ArrowDownIcon } from "@/assets";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 
 export const Select = ({
@@ -75,17 +75,17 @@ export const Select = ({
       {isOpen && (
         <div className={styles.options}>
           {options.map((option, index) => (
-            <>
+            <Fragment key={`select-${option.value}-${index}`}>
               {index !== 0 && <hr className={styles.divider} />}
               <div
                 className={styles.option}
-                key={option.value}
+                key={`select-${option.value}-${index}`}
                 onClick={() => handleChange(option.value)}
               >
                 <div className={styles.optionIcon}>{option.icon}</div>
                 <div className={styles.optionLabel}>{option.label}</div>
               </div>
-            </>
+            </Fragment>
           ))}
         </div>
       )}

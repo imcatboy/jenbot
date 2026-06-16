@@ -6,6 +6,7 @@ import {
   type UpdateUserRequest,
   type UserResponse,
 } from "@/api";
+import { showAlertError } from "./useAlertError";
 
 export const USER_KEYS = {
   all: ["users"],
@@ -23,11 +24,12 @@ export const useUsers = (request: GetRequest) => {
   });
 };
 
-export const useUser = (id: number) => {
+export const useUser = (id?: number | null) => {
   return useQuery({
-    queryKey: USER_KEYS.user(id),
-    queryFn: () => userService.getUser(id),
+    queryKey: USER_KEYS.user(id!),
+    queryFn: () => userService.getUser(id!),
     staleTime: 1000 * 60 * 5,
+    enabled: !!id,
   });
 };
 
@@ -40,8 +42,9 @@ export const useCreateUser = () => {
       queryClient.invalidateQueries({ queryKey: USER_KEYS.all });
       queryClient.setQueryData(USER_KEYS.user(data.id), data);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error(error);
+      showAlertError(error);
     },
   });
 };
@@ -56,8 +59,9 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({ queryKey: USER_KEYS.all });
       queryClient.setQueryData(USER_KEYS.user(data.id), data);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error(error);
+      showAlertError(error);
     },
   });
 };

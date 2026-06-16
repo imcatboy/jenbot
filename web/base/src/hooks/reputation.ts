@@ -1,10 +1,10 @@
 import {
   reputationService,
   type CreateReputationUserRequest,
-  type ReputationUserResponse,
   type UpdateReputationUserRequest,
 } from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { showAlertError } from "./useAlertError";
 
 export const REPUTATION_KEYS = {
   all: ["reputation"],
@@ -26,7 +26,7 @@ export const useReputationUser = (id: number | null) => {
     queryKey: REPUTATION_KEYS.user(id!),
     queryFn: () => reputationService.getReputationUser(id!),
     staleTime: 1000 * 60 * 5,
-    enabled: id !== null,
+    enabled: !!id,
   });
 };
 
@@ -36,12 +36,12 @@ export const useCreateReputationUser = () => {
   return useMutation({
     mutationFn: (request: CreateReputationUserRequest) =>
       reputationService.createReputationUser(request),
-    onSuccess: (data: ReputationUserResponse) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: REPUTATION_KEYS.all });
-      queryClient.setQueryData(REPUTATION_KEYS.user(data.id), data);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error(error);
+      showAlertError(error);
     },
   });
 };
@@ -57,12 +57,15 @@ export const useUpdateReputationUser = () => {
       id: number;
       request: UpdateReputationUserRequest;
     }) => reputationService.updateReputationUser(id, request),
-    onSuccess: (data: ReputationUserResponse) => {
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({ queryKey: REPUTATION_KEYS.all });
-      queryClient.setQueryData(REPUTATION_KEYS.user(data.id), data);
+      queryClient.invalidateQueries({
+        queryKey: REPUTATION_KEYS.user(variables.id),
+      });
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       console.error(error);
+      showAlertError(error);
     },
   });
 };

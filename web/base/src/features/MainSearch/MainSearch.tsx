@@ -13,12 +13,19 @@ export const MainSearch = () => {
   const { data, isLoading, isError } = useReputationUsers(debouncedSearch);
   const setView = useUIStore((state) => state.setView);
   const setMainButtonConfig = useUIStore((state) => state.setMainButtonConfig);
+  const setBackButtonConfig = useUIStore((state) => state.setBackButtonConfig);
   const setCardId = useUIStore((state) => state.setCardId);
 
   const handleCreateCard = useCallback(() => {
     setView("card");
     setCardId(null);
   }, [setView, setCardId]);
+
+  useEffect(() => {
+    setBackButtonConfig({
+      isVisible: false,
+    });
+  }, [setBackButtonConfig]);
 
   useEffect(() => {
     setMainButtonConfig({
@@ -88,6 +95,7 @@ export const MainSearch = () => {
                         )
                       : [user.telegram_id.toString()],
                   )
+                  .flat()
                   .join(" ")}
                 description={ROLE_NAMES[user.role]}
                 onClick={() => handleClick(user.id)}

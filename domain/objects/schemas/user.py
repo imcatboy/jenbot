@@ -7,11 +7,11 @@ from domain.objects.types import (
     Rating,
     Reason,
     IDSet,
-    NoZeroFloat,
+    NoNegativeFloat,
     ReportStatus,
     TelegramID,
     Username,
-    NoZeroInt,
+    NoNegativeInt,
 )
 from domain.objects import UserRole, UserReputationRole, ViolationType
 from .base import BaseRequest, BaseResponse
@@ -61,6 +61,7 @@ class UsernameResponse(BaseResponse):
 
 
 class UserResponse(BaseResponse):
+    id: int
     telegram_id: int
     usernames: List[UsernameResponse]
     role: UserRole
@@ -68,6 +69,7 @@ class UserResponse(BaseResponse):
 
 
 class UserWithMarketplaceUserResponse(BaseResponse):
+    id: int
     telegram_id: int
     usernames: List[UsernameResponse]
     role: UserRole
@@ -108,6 +110,7 @@ class UserDetailResponse(BaseResponse):
 
 
 class ScamReportResponse(BaseResponse):
+    id: int
     description: Optional[str] = None
     contact_info: Optional[str] = None
     attachments: List[str]
@@ -144,7 +147,7 @@ class CreateUserDetailRequest(BaseRequest):
 
 class CreateReputationUserRequest(BaseRequest):
     user_ids: IDSet
-    amount: Optional[NoZeroFloat] = None
+    amount: Optional[NoNegativeFloat] = None
     description: Optional[Reason] = None
     role: UserReputationRole
     details: List[CreateUserDetailRequest]
@@ -159,9 +162,9 @@ class UpdateUserDetailRequest(BaseRequest):
 
 
 class UpdateReputationUserRequest(BaseRequest):
-    version: NoZeroInt
+    version: NoNegativeInt
     user_ids: Optional[IDSet] = None
-    amount: Optional[NoZeroFloat] = None
+    amount: Optional[NoNegativeFloat] = None
     description: Optional[Reason] = None
     role: Optional[UserReputationRole] = None
     details: Optional[List[UpdateUserDetailRequest]] = None

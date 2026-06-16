@@ -23,7 +23,6 @@ class UserService:
     ) -> entities.UserEntity:
         user_id = await self.user_repository.create(telegram_id, usernames)
         user = await self.get_by_id(user_id)
-        await self.user_cache.set_user(user)
         return user
 
     async def update(
@@ -38,7 +37,7 @@ class UserService:
             raise exceptions.UserNotAllowedToUpdateException(user.id)
 
         await self.user_repository.update(id, telegram_id, usernames)
-        user = await self.get_by_id(id)
+        user = await self.user_repository.get(id)
         await self.user_cache.set_user(user)
         return user
 
@@ -79,8 +78,8 @@ class UserService:
 
     async def update_role(self, id: int, role: UserRole) -> None:
         await self.user_repository.update_role(id, role)
-        user = await self.get_by_id(id)
-        await self.user_cache.invalidate_user(user)
+        user = await self.user_repository.get(id)
+        await self.user_cache.set_user(user)
 
     async def get_by_role(self, role: UserRole) -> List[entities.UserEntity]:
         return await self.user_repository.get_by_role(role)
@@ -94,7 +93,7 @@ class UserService:
         added_by_user = await self.get_by_id(dto.added_by_user_id)
 
         if added_by_user.role != UserRole.ADMIN and (
-            dto.amount is not None
+            dto.amount != 0.0
             or dto.role
             not in [UserReputationRole.SCAMMER, UserReputationRole.CLEAN_USER]
         ):
@@ -111,7 +110,7 @@ class UserService:
         added_by_user = await self.get_by_id(dto.added_by_user_id)
 
         if added_by_user.role != UserRole.ADMIN and (
-            dto.amount is not None
+            dto.amount != 0.0
             or dto.role
             not in [UserReputationRole.SCAMMER, UserReputationRole.CLEAN_USER]
         ):
@@ -215,8 +214,8 @@ class UserService:
         marketplace_user = await self.user_repository.update_marketplace_user(
             user_id, dto
         )
-        user = await self.get_by_id(user_id)
-        await self.user_cache.invalidate_user(user)
+        user = await self.user_repository.get(user_id)
+        await self.user_cache.set_user(user)
         return marketplace_user
 
     async def get_avatar(self, user_id: int) -> entities.FileEntity:

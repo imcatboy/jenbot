@@ -170,3 +170,13 @@ async def user_not_allowed_to_set_reputation_user_exception_handler(
         status_code=status.HTTP_403_FORBIDDEN,
         content={"detail": "User not allowed to set reputation user"},
     )
+
+
+async def version_mismatch_exception_handler(
+    request: Request, exc: exceptions.VersionMismatchException
+) -> JSONResponse:
+    capture_exception(exc)
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": "Version mismatch"},
+    )

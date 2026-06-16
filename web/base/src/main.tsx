@@ -5,19 +5,23 @@ import "@/styles/global.scss";
 import App from "./App.tsx";
 import WebApp from "@twa-dev/sdk";
 
-if (import.meta.env.PROD) {
+const isTelegram = WebApp.platform !== "unknown";
+
+if (isTelegram) {
   WebApp.expand();
 
-  const tgHeight = `${WebApp.viewportHeight}px`;
-  document.documentElement.style.setProperty("--tg-viewport-height", tgHeight);
-
-  WebApp.onEvent("viewportChanged", () => {
-    const newHeight = `${WebApp.viewportHeight}px`;
+  const updateViewportHeight = () => {
+    const tgHeight = `${WebApp.viewportHeight}px`;
     document.documentElement.style.setProperty(
       "--tg-viewport-height",
-      newHeight,
+      tgHeight,
     );
-  });
+  };
+
+  updateViewportHeight();
+  WebApp.onEvent("viewportChanged", updateViewportHeight);
+} else {
+  document.documentElement.style.setProperty("--tg-viewport-height", "100vh");
 }
 
 const queryClient = new QueryClient({

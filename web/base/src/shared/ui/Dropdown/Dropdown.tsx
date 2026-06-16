@@ -4,7 +4,7 @@ import styles from "./Dropdown.module.scss";
 import { useState } from "react";
 import clsx from "clsx";
 
-export const Dropdown = ({ title, children }: DropdownProps) => {
+export const Dropdown = ({ title, children, className }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -15,7 +15,7 @@ export const Dropdown = ({ title, children }: DropdownProps) => {
           <ArrowDownIcon />
         </div>
       </div>
-      {isOpen && <div className={styles.content}>{children}</div>}
+      {isOpen && <div className={className}>{children}</div>}
     </div>
   );
 };

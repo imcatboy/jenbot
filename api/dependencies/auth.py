@@ -26,15 +26,6 @@ class TelegramUserRaw(BaseModel):
     language_code: str | None = None
 
 
-TEST_TELEGRAM_USER: TelegramUserRaw = TelegramUserRaw(
-    id=1356311909,
-    first_name="Brain",
-    username="imcatboy",
-    is_premium=True,
-    language_code="ru",
-)
-
-
 def validate_init_data(init_data: str, max_age: int = 3600) -> TelegramUserRaw:
     params = dict(parse_qsl(unquote(init_data)))
     data_check_string = "\n".join(
@@ -61,8 +52,7 @@ async def resolve_current_user(
     init_data: str, user_service: UserService
 ) -> entities.UserEntity:
     try:
-        telegram_user = TEST_TELEGRAM_USER
-        # telegram_user = validate_init_data(init_data, settings.BOT_TOKEN)
+        telegram_user = validate_init_data(init_data, settings.BOT_TOKEN)
     except Exception:
         raise HTTPException(401, "Telegram auth failed")
 

@@ -10,6 +10,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     open: true,
+    allowedHosts: [".ngrok-free.dev"],
   },
   resolve: {
     alias: {

@@ -98,12 +98,12 @@ export interface UpdateReputationUserRequest {
 
 export interface CreateUserRequest {
   telegram_id: number;
-  usernames: UsernameResponse[];
+  usernames: string[];
 }
 
 export interface UpdateUserRequest {
   telegram_id?: number;
-  usernames?: UsernameResponse[];
+  usernames?: string[];
 }
 
 export interface GetRequest {

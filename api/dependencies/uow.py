@@ -44,7 +44,9 @@ async def get_product_service(
 ) -> ProductService:
     product_repository = ProductRepository(session=uow.session)
     media_repository = MediaRepository(session=uow.session)
-    return ProductService(product_repository=product_repository, media_repository=media_repository)
+    return ProductService(
+        product_repository=product_repository, media_repository=media_repository
+    )
 
 
 async def get_media_service(
@@ -72,9 +74,13 @@ async def get_trading_service(
 ) -> TradingService:
     trading_repository = TradingRepository(session=uow.session)
     marketplace_repository = MarketplaceRepository(session=uow.session)
+    messaging_repository = MessagingRepository(session=uow.session)
+    user_repository = UserRepository(session=uow.session)
     return TradingService(
         trading_repository=trading_repository,
         marketplace_repository=marketplace_repository,
+        messaging_repository=messaging_repository,
+        user_repository=user_repository,
     )
 
 

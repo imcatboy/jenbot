@@ -291,10 +291,6 @@ class ReputationUserModel(EntityModel):
         cascade="all, delete-orphan",
     )
 
-    __mapper_args__ = {
-        "version_id_col": version,
-    }
-
 
 class ChatUserModel(BaseModel, MetadataModel):
     __tablename__ = "chat_users"

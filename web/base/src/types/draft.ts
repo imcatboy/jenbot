@@ -2,14 +2,13 @@ import type { ScamReportResponse } from "@/api/schemas/trading";
 import type { UserResponse } from "@/api/schemas/user";
 
 export interface UserDetailDraft {
-  id?: number;
+  id: number;
   name: string;
   value: string;
   is_public: boolean;
 }
 
 export interface ReputationUserDraft {
-  id?: number;
   version: number;
   description?: string;
   about?: string;

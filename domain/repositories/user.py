@@ -193,6 +193,8 @@ class UserRepository(BaseRepository):
             reputation_user.role = dto.role
         if dto.about is not None:
             reputation_user.about = dto.about
+        if dto.amount is not None:
+            reputation_user.amount = dto.amount
 
         await self.update_relation(
             reputation_user, models.UserModel, dto.added_by_user_id, "added_by_user_id"
@@ -203,6 +205,7 @@ class UserRepository(BaseRepository):
         await self.sync_many_to_one_relation(
             reputation_user, models.UserDetailModel, dto.details
         )
+        reputation_user.version += 1
         await self.session.flush()
         return entities.ReputationUserEntity.model_validate(reputation_user)
 
