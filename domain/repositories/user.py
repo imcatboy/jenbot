@@ -176,6 +176,12 @@ class UserRepository(BaseRepository):
         await self.create_many_to_one_relation(
             reputation_user, models.UserModel, dto.user_ids
         )
+        await self.create_many_to_one_relation(
+            reputation_user,
+            models.ScamReportModel,
+            dto.scam_report_ids,
+            "accused_reputation_user_id",
+        )
         return entities.ReputationUserEntity.model_validate(reputation_user)
 
     async def update_reputation_user(
@@ -221,6 +227,12 @@ class UserRepository(BaseRepository):
         )
         await self.sync_many_to_one_relation(
             reputation_user, models.UserDetailModel, dto.details
+        )
+        await self.update_many_to_one_relation(
+            reputation_user,
+            models.ScamReportModel,
+            dto.scam_report_ids,
+            "accused_reputation_user_id",
         )
         reputation_user.version += 1
         await self.session.flush()
