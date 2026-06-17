@@ -282,6 +282,9 @@ class TradingService:
     ) -> entities.ExternalDealEntity:
         return await self.trading_repository.create_external_deal(dto)
 
+    async def get_external_deal(self, id: int) -> entities.ExternalDealWithUsersEntity:
+        return await self.trading_repository.get_external_deal(id)
+
     async def start_external_deal(self, id: int) -> entities.ExternalDealEntity:
         external_deal = await self.trading_repository.get_external_deal(id)
 
@@ -344,13 +347,28 @@ class TradingService:
             )
 
         return await self.update_external_deal(
-            external_deal.id, types.DealStatus.PENDING
+            external_deal.id,
+            dtos.UpdateExternalDealDTO(status=types.DealStatus.PENDING),
         )
 
     async def update_external_deal(
-        self, id: int, status: types.DealStatus
+        self, id: int, dto: dtos.UpdateExternalDealDTO
     ) -> entities.ExternalDealEntity:
-        return await self.trading_repository.update_external_deal(id, status)
+        return await self.trading_repository.update_external_deal(id, dto)
+
+    async def accept_external_deal(self, id: int, user_id: int) -> None:
+        external_deal = await self.trading_repository.get_external_deal(id)
+
+        if external_deal.seller_id == user_id:
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(seller_acceptance=True)
+            )
+        elif external_deal.buyer_id == user_id:
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(buyer_acceptance=True)
+            )
+        else:
+            raise exceptions.UserNotParticipantOfExternalDealException(user_id, id)
 
     async def delete_external_deal(self, id: int) -> None:
         deal = await self.trading_repository.get_external_deal(id)

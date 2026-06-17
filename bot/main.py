@@ -82,8 +82,12 @@ dp.include_routers(*handler_routers)
 
 async def set_bot_commands(bot: Bot):
     commands = [
-        BotCommand(command="check", description="Проверить репутацию пользователя"),
-        BotCommand(command="report", description="Создать жалобу"),
+        BotCommand(command="help", description="Помощь по командам"),
+        BotCommand(command="check", description="Узнать репутацию пользователя"),
+        BotCommand(command="report", description="Подать жалобу в чате"),
+        BotCommand(command="me", description="Узнать свою репутацию"),
+        BotCommand(command="review", description="Оставить отзыв о пользователе"),
+        BotCommand(command="scam", description="Подать жалобу на скамера"),
     ]
     await bot.set_my_commands(commands)
     logger.info("Commands set")

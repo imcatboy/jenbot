@@ -58,3 +58,19 @@ class ReviewsCallback(CallbackData, prefix="reviews"):
     reputation_user_id: int
     offset: int
     new_message: bool
+
+
+class ExternalDealAcceptCallback(CallbackData, prefix="external_deal_accept"):
+    id: int
+
+
+class ExternalDealDeleteCallback(CallbackData, prefix="external_deal_delete"):
+    id: int
+
+
+class FinishExternalDealCallback(CallbackData, prefix="finish_external_deal"):
+    id: int
+
+
+class ComplainExternalDealCallback(CallbackData, prefix="complain_external_deal"):
+    id: int

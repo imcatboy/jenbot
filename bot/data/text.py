@@ -26,6 +26,7 @@ MUTE_USER_SUCCESS = "🔇 Пользователь {0} замьючен до <b>
 MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
     "🔇 Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>"
 )
+DEAL_USER_NOT_FOUND = "❌ Пользователь {0} не найден. Вероятно, он не общался с ботом."
 UNMUTE_USER_SUCCESS = "💤 Пользователь {0} размьючен."
 WARN_USER_SUCCESS = "⚠️ Пользователь {0} предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>"
 WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
@@ -37,6 +38,23 @@ REPORT_ACCUSED_USER_ID_MESSAGE = (
 CANNOT_USE_ACTION_ON_USER = (
     "❌ Вы не можете использовать это действие на этом пользователе."
 )
+EXTERNAL_DEAL_BUYER_MESSAGE = (
+    "🤝 Сделки регистрируются для того, чтобы обеспечивать гарантию возврата средств в случае мошенничества, поэтому у одного из участников сделки должна быть доверенность..\n\n"
+    "💸 Введите @username или Telegram ID покупателя, с которым вы собираетесь заключить сделку. У этого пользователя должен быть диалог с ботом. Вы будете выступать в роли продавца."
+)
+DEAL_USER_NOT_GUARANTOR = "❌ Ни один из участников сделки не является гарантом или депозитчиком. У сделки должен быть участник с доверенностью."
+EXTERNAL_DEAL_DESCRIPTION_MESSAGE = "💬 Подробно опишите условия сделки, кто и за что продаёт или покупает (до 255 символов)."
+EXTERNAL_DEAL_AMOUNT_MESSAGE = "💸 Введите сумму сделки в рублях. Эта сумма в случае мошенничества будет гарантированно возвращена. Она не должна сильно отличаться от реальной стоимости товара или услуги."
+EXTERNAL_DEAL_AGENT_MESSAGE = "👤 Введите @username или Telegram ID агента, который выступит посредником в сделке, если только он не является покупателем. Агент должен быть гарантом или депозитчиком."
+EXTERNAL_DEAL_SUCCESS_MESSAGE = "🔍 Сделка успешно зарегистрирована! Она была отправлена на подтверждение пользователю с доверенностью, ожидайте ответа."
+EXTERNAL_DEAL_ERROR_MESSAGE = "🔍 Сделка успешно зарегистрирована! Но произошла ошибка при отправке на подтверждение пользователю с доверенностью, обратитесь к администрации за помощью."
+EXTERNAL_DEAL_STARTED_MESSAGE = (
+    "🔍 Сделка успешно начата! Для её окончания нужно подтверждение со всех сторон."
+)
+EXTERNAL_DEAL_ACCEPTED_MESSAGE = (
+    "🔍 Вы отметили сделку как успешно выполненную! Ожидайте завершения сделки."
+)
+EXTERNAL_DEAL_DELETED_MESSAGE = "🔍 Сделка успешно удалена."
 REVIEW_ALREADY_EXISTS = "❌ Вы уже оставляли отзыв на этого пользователя, один пользователь может оставить только один отзыв на другого пользователя."
 ACCESS_DENIED = "❌ У вас нет доступа к этому действию."
 STATE_VALIDATION_ERROR = "❌ Ошибка введённого значения, попробуйте ещё раз."
@@ -47,6 +65,20 @@ OBJECT_ALREADY_EXISTS = "❌ Объект с такими данными уже 
 ADD_MODERATOR_SUCCESS = "👮 Пользователь {0} стал модератором."
 REMOVE_MODERATOR_SUCCESS = "👤 Пользователь {0} стал обычным пользователем."
 SUBSCRIPTION_ERROR = "❌ Вы не подписаны на каналы, необходимые для использования бота. Пожалуйста, подпишитесь на каналы и попробуйте снова."
+START_MESSAGE = (
+    "👋 <b>Добро пожаловать!</b>\n\n"
+    "Я — бот <b>Женяши</b>. Помогаю проверять людей на безопасность перед сделкой: "
+    "гарантов, депозитчиков, скамеров и обычных участников.\n\n"
+    "<b>Основные команды</b>\n"
+    "🔎 <code>/check (реквизит, @username, Telegram ID)</code> — узнать репутацию пользователя\n"
+    "👤 <code>/me</code> — посмотреть свою репутацию\n"
+    "⭐ <code>/review (@username, Telegram ID)</code> — оставить отзыв о пользователе\n"
+    "🚫 <code>/scam</code> — подать жалобу на скамера с доказательствами\n"
+    "📩 <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n"
+    "Стремитесь к максимальной безопасности — проверяйте собеседника перед сделкой.\n\n"
+    "📢 Актуальные новости и объявления — в нашем канале.\n\n"
+    "💬 У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>"
+)
 REPORT_TYPE_MESSAGE = "📌 Выберите тип обращения."
 REPORT_REASON_MESSAGE = "💬 Введите причину обращения (до 1024 символов)."
 REPORT_ATTACHMENTS_MESSAGE = (
@@ -144,6 +176,14 @@ CHAT_EVENTS = {
     types.ChatEvent.JOIN: "👋 Вход",
     types.ChatEvent.LEAVE: "⛓️‍💥 Выход",
     types.ChatEvent.BAN_WORD: "❌ Запрещённое слово",
+}
+DEAL_STATUSES = {
+    types.DealStatus.DRAFT: "🔍 Черновик",
+    types.DealStatus.PENDING: "💸 Выполняется",
+    types.DealStatus.EXPIRED: "🕒 Истек",
+    types.DealStatus.COMPLETED: "✅ Завершено",
+    types.DealStatus.CANCELLED: "⚠️ Заблокировано",
+    types.DealStatus.REJECTED: "❌ Отклонено",
 }
 HOMOGLYPHS = str.maketrans("ayBkKMnoPpCcTyXxeE", "ауВкКМноРрСсТуХхеЕ")
 
@@ -519,7 +559,7 @@ def get_check_error_message(search: Optional[str] = None) -> str:
 def get_report_updated_message(report: entities.ReportWithUserEntity) -> str:
     message = f"#<code>{report.id}</code> <b>{REPORT_TYPES[report.type]}</b>\n\n"
     message += f"<blockquote>{escape(report.reason)}</blockquote>\n\n"
-    message += f"<b>{REPORT_STATUSES[report.status]}</b>\n"
+    message += f"<b>{REPORT_STATUSES[report.status]}</b>\n\n"
 
     if report.admin_comment:
         message += "<b>Ответ администратора</b>\n"
@@ -533,7 +573,7 @@ def get_scam_report_updated_message(
 ) -> str:
     message = f"#<code>{scam_report.id}</code> <b>Жалоба на скамера</b>\n\n"
     message += f"<blockquote>{escape(scam_report.description)}</blockquote>\n\n"
-    message += f"<b>{REPORT_STATUSES[scam_report.status]}</b>\n"
+    message += f"<b>{REPORT_STATUSES[scam_report.status]}</b>\n\n"
 
     if scam_report.comment:
         message += "<b>Комментарий модератора</b>\n"
@@ -577,4 +617,32 @@ def get_reviews_message(
     if len(reviews) == 0:
         message += "<i>Нет отзывов</i>"
 
+    return message
+
+
+def get_deal_message(deal: entities.ExternalDealWithUsersEntity) -> str:
+    message = f"🤝 <b>Сделка</b>\n\n"
+    message += f"Продавец: {format_user_handle(deal.seller.usernames, deal.seller.telegram_id)}\n"
+    message += f"Покупатель: {format_user_handle(deal.buyer.usernames, deal.buyer.telegram_id)}\n"
+
+    if deal.status != types.DealStatus.DRAFT:
+        message += f"Статус: <b>{DEAL_STATUSES[deal.status]}</b>\n"
+        message += (
+            "✅ Продавец подтвердил выполнение сделки\n"
+            if deal.seller_acceptance
+            else "⌛ Продавец не подтвердил выполнение сделки\n"
+        )
+        message += (
+            "✅ Покупатель подтвердил выполнение сделки\n"
+            if deal.buyer_acceptance
+            else "⌛ Покупатель не подтвердил выполнение сделки\n"
+        )
+
+    if deal.agent:
+        message += f"Агент: {format_user_handle(deal.agent.usernames, deal.agent.telegram_id)}\n"
+
+    message += f"Сумма доверенности: {deal.amount} {get_count_word(deal.amount, "рубль", "рубля", "рублей")}\n"
+    message += f"Дата истечения: {format_date(deal.expires_at)}\n\n"
+    message += f"<b>Описание</b>\n"
+    message += f"<blockquote>{escape(deal.description)}</blockquote>\n"
     return message

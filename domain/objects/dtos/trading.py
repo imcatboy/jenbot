@@ -85,5 +85,11 @@ class CreateExternalDealDTO(BaseDTO):
     agent_id: Optional[int] = None
 
 
+class UpdateExternalDealDTO(BaseDTO):
+    status: Optional[DealStatus] = None
+    seller_acceptance: Optional[bool] = None
+    buyer_acceptance: Optional[bool] = None
+
+
 class GetReviewsDTO(GetDTO):
     reputation_user_id: int

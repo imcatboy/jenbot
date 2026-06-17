@@ -190,6 +190,8 @@ class ExternalDealModel(EntityModel):
     status: Mapped[DealStatus] = mapped_column(
         Enum(DealStatus, name="DEAL_STATUS"), default=DealStatus.DRAFT, index=True
     )
+    buyer_acceptance: Mapped[bool] = mapped_column(default=False)
+    seller_acceptance: Mapped[bool] = mapped_column(default=False)
     seller_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     seller: Mapped[UserModel] = relationship(
         back_populates="external_seller_deals", foreign_keys=[seller_id]

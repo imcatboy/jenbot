@@ -33,3 +33,10 @@ class ReviewState(StatesGroup):
     rating = State()
     message = State()
     user_id = State()
+
+
+class ExternalDealState(StatesGroup):
+    seller_id = State()
+    agent_id = State()
+    amount = State()
+    description = State()

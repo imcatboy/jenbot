@@ -7,6 +7,18 @@ from domain.objects.types import ReportType, ReportStatus, UserReputationRole
 from bot.data.callbacks import *
 
 
+START_KEYBOARD = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="⭐ Наш канал",
+                url="https://t.me/larionnews",
+            )
+        ]
+    ]
+)
+
+
 REPORT_TYPE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -331,4 +343,34 @@ def get_reviews_keyboard(
             ).pack(),
         )
 
+    return builder.adjust(2).as_markup()
+
+
+def get_external_deal_accept_keyboard(
+    external_deal: entities.ExternalDealWithUsersEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="✅ Принять",
+        callback_data=ExternalDealAcceptCallback(id=external_deal.id).pack(),
+    )
+    builder.button(
+        text="❌ Удалить",
+        callback_data=ExternalDealDeleteCallback(id=external_deal.id).pack(),
+    )
+    return builder.adjust(2).as_markup()
+
+
+def get_finish_external_deal_keyboard(
+    external_deal: entities.ExternalDealWithUsersEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="✅ Завершить",
+        callback_data=FinishExternalDealCallback(id=external_deal.id).pack(),
+    )
+    builder.button(
+        text="❌ Пожаловаться",
+        callback_data=ComplainExternalDealCallback(id=external_deal.id).pack(),
+    )
     return builder.adjust(2).as_markup()

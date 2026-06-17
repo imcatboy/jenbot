@@ -162,3 +162,17 @@ def get_review_relations() -> List[Any]:
             joinedload(models.UserModel.reputation_user),
         ),
     ]
+
+
+def get_external_deal_with_users_relations() -> List[Any]:
+    return [
+        joinedload(models.ExternalDealModel.seller).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ExternalDealModel.buyer).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ExternalDealModel.agent).options(
+            selectinload(models.UserModel.usernames)
+        ),
+    ]

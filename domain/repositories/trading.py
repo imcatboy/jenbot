@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
 from domain.objects import exceptions, models, entities, dtos, types
-from .relations import get_scam_report_relations, get_review_relations
+from .relations import (
+    get_scam_report_relations,
+    get_review_relations,
+    get_external_deal_with_users_relations,
+)
 from .base import BaseRepository
 
 
@@ -232,7 +236,9 @@ class TradingRepository(BaseRepository):
     ) -> List[entities.ReviewWithAuthorEntity]:
         result = await self.session.execute(
             select(models.ReviewModel)
-            .where(models.ReviewModel.subject_reputation_user_id == dto.reputation_user_id)
+            .where(
+                models.ReviewModel.subject_reputation_user_id == dto.reputation_user_id
+            )
             .options(*get_review_relations())
             .order_by(models.ReviewModel.created_at.desc())
             .offset(dto.offset)
@@ -271,12 +277,25 @@ class TradingRepository(BaseRepository):
         return entities.ExternalDealEntity.model_validate(external_deal)
 
     async def update_external_deal(
-        self, id: int, status: types.DealStatus
+        self, id: int, dto: dtos.UpdateExternalDealDTO
     ) -> entities.ExternalDealEntity:
         external_deal = await self.get_by_id(models.ExternalDealModel, id)
-        external_deal.status = status
+
+        if dto.status is not None:
+            external_deal.status = dto.status
+        if dto.seller_acceptance is not None:
+            external_deal.seller_acceptance = dto.seller_acceptance
+        if dto.buyer_acceptance is not None:
+            external_deal.buyer_acceptance = dto.buyer_acceptance
+
         await self.session.flush()
         return entities.ExternalDealEntity.model_validate(external_deal)
+
+    async def get_external_deal(self, id: int) -> entities.ExternalDealWithUsersEntity:
+        external_deal = await self.get_by_id(
+            models.ExternalDealModel, id, get_external_deal_with_users_relations()
+        )
+        return entities.ExternalDealWithUsersEntity.model_validate(external_deal)
 
     async def get_external_deal_amount(self, reputation_id: int) -> float:
         result = await self.session.scalar(
@@ -301,10 +320,6 @@ class TradingRepository(BaseRepository):
             )
         )
         return result.scalar_one_or_none() or 0.0
-
-    async def get_external_deal(self, id: int) -> entities.ExternalDealEntity:
-        external_deal = await self.get_by_id(models.ExternalDealModel, id)
-        return entities.ExternalDealEntity.model_validate(external_deal)
 
     async def delete_external_deal(self, id: int) -> None:
         deal = await self.get_by_id(models.ExternalDealModel, id)

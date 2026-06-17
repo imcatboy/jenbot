@@ -142,6 +142,22 @@ class UserService:
         await self.user_cache.set_reputation_user_by_user_id(user_id, user_reputation)
         return user_reputation
 
+    async def get_warranty_reputation_user(
+        self, user_ids: List[int]
+    ) -> entities.ReputationUserWithRelationsEntity:
+        for user_id in user_ids:
+            user_reputation = await self.get_reputation_user_by_user_id(user_id)
+
+            if user_reputation.role in [
+                UserReputationRole.SMALL_GUARANTOR,
+                UserReputationRole.GUARANTOR,
+                UserReputationRole.BIG_GUARANTOR,
+                UserReputationRole.DEPOSITOR,
+            ]:
+                return user_reputation
+
+        raise exceptions.UserIsNotGuarantorException(*user_ids)
+
     async def get_reputation_users(
         self, search: str
     ) -> List[entities.ReputationUserWithUsersEntity]:

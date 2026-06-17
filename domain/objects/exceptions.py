@@ -226,3 +226,11 @@ class VersionMismatchException(DomainException):
         super().__init__(
             f"{object_name} {object_id} has version {current_version}, but {new_version} is expected"
         )
+
+
+class UserNotParticipantOfExternalDealException(DomainException):
+
+    def __init__(self, user_id: int, external_deal_id: int):
+        self.user_id = user_id
+        self.external_deal_id = external_deal_id
+        super().__init__(f"User {user_id} is not participant of external deal {external_deal_id}")

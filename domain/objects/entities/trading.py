@@ -54,9 +54,17 @@ class ExternalDealEntity(EntityWithMetadata):
     description: str
     expires_at: datetime
     status: DealStatus
+    seller_acceptance: bool
+    buyer_acceptance: bool
     seller_id: int
     buyer_id: int
     agent_id: Optional[int] = None
+
+
+class ExternalDealWithUsersEntity(ExternalDealEntity):
+    seller: UserEntity
+    buyer: UserEntity
+    agent: Optional[UserEntity] = None
 
 
 class ScamReportEntity(EntityWithMetadata):
