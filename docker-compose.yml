@@ -84,7 +84,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uvicorn api.main:app --host 0.0.0.0 --port 4000 --workers 1
+    command: python -m api.main
     env_file:
       - .env
     environment:
