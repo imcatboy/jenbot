@@ -11,7 +11,7 @@ START_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Наш канал',
+                text="⭐ Наш канал",
                 url="https://t.me/larionnews",
             )
         ]
@@ -23,25 +23,29 @@ REPORT_TYPE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Снятие нарушения',
+                text="Снятие нарушения",
+                icon_custom_emoji_id="5282764234541801209",
                 callback_data=ReportCallback(type=ReportType.UNBAN).pack(),
             )
         ],
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5283215884712716244">�</tg-emoji> Нарушение',
+                text="Нарушение",
+                icon_custom_emoji_id="5283215884712716244",
                 callback_data=ReportCallback(type=ReportType.VIOLATION).pack(),
             )
         ],
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Обратная связь',
+                text="Обратная связь",
+                icon_custom_emoji_id="5282973734456565994",
                 callback_data=ReportCallback(type=ReportType.FEEDBACK).pack(),
             )
         ],
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Другое',
+                text="Другое",
+                icon_custom_emoji_id="5282953552405241953",
                 callback_data=ReportCallback(type=ReportType.OTHER).pack(),
             )
         ],
@@ -53,83 +57,27 @@ REVIEW_RATING_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>',
+                text="⭐",
                 callback_data=ReviewRatingCallback(rating=1).pack(),
             ),
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>',
+                text="⭐⭐",
                 callback_data=ReviewRatingCallback(rating=2).pack(),
             ),
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>',
+                text="⭐⭐⭐",
                 callback_data=ReviewRatingCallback(rating=3).pack(),
             ),
         ],
         [
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>',
+                text="⭐⭐⭐⭐",
                 callback_data=ReviewRatingCallback(rating=4).pack(),
             ),
             InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji><tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>',
+                text="⭐⭐⭐⭐⭐",
                 callback_data=ReviewRatingCallback(rating=5).pack(),
             ),
-        ],
-    ]
-)
-
-
-REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> Скамер',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.SCAMMER
-                ).pack(),
-            ),
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Гарант',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.GUARANTOR
-                ).pack(),
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Большой гарант',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.BIG_GUARANTOR
-                ).pack(),
-            ),
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Младший гарант',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.SMALL_GUARANTOR
-                ).pack(),
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Депозитчик',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.DEPOSITOR
-                ).pack(),
-            ),
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Админ',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.ADMIN
-                ).pack(),
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text='<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Чистый пользователь',
-                callback_data=ReputationRoleCallback(
-                    role=UserReputationRole.CLEAN_USER
-                ).pack(),
-            )
         ],
     ]
 )
@@ -138,7 +86,8 @@ REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
 def get_cancel_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
-        text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отмена',
+        text="Отмена",
+        icon_custom_emoji_id="5280622076653245714",
         callback_data=CancelCallback(user_id=user_id).pack(),
     )
     return builder.as_markup()
@@ -147,11 +96,13 @@ def get_cancel_keyboard(user_id: int) -> InlineKeyboardMarkup:
 def get_skip_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
-        text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отмена',
+        text="Отмена",
+        icon_custom_emoji_id="5280622076653245714",
         callback_data=CancelCallback(user_id=user_id).pack(),
     )
     builder.button(
-        text='<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пропустить',
+        text="Пропустить",
+        icon_custom_emoji_id="5282959170222466892",
         callback_data=SkipCallback(user_id=user_id).pack(),
     )
     return builder.adjust(2).as_markup()
@@ -164,34 +115,39 @@ def get_scam_report_keyboard(
 
     if not scam_report.applied_by_user:
         builder.button(
-            text='<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Рассмотреть',
+            text="Рассмотреть",
+            icon_custom_emoji_id="5280769308132155241",
             callback_data=ScamReportAcceptCallback(id=scam_report.id).pack(),
         )
     else:
         if scam_report.status != ReportStatus.PENDING:
             builder.button(
-                text='<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> На рассмотрении',
+                text="На рассмотрении",
+                icon_custom_emoji_id="5282953552405241953",
                 callback_data=ScamReportStatusCallback(
                     id=scam_report.id, status=ReportStatus.PENDING
                 ).pack(),
             )
         if scam_report.status != ReportStatus.APPROVED:
             builder.button(
-                text='<tg-emoji emoji-id="5282782728670977815">✅</tg-emoji> Принять',
+                text="Принять",
+                icon_custom_emoji_id="5282782728670977815",
                 callback_data=ScamReportStatusCallback(
                     id=scam_report.id, status=ReportStatus.APPROVED
                 ).pack(),
             )
         if scam_report.status != ReportStatus.REJECTED:
             builder.button(
-                text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отклонить',
+                text="Отклонить",
+                icon_custom_emoji_id="5280622076653245714",
                 callback_data=ScamReportStatusCallback(
                     id=scam_report.id, status=ReportStatus.REJECTED
                 ).pack(),
             )
         if scam_report.status != ReportStatus.CANCELLED:
             builder.button(
-                text='<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Отменить',
+                text="Отменить",
+                icon_custom_emoji_id="5280799020715907724",
                 callback_data=ScamReportStatusCallback(
                     id=scam_report.id, status=ReportStatus.CANCELLED
                 ).pack(),
@@ -211,7 +167,8 @@ def get_check_keyboard(
         and reputation_user.role != UserReputationRole.SCAMMER
     ):
         builder.button(
-            text=f'<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Отзывы',
+            text=f"Отзывы",
+            icon_custom_emoji_id="5282912415208480548",
             callback_data=ReviewsCallback(
                 reputation_user_id=reputation_user.id, offset=0, new_message=True
             ).pack(),
@@ -219,7 +176,8 @@ def get_check_keyboard(
 
     for scam_report in scam_reports:
         builder.button(
-            text=f'<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> #{scam_report.id}',
+            text=f"Репорт #{scam_report.id}",
+            icon_custom_emoji_id="5280769308132155241",
             callback_data=CheckCallback(report_id=scam_report.id).pack(),
         )
 
@@ -242,28 +200,32 @@ def get_report_keyboard(report: entities.ReportWithUserEntity) -> InlineKeyboard
 
     if report.status != ReportStatus.PENDING:
         builder.button(
-            text='<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> На рассмотрение',
+            text="На рассмотрение",
+            icon_custom_emoji_id="5282953552405241953",
             callback_data=ReportStatusCallback(
                 id=report.id, status=ReportStatus.PENDING
             ).pack(),
         )
     if report.status != ReportStatus.APPROVED:
         builder.button(
-            text='<tg-emoji emoji-id="5282782728670977815">✅</tg-emoji> Принять',
+            text="Принять",
+            icon_custom_emoji_id="5282782728670977815",
             callback_data=ReportStatusCallback(
                 id=report.id, status=ReportStatus.APPROVED
             ).pack(),
         )
     if report.status != ReportStatus.REJECTED:
         builder.button(
-            text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отклонить',
+            text="Отклонить",
+            icon_custom_emoji_id="5280622076653245714",
             callback_data=ReportStatusCallback(
                 id=report.id, status=ReportStatus.REJECTED
             ).pack(),
         )
     if report.status != ReportStatus.CANCELLED:
         builder.button(
-            text='<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Отменить',
+            text="Отменить",
+            icon_custom_emoji_id="5280799020715907724",
             callback_data=ReportStatusCallback(
                 id=report.id, status=ReportStatus.CANCELLED
             ).pack(),
@@ -353,11 +315,13 @@ def get_external_deal_accept_keyboard(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
-        text='<tg-emoji emoji-id="5282782728670977815">✅</tg-emoji> Принять',
+        text="Принять",
+        icon_custom_emoji_id="5282782728670977815",
         callback_data=ExternalDealAcceptCallback(id=external_deal.id).pack(),
     )
     builder.button(
-        text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Удалить',
+        text="Удалить",
+        icon_custom_emoji_id="5280622076653245714",
         callback_data=ExternalDealDeleteCallback(id=external_deal.id).pack(),
     )
     return builder.adjust(2).as_markup()
@@ -368,11 +332,13 @@ def get_finish_external_deal_keyboard(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
-        text='<tg-emoji emoji-id="5282782728670977815">✅</tg-emoji> Завершить',
+        text="Завершить",
+        icon_custom_emoji_id="5282782728670977815",
         callback_data=FinishExternalDealCallback(id=external_deal.id).pack(),
     )
     builder.button(
-        text='<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пожаловаться',
+        text="Пожаловаться",
+        icon_custom_emoji_id="5280622076653245714",
         callback_data=ComplainExternalDealCallback(id=external_deal.id).pack(),
     )
     return builder.adjust(2).as_markup()
