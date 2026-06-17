@@ -556,3 +556,25 @@ def get_violations_count_message(
         message += f"\nОт: {format_date(start_date)}"
 
     return message
+
+
+def get_reviews_message(
+    reputation_user: entities.ReputationUserWithRelationsEntity,
+    reviews: List[entities.ReviewWithAuthorEntity],
+) -> str:
+    message = f"💬 <b>Отзывы {format_user_handle(reputation_user.users[0].usernames, reputation_user.users[0].telegram_id)}</b>\n\n"
+
+    for review in reviews:
+        message += f"{format_user_handle(review.author.usernames, review.author.telegram_id)}\n"
+
+        if review.author.reputation_user:
+            message += f"<b>{REPUTATION_ROLES[review.author.reputation_user.role]}</b> ({review.author.reputation_user.review_count} {get_count_word(review.author.reputation_user.review_count, "отзыв", "отзыва", "отзывов")})\n"
+
+        message += f"<blockquote>{escape(review.message)}</blockquote>\n"
+        message += f"{review.rating * '⭐'}\n"
+        message += f"<i>{format_date(review.created_at)}</i>\n\n"
+
+    if len(reviews) == 0:
+        message += "<i>Нет отзывов</i>"
+
+    return message

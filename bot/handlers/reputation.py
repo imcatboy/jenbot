@@ -245,7 +245,9 @@ async def review_handler(
 ):
     try:
         target_user = await user_actions.get_telegram_user(command_data.username)
-        reputation_user = await user_service.get_reputation_user_by_user_id(target_user.id)
+        reputation_user = await user_service.get_reputation_user_by_user_id(
+            target_user.id
+        )
 
         if reputation_user.role == UserReputationRole.SCAMMER:
             await message.answer(text.USER_IS_SCAMMER)
@@ -305,3 +307,48 @@ async def review_message_handler(
     )
     await trading_service.create_review(dto)
     await message.answer(text.REVIEW_SUCCESS)
+
+
+@reputation_router.callback_query(
+    callbacks.ReviewsCallback.filter(),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def reviews_callback(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReviewsCallback,
+    trading_service: TradingService,
+    user_service: UserService,
+):
+    reputation_user = await user_service.get_reputation_user(
+        callback_data.reputation_user_id
+    )
+    dto = dtos.GetReviewsDTO(
+        reputation_user_id=reputation_user.id,
+        limit=6,
+        offset=callback_data.offset,
+    )
+    reviews = await trading_service.get_reviews(dto)
+    has_more = len(reviews) == dto.limit
+    reviews = reviews[:-1] if has_more else reviews
+
+    if callback_data.new_message:
+        await callback.message.answer(
+            text.get_reviews_message(reputation_user, reviews),
+            reply_markup=keyboards.get_reviews_keyboard(
+                callback_data.offset,
+                dto.limit - 1,
+                callback_data.reputation_user_id,
+                has_more,
+            ),
+        )
+    else:
+        await callback.message.edit_text(
+            text.get_reviews_message(reputation_user, reviews),
+            reply_markup=keyboards.get_reviews_keyboard(
+                callback_data.offset,
+                dto.limit - 1,
+                callback_data.reputation_user_id,
+                has_more,
+            ),
+        )

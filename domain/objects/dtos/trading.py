@@ -2,7 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 
 from domain.objects.types import DealCondition, DealStatus, DealType, ReportStatus
-from .base import BaseDTO
+from .base import BaseDTO, GetDTO
 
 
 class BuyAdvertisementOptionDTO(BaseDTO):
@@ -83,3 +83,7 @@ class CreateExternalDealDTO(BaseDTO):
     seller_id: int
     buyer_id: int
     agent_id: Optional[int] = None
+
+
+class GetReviewsDTO(GetDTO):
+    reputation_user_id: int

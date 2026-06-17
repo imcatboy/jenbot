@@ -34,7 +34,7 @@ export const TextField = ({
     >
       <input
         className={styles.input}
-        type={type}
+        type="text"
         inputMode={type === "number" ? "numeric" : "text"}
         pattern={
           type === "number"

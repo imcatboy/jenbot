@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from datetime import datetime
 
 from domain.objects.types import TransactionType
 from .base import EntityWithMetadata
+
+
+if TYPE_CHECKING:
+    from .user import UserWithReputationUserEntity
 
 
 class TransactionEntity(EntityWithMetadata):
@@ -38,3 +42,7 @@ class ReviewEntity(EntityWithMetadata):
     subject_reputation_user_id: int
     deal_id: Optional[int] = None
     external_deal_id: Optional[int] = None
+
+
+class ReviewWithAuthorEntity(ReviewEntity):
+    author: UserWithReputationUserEntity

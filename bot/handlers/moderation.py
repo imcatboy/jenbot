@@ -8,12 +8,11 @@ from html import escape
 
 from bot.actions import UserActions, ModerationActions, AuditActions
 from domain.services import ModerationService, ConfigService
-from bot.data.keyboards import get_violations_keyboard
 from domain.objects.types import UserRole, ChatAction
 from bot.filters import GroupsFilter, UsersFilter
+from bot.data import text, callbacks, keyboards
 from domain.objects import dtos, entities
 from domain.services import UserService
-from bot.data import text, callbacks
 
 
 moderation_router = Router()
@@ -56,7 +55,8 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.usernames, purpose_user.telegram_id,
+            purpose_user.usernames,
+            purpose_user.telegram_id,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -102,7 +102,8 @@ async def globalban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.usernames, purpose_user.telegram_id,
+            purpose_user.usernames,
+            purpose_user.telegram_id,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -138,9 +139,7 @@ async def unban_handler(
     await moderation_actions.unban_user(purpose_user.id, message.chat.id)
     await audit_actions.upload_action_audit(ChatAction.UNBAN, purpose_user, user)
     await message.answer(
-        text.UNBAN_USER_SUCCESS.format(
-            purpose_user.usernames, purpose_user.telegram_id
-        )
+        text.UNBAN_USER_SUCCESS.format(purpose_user.usernames, purpose_user.telegram_id)
     )
 
 
@@ -181,7 +180,8 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            purpose_user.usernames, purpose_user.telegram_id,
+            purpose_user.usernames,
+            purpose_user.telegram_id,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -260,7 +260,8 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            purpose_user.usernames, purpose_user.telegram_id,
+            purpose_user.usernames,
+            purpose_user.telegram_id,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -321,7 +322,7 @@ async def violations_handler(
     has_more = len(violations) == dto.limit
     await message.answer(
         text.get_violations_message(violations),
-        reply_markup=get_violations_keyboard(
+        reply_markup=keyboards.get_violations_keyboard(
             0, dto.limit - 1, purpose_user.id, has_more
         ),
     )
@@ -343,9 +344,10 @@ async def violations_callback(
     )
     violations = await moderation_service.get_violations(dto)
     has_more = len(violations) == dto.limit
+    violations = violations[:-1] if has_more else violations
     await callback.message.edit_text(
         text.get_violations_message(violations),
-        reply_markup=get_violations_keyboard(
+        reply_markup=keyboards.get_violations_keyboard(
             callback_data.offset, dto.limit - 1, callback_data.user_id, has_more
         ),
     )
@@ -367,9 +369,7 @@ async def addmoderator_handler(
     user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.MODERATOR)
     await message.answer(
-        text.ADD_MODERATOR_SUCCESS.format(
-            user.usernames, user.telegram_id
-        )
+        text.ADD_MODERATOR_SUCCESS.format(user.usernames, user.telegram_id)
     )
 
 

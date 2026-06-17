@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
 from domain.objects import exceptions, models, entities, dtos, types
-from .relations import get_scam_report_relations
+from .relations import get_scam_report_relations, get_review_relations
 from .base import BaseRepository
 
 
@@ -227,6 +227,22 @@ class TradingRepository(BaseRepository):
         )
         return result.scalar()
 
+    async def get_reviews(
+        self, dto: dtos.GetReviewsDTO
+    ) -> List[entities.ReviewWithAuthorEntity]:
+        result = await self.session.execute(
+            select(models.ReviewModel)
+            .where(models.ReviewModel.subject_reputation_user_id == dto.reputation_user_id)
+            .options(*get_review_relations())
+            .order_by(models.ReviewModel.created_at.desc())
+            .offset(dto.offset)
+            .limit(dto.limit)
+        )
+        return [
+            entities.ReviewWithAuthorEntity.model_validate(review)
+            for review in result.scalars().all()
+        ]
+
     async def add_review_count(self, reputation_user_id: int) -> None:
         await self.session.execute(
             update(models.ReputationUserModel)
@@ -293,7 +309,3 @@ class TradingRepository(BaseRepository):
     async def delete_external_deal(self, id: int) -> None:
         deal = await self.get_by_id(models.ExternalDealModel, id)
         await self.session.delete(deal)
-
-    async def get_reviews(self, user_id: int) -> List[entities.ReviewEntity]:
-        reviews = await self.get_all_by_data(models.ReviewModel, user_id=user_id)
-        return [entities.ReviewEntity.model_validate(review) for review in reviews]

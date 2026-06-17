@@ -57,3 +57,4 @@ class ReviewRatingCallback(CallbackData, prefix="review_rating"):
 class ReviewsCallback(CallbackData, prefix="reviews"):
     reputation_user_id: int
     offset: int
+    new_message: bool

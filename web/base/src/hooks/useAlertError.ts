@@ -6,6 +6,7 @@ const KNOWN_DETAIL_MESSAGES: Record<string, string> = {
   "Version mismatch":
     "Карточка уже изменена на сервере. Закройте и откройте её снова, затем повторите сохранение.",
   "Object not found": "Объект не найден.",
+  "Object already exists": "Объект уже существует.",
   "User not allowed to set reputation user":
     "Недостаточно прав для изменения этой карточки.",
   "User not allowed to update": "Недостаточно прав для изменения.",

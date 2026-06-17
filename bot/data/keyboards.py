@@ -194,12 +194,6 @@ def get_check_keyboard(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    if reputation_user.users:
-        builder.button(
-            text=f"👤 Ссылка на профиль",
-            url=f"tg://user?id={reputation_user.users[0].telegram_id}",
-        )
-
     if (
         reputation_user.review_count > 0
         and reputation_user.role != UserReputationRole.SCAMMER
@@ -207,7 +201,7 @@ def get_check_keyboard(
         builder.button(
             text=f"💬 Отзывы",
             callback_data=ReviewsCallback(
-                reputation_user_id=reputation_user.id, offset=0
+                reputation_user_id=reputation_user.id, offset=0, new_message=True
             ).pack(),
         )
 
@@ -306,6 +300,34 @@ def get_violations_keyboard(
             text="➡️ Вперед",
             callback_data=ViolationsCallback(
                 user_id=user_id, offset=offset + limit
+            ).pack(),
+        )
+
+    return builder.adjust(2).as_markup()
+
+
+def get_reviews_keyboard(
+    offset: int, limit: int, reputation_user_id: int, has_more: bool
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    if offset > 0:
+        builder.button(
+            text="⬅️ Назад",
+            callback_data=ReviewsCallback(
+                reputation_user_id=reputation_user_id,
+                offset=max(0, offset - limit),
+                new_message=False,
+            ).pack(),
+        )
+
+    if has_more:
+        builder.button(
+            text="➡️ Вперед",
+            callback_data=ReviewsCallback(
+                reputation_user_id=reputation_user_id,
+                offset=offset + limit,
+                new_message=False,
             ).pack(),
         )
 

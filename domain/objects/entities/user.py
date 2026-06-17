@@ -42,6 +42,10 @@ class UserDetailEntity(EntityWithMetadata):
     reputation_user_id: int
 
 
+class UserWithReputationUserEntity(UserEntity):
+    reputation_user: Optional[ReputationUserEntity] = None
+
+
 class ReputationUserWithUsersEntity(ReputationUserEntity):
     users: List[UserEntity]
 

@@ -256,6 +256,11 @@ class TradingService:
             author_id, subject_user_id, subject_reputation_user_id
         )
 
+    async def get_reviews(
+        self, dto: dtos.GetReviewsDTO
+    ) -> List[entities.ReviewWithAuthorEntity]:
+        return await self.trading_repository.get_reviews(dto)
+
     async def create_review(self, dto: dtos.CreateReviewDTO) -> entities.ReviewEntity:
         reputation_user = await self.user_repository.get_reputation_user_by_user_id(
             dto.subject_user_id

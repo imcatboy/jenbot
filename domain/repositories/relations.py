@@ -153,3 +153,12 @@ def get_tracker_relations() -> List[Any]:
             selectinload(models.UserModel.usernames)
         ),
     ]
+
+
+def get_review_relations() -> List[Any]:
+    return [
+        joinedload(models.ReviewModel.author).options(
+            selectinload(models.UserModel.usernames),
+            joinedload(models.UserModel.reputation_user),
+        ),
+    ]
