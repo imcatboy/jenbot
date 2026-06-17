@@ -4,6 +4,7 @@ __pycache__/
 /alembic/versions/*
 /media
 *.log
+.venv
 
 node_modules
 dist
