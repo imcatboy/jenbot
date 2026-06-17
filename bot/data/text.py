@@ -11,179 +11,156 @@ from html import escape
 from domain.objects import entities, types
 
 
-COMMAND_ARGUMENTS_ERROR = "⚠️ Ошибка! Команда требует аргументов.\n\n<code>{0}</code>"
-COMMAND_ARGUMENTS_COUNT_ERROR = "❌ Неверное число аргументов.\n\n<code>{0}</code>"
-COMMAND_ARGUMENTS_VALIDATION_ERROR = "🚫 Ошибка валидации!\n\n<code>{0}</code>"
-USER_NOT_ALLOWED_TO_ACTION = "❌ Вы не имеете прав на выполнение этого действия."
-VIOLATIONS_OTHER_USER_FORBIDDEN = "❌ Просмотр нарушений другого пользователя доступен только модераторам и администраторам."
-BAN_USER_SUCCESS = "🔒 Пользователь {0} заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>"
-BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
-    "🔒 Пользователь {0} заблокирован\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>"
+COMMAND_ARGUMENTS_ERROR = '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> Ошибка! Команда требует аргументов.\n\n<code>{0}</code>'
+COMMAND_ARGUMENTS_COUNT_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Неверное число аргументов.\n\n<code>{0}</code>'
+COMMAND_ARGUMENTS_VALIDATION_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Ошибка валидации!\n\n<code>{0}</code>'
+USER_NOT_ALLOWED_TO_ACTION = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы не имеете прав на выполнение этого действия.'
+VIOLATIONS_OTHER_USER_FORBIDDEN = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Просмотр нарушений другого пользователя доступен только модераторам и администраторам.'
+BAN_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
+BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Пользователь {0} заблокирован\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
+USER_NOT_FOUND = (
+    '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден.'
 )
-USER_NOT_FOUND = "❌ Пользователь {0} не найден."
-UNBAN_USER_SUCCESS = "🔓 Пользователь {0} разблокирован."
-MUTE_USER_SUCCESS = "🔇 Пользователь {0} замьючен до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>"
+UNBAN_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} разблокирован.'
+MUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
 MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
-    "🔇 Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>"
+    '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
 )
-DEAL_USER_NOT_FOUND = "❌ Пользователь {0} не найден. Вероятно, он не общался с ботом."
-UNMUTE_USER_SUCCESS = "💤 Пользователь {0} размьючен."
-WARN_USER_SUCCESS = "⚠️ Пользователь {0} предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>"
-WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
-    "⚠️ Пользователь {0} предупрежден\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>"
-)
-REPORT_ACCUSED_USER_ID_MESSAGE = (
-    "🔍 Введите ID пользователя, которого вы хотите обвинить в нарушении."
-)
-CANNOT_USE_ACTION_ON_USER = (
-    "❌ Вы не можете использовать это действие на этом пользователе."
-)
+DEAL_USER_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден. Вероятно, он не общался с ботом.'
+UNMUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} размьючен.'
+WARN_USER_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Пользователь {0} предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
+WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Пользователь {0} предупрежден\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
+REPORT_ACCUSED_USER_ID_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Введите ID пользователя, которого вы хотите обвинить в нарушении.'
+CANNOT_USE_ACTION_ON_USER = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы не можете использовать это действие на этом пользователе.'
 EXTERNAL_DEAL_BUYER_MESSAGE = (
-    "🤝 Сделки регистрируются для того, чтобы обеспечивать гарантию возврата средств в случае мошенничества, поэтому у одного из участников сделки должна быть доверенность..\n\n"
-    "💸 Введите @username или Telegram ID покупателя, с которым вы собираетесь заключить сделку. У этого пользователя должен быть диалог с ботом. Вы будете выступать в роли продавца."
+    '<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> Сделки регистрируются для того, чтобы обеспечивать гарантию возврата средств в случае мошенничества, поэтому у одного из участников сделки должна быть доверенность.\n\n'
+    '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Введите @username или Telegram ID покупателя, с которым вы собираетесь заключить сделку. У этого пользователя должен быть диалог с ботом. Вы будете выступать в роли продавца.'
 )
-DEAL_USER_NOT_GUARANTOR = "❌ Ни один из участников сделки не является гарантом или депозитчиком. У сделки должен быть участник с доверенностью."
-EXTERNAL_DEAL_DESCRIPTION_MESSAGE = "💬 Подробно опишите условия сделки, кто и за что продаёт или покупает (до 255 символов)."
-EXTERNAL_DEAL_AMOUNT_MESSAGE = "💸 Введите сумму сделки в рублях. Эта сумма в случае мошенничества будет гарантированно возвращена. Она не должна сильно отличаться от реальной стоимости товара или услуги."
-EXTERNAL_DEAL_AGENT_MESSAGE = "👤 Введите @username или Telegram ID агента, который выступит посредником в сделке, если только он не является покупателем. Агент должен быть гарантом или депозитчиком."
-EXTERNAL_DEAL_SUCCESS_MESSAGE = "🔍 Сделка успешно зарегистрирована! Она была отправлена на подтверждение пользователю с доверенностью, ожидайте ответа."
-EXTERNAL_DEAL_ERROR_MESSAGE = "🔍 Сделка успешно зарегистрирована! Но произошла ошибка при отправке на подтверждение пользователю с доверенностью, обратитесь к администрации за помощью."
-EXTERNAL_DEAL_STARTED_MESSAGE = (
-    "🔍 Сделка успешно начата! Для её окончания нужно подтверждение со всех сторон."
+DEAL_USER_NOT_GUARANTOR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Ни один из участников сделки не является гарантом или депозитчиком. У сделки должен быть участник с доверенностью.'
+EXTERNAL_DEAL_DESCRIPTION_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Подробно опишите условия сделки, кто и за что продаёт или покупает (до 255 символов).'
+EXTERNAL_DEAL_AMOUNT_MESSAGE = '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Введите сумму сделки в рублях. Эта сумма в случае мошенничества будет гарантированно возвращена. Она не должна сильно отличаться от реальной стоимости товара или услуги.'
+EXTERNAL_DEAL_AGENT_MESSAGE = '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Введите @username или Telegram ID агента, который выступит посредником в сделке, если только он не является покупателем. Агент должен быть гарантом или депозитчиком.'
+EXTERNAL_DEAL_SUCCESS_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Сделка успешно зарегистрирована! Она была отправлена на подтверждение пользователю с доверенностью, ожидайте ответа.'
+EXTERNAL_DEAL_ERROR_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Сделка успешно зарегистрирована! Но произошла ошибка при отправке на подтверждение пользователю с доверенностью, обратитесь к администрации за помощью.'
+EXTERNAL_DEAL_STARTED_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Сделка успешно начата! Для её окончания нужно подтверждение со всех сторон.'
+EXTERNAL_DEAL_ACCEPTED_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Вы отметили сделку как успешно выполненную! Ожидайте завершения сделки.'
+EXTERNAL_DEAL_DELETED_MESSAGE = (
+    '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Сделка успешно удалена.'
 )
-EXTERNAL_DEAL_ACCEPTED_MESSAGE = (
-    "🔍 Вы отметили сделку как успешно выполненную! Ожидайте завершения сделки."
-)
-EXTERNAL_DEAL_DELETED_MESSAGE = "🔍 Сделка успешно удалена."
-REVIEW_ALREADY_EXISTS = "❌ Вы уже оставляли отзыв на этого пользователя, один пользователь может оставить только один отзыв на другого пользователя."
-ACCESS_DENIED = "❌ У вас нет доступа к этому действию."
-STATE_VALIDATION_ERROR = "❌ Ошибка введённого значения, попробуйте ещё раз."
-SET_SETTING_SUCCESS = "💬 Настройка <b>{0}</b> установлена."
-UNWARN_USER_SUCCESS = "💤 Предупреждение стало неактивным."
-OBJECT_NOT_FOUND = "❌ Запрашиваемый объект не найден."
-OBJECT_ALREADY_EXISTS = "❌ Объект с такими данными уже существует."
-ADD_MODERATOR_SUCCESS = "👮 Пользователь {0} стал модератором."
-REMOVE_MODERATOR_SUCCESS = "👤 Пользователь {0} стал обычным пользователем."
-SUBSCRIPTION_ERROR = "❌ Вы не подписаны на каналы, необходимые для использования бота. Пожалуйста, подпишитесь на каналы и попробуйте снова."
+REVIEW_ALREADY_EXISTS = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы уже оставляли отзыв на этого пользователя, один пользователь может оставить только один отзыв на другого пользователя.'
+ACCESS_DENIED = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> У вас нет доступа к этому действию.'
+STATE_VALIDATION_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Ошибка введённого значения, попробуйте ещё раз.'
+SET_SETTING_SUCCESS = '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> Настройка <b>{0}</b> установлена.'
+UNWARN_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Предупреждение стало неактивным.'
+OBJECT_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Запрашиваемый объект не найден.'
+OBJECT_ALREADY_EXISTS = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Объект с такими данными уже существует.'
+ADD_MODERATOR_SUCCESS = '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> Пользователь {0} стал модератором.'
+REMOVE_MODERATOR_SUCCESS = '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Пользователь {0} стал обычным пользователем.'
+SUBSCRIPTION_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы не подписаны на каналы, необходимые для использования бота. Пожалуйста, подпишитесь на каналы и попробуйте снова.'
 START_MESSAGE = (
-    "👋 <b>Добро пожаловать!</b>\n\n"
+    '<tg-emoji emoji-id="5283186855028761775">👏</tg-emoji> <b>Добро пожаловать!</b>\n\n'
     "Я — бот <b>Женяши</b>. Помогаю проверять людей на безопасность перед сделкой: "
     "гарантов, депозитчиков, скамеров и обычных участников.\n\n"
     "<b>Основные команды</b>\n"
-    "🔎 <code>/check (реквизит, @username, Telegram ID)</code> — узнать репутацию пользователя\n"
-    "👤 <code>/me</code> — посмотреть свою репутацию\n"
-    "⭐ <code>/review (@username, Telegram ID)</code> — оставить отзыв о пользователе\n"
-    "🚫 <code>/scam</code> — подать жалобу на скамера с доказательствами\n"
-    "📩 <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n"
+    '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> <code>/check (реквизит, @username, Telegram ID)</code> — узнать репутацию пользователя\n'
+    '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> <code>/me</code> — посмотреть свою репутацию\n'
+    '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> <code>/review (@username, Telegram ID)</code> — оставить отзыв о пользователе\n'
+    '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> <code>/scam</code> — подать жалобу на скамера с доказательствами\n'
+    '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n'
     "Стремитесь к максимальной безопасности — проверяйте собеседника перед сделкой.\n\n"
-    "📢 Актуальные новости и объявления — в нашем канале.\n\n"
-    "💬 У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>"
+    '<tg-emoji emoji-id="5280548821691046193">🌐</tg-emoji> Актуальные новости и объявления — в нашем канале.\n\n'
+    '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>'
 )
-REPORT_TYPE_MESSAGE = "📌 Выберите тип обращения."
-REPORT_REASON_MESSAGE = "💬 Введите причину обращения (до 1024 символов)."
-REPORT_ATTACHMENTS_MESSAGE = (
-    "📎 Прикрепите фото или видео до 40 МБ одним сообщением (если есть)."
+REPORT_TYPE_MESSAGE = (
+    '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Выберите тип обращения.'
 )
-REVIEW_MESSAGE_MESSAGE = "💬 Введите сообщение для отзыва (до 255 символов)."
-REVIEW_SUCCESS = "⭐ Отзыв успешно оставлен."
-USER_NOT_HAS_REPUTATION_USER = "❌ Указанный пользователь не имеет положительной репутации, что обязательно для получения отзыва."
-REVIEW_RATING_MESSAGE = "💬 Выберите оценку от 1 до 5."
-REPORT_ATTACHMENTS_ERROR = "❌ Пожалуйста, отправьте фото или видео."
-REPORT_USERNAME_NOT_FOUND = "❌ Пользователь {0} не найден. Попробуйте ввести его ID."
-REPORT_USERNAME_MESSAGE = "🔍 Я ранее не видел этого пользователя. Введите его username, если есть, иначе пропустите."
-THROTTLE_ERROR = "⏳ Пожалуйста, не спамьте."
-REPORT_SUCCESS = (
-    "🔍 Отправлено успешно. В случае ответа вам будет отправлено уведомление."
+REPORT_REASON_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите причину обращения (до 1024 символов).'
+REPORT_ATTACHMENTS_MESSAGE = '<tg-emoji emoji-id="5282823947472118926">📎</tg-emoji> Прикрепите фото или видео до 40 МБ одним сообщением (если есть).'
+REVIEW_MESSAGE_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите сообщение для отзыва (до 255 символов).'
+REVIEW_SUCCESS = '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Отзыв успешно оставлен.'
+USER_NOT_HAS_REPUTATION_USER = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Указанный пользователь не имеет положительной репутации, что обязательно для получения отзыва.'
+REVIEW_RATING_MESSAGE = (
+    '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Выберите оценку от 1 до 5.'
 )
-REPORT_WITH_ATTACHMENTS_SUCCESS = "🔍 Отправлено успешно с {0} медиа. В случае ответа вам будет отправлено уведомление."
-STATE_CANCELLED = "↩️ Действие отменено."
-REPORT_ALREADY_PENDING = (
-    "❌ Вы уже имеете незавершенное обращение. Пожалуйста, дождитесь его обработки."
+REPORT_ATTACHMENTS_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пожалуйста, отправьте фото или видео.'
+REPORT_USERNAME_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден. Попробуйте ввести его ID.'
+REPORT_USERNAME_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Я ранее не видел этого пользователя. Введите его username, если есть, иначе пропустите.'
+THROTTLE_ERROR = '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Пожалуйста, не спамьте.'
+REPORT_SUCCESS = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Отправлено успешно. В случае ответа вам будет отправлено уведомление.'
+REPORT_WITH_ATTACHMENTS_SUCCESS = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Отправлено успешно с {0} медиа. В случае ответа вам будет отправлено уведомление.'
+STATE_CANCELLED = (
+    '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Действие отменено.'
 )
-USERNAME_OR_REPLY_TO_USER_REQUIRED = (
-    "❌ Имя пользователя или ответ на сообщение является обязательным."
+REPORT_ALREADY_PENDING = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы уже имеете незавершенное обращение. Пожалуйста, дождитесь его обработки.'
+USERNAME_OR_REPLY_TO_USER_REQUIRED = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Имя пользователя или ответ на сообщение является обязательным.'
+USER_IS_SCAMMER = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь является скамером.'
+USER_IS_NOT_GUARANTOR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь не является гарантом.'
+NOT_ENOUGH_AMOUNT = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> У пользователя недостаточно свободных средств по доверенности.'
+DEAL_NOT_DRAFT = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Сделка не является черновиком.'
+SET_REPUTATION_ROLE_MESSAGE = (
+    '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Выберите роль пользователя.'
 )
-USER_IS_SCAMMER = "❌ Пользователь является скамером."
-USER_IS_NOT_GUARANTOR = "❌ Пользователь не является гарантом."
-NOT_ENOUGH_AMOUNT = "❌ У пользователя недостаточно свободных средств по доверенности."
-DEAL_NOT_DRAFT = "❌ Сделка не является черновиком."
-SET_REPUTATION_ROLE_MESSAGE = "💬 Выберите роль пользователя."
-SET_REPUTATION_DESCRIPTION_MESSAGE = (
-    "💬 Введите описание для репутации (до 255 символов)."
-)
-REPORT_COMMENT_MESSAGE = "💬 Введите комментарий к обращению (до 1024 символов)."
-REPORT_STATUS_UPDATED = "🔍 Статус обращения успешно изменен."
-REPORT_ACCUSED_DESCRIPTION_MESSAGE = "💬 Введите описание нарушения (до 255 символов)."
-REPORT_ACCUSED_USER_UPDATED = "📌 Пользователь успешно отмечен как скам."
-SET_REPUTATION_SUCCESS = "📌 Репутация пользователя успешно установлена."
-ADD_BAN_WORD_SUCCESS = "📌 Слово <b>{0}</b> успешно добавлено в список запрещённых."
-REMOVE_BAN_WORD_SUCCESS = "📌 Слово <b>{0}</b> успешно удалено из списка запрещённых."
-BAN_WORD_ERROR = "❌ {0} использовал запрещённое слово <tg-spoiler>{1}</tg-spoiler>."
-VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = (
-    "❌ Просмотр статистики нарушений только других модераторов и администраторов."
-)
-UNKNOWN_ERROR = (
-    "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
-)
-SCAM_REPORT_DESCRIPTION_MESSAGE = "💬 Введите описание жалобы, в случае принятия жалобы эта информация будет опубликована в карточке скамера (до 1024 символов)."
-SCAM_REPORT_CONTACT_INFO_MESSAGE = "💬 Введите всю контактную информацию, которую вы можете предоставить о скамере (до 255 символов)."
-SCAM_REPORT_COUNT_MESSAGE = (
-    "❌ У вас уже есть несколько жалоб на скам. Пожалуйста, дождитесь их рассмотрения."
-)
-SCAM_REPORT_ATTACHMENTS_MESSAGE = (
-    "📎 Прикрепите фото или видео до 40 МБ одним сообщением с доказательствами."
-)
-CHAT_NOT_FOUND = "❌ Чат с ботом не найден или закрыт."
-TRACKER_ADDED = "🔍 Трекер на пользователя {0} успешно добавлен."
-TRACKER_REMOVED = "🔍 Трекер на пользователя {0} успешно удален."
-TRACKER_MESSAGE = "🔍 Новое <a href='{0}'>сообщение</a> от пользователя {1}."
-MODERATORS_MENTIONED = "👮 Отчёт отправлен модераторам."
-MANY_REPUTATION_USERS = (
-    "🔎 Найдено несколько пользователей. Выберите пользователя из списка."
-)
+SET_REPUTATION_DESCRIPTION_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите описание для репутации (до 255 символов).'
+REPORT_COMMENT_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите комментарий к обращению (до 1024 символов).'
+REPORT_STATUS_UPDATED = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Статус обращения успешно изменен.'
+ADD_BAN_WORD_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Слово <b>{0}</b> успешно добавлено в список запрещённых.'
+REMOVE_BAN_WORD_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Слово <b>{0}</b> успешно удалено из списка запрещённых.'
+BAN_WORD_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> {0} использовал запрещённое слово <tg-spoiler>{1}</tg-spoiler>.'
+VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Просмотр статистики нарушений только других модераторов и администраторов.'
+UNKNOWN_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации.'
+SCAM_REPORT_DESCRIPTION_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите описание жалобы, в случае принятия жалобы эта информация будет опубликована в карточке скамера (до 1024 символов).'
+SCAM_REPORT_CONTACT_INFO_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите всю контактную информацию, которую вы можете предоставить о скамере (до 255 символов).'
+SCAM_REPORT_COUNT_MESSAGE = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> У вас уже есть несколько жалоб на скам. Пожалуйста, дождитесь их рассмотрения.'
+SCAM_REPORT_ATTACHMENTS_MESSAGE = '<tg-emoji emoji-id="5282823947472118926">📎</tg-emoji> Прикрепите фото или видео до 40 МБ одним сообщением с доказательствами.'
+CHAT_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Чат с ботом не найден или закрыт.'
+TRACKER_ADDED = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Трекер на пользователя {0} успешно добавлен.'
+TRACKER_REMOVED = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Трекер на пользователя {0} успешно удален.'
+TRACKER_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Новое <a href="{0}">сообщение</a> от пользователя {1}.'
+MODERATORS_MENTIONED = '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> Отчёт отправлен модераторам.'
+MANY_REPUTATION_USERS = '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Найдено несколько пользователей. Выберите пользователя из списка.'
 VIOLATIONS = {
-    types.ViolationType.WARN: "⚠️ Предупреждение",
-    types.ViolationType.MUTE: "🔇 Мьют",
-    types.ViolationType.BAN: "🔒 Бан",
+    types.ViolationType.WARN: '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Предупреждение',
+    types.ViolationType.MUTE: '<tg-emoji emoji-id="5282796481156262136">�</tg-emoji> Мьют',
+    types.ViolationType.BAN: '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Бан',
 }
 CHAT_ACTIONS = {
-    types.ChatAction.UNMUTE: "💤 Размьют",
-    types.ChatAction.UNWARN: "💤 Снятие предупреждения",
-    types.ChatAction.UNBAN: "🔓 Снятие бана",
+    types.ChatAction.UNMUTE: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Размьют',
+    types.ChatAction.UNWARN: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Снятие предупреждения',
+    types.ChatAction.UNBAN: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Снятие бана',
 }
 REPORT_TYPES = {
-    types.ReportType.UNBAN: "💬 Снятие нарушения",
-    types.ReportType.VIOLATION: "🚫 Нарушение",
-    types.ReportType.FEEDBACK: "💬 Обратная связь",
-    types.ReportType.OTHER: "🔍 Другое",
+    types.ReportType.UNBAN: '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Снятие нарушения',
+    types.ReportType.VIOLATION: '<tg-emoji emoji-id="5283215884712716244">�</tg-emoji> Нарушение',
+    types.ReportType.FEEDBACK: '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Обратная связь',
+    types.ReportType.OTHER: '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Другое',
 }
 REPORT_STATUSES = {
-    types.ReportStatus.PENDING: "🔎 Ожидает рассмотрения",
-    types.ReportStatus.APPROVED: "✅ Принято",
-    types.ReportStatus.REJECTED: "❌ Отклонено",
-    types.ReportStatus.CANCELLED: "⚠️ Отменено",
+    types.ReportStatus.PENDING: '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Ожидает рассмотрения',
+    types.ReportStatus.APPROVED: '<tg-emoji emoji-id="5282782728670977815">✅</tg-emoji> Принято',
+    types.ReportStatus.REJECTED: '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отклонено',
+    types.ReportStatus.CANCELLED: '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Отменено',
 }
 REPUTATION_ROLES = {
-    types.UserReputationRole.SCAMMER: "🚫 Скамер",
-    types.UserReputationRole.GUARANTOR: "💵 Гарант",
-    types.UserReputationRole.BIG_GUARANTOR: "💎 Большой гарант",
-    types.UserReputationRole.SMALL_GUARANTOR: "🪙 Младший гарант",
-    types.UserReputationRole.DEPOSITOR: "💰 Депозитчик",
-    types.UserReputationRole.ADMIN: "👑 Админ",
-    types.UserReputationRole.CLEAN_USER: "👤 Чистый пользователь",
+    types.UserReputationRole.SCAMMER: '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> Скамер',
+    types.UserReputationRole.GUARANTOR: '<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> Гарант',
+    types.UserReputationRole.BIG_GUARANTOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Большой гарант',
+    types.UserReputationRole.SMALL_GUARANTOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Младший гарант',
+    types.UserReputationRole.DEPOSITOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Депозитчик',
+    types.UserReputationRole.ADMIN: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Админ',
+    types.UserReputationRole.CLEAN_USER: '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Чистый пользователь',
 }
 CHAT_EVENTS = {
-    types.ChatEvent.JOIN: "👋 Вход",
-    types.ChatEvent.LEAVE: "⛓️‍💥 Выход",
-    types.ChatEvent.BAN_WORD: "❌ Запрещённое слово",
+    types.ChatEvent.JOIN: '<tg-emoji emoji-id="5283186855028761775">👏</tg-emoji> Вход',
+    types.ChatEvent.LEAVE: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Выход',
+    types.ChatEvent.BAN_WORD: '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Запрещённое слово',
 }
 DEAL_STATUSES = {
-    types.DealStatus.DRAFT: "🔍 Черновик",
-    types.DealStatus.PENDING: "💸 Выполняется",
-    types.DealStatus.EXPIRED: "🕒 Истек",
-    types.DealStatus.COMPLETED: "✅ Завершено",
-    types.DealStatus.CANCELLED: "⚠️ Заблокировано",
-    types.DealStatus.REJECTED: "❌ Отклонено",
+    types.DealStatus.DRAFT: '<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Черновик',
+    types.DealStatus.PENDING: '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> Выполняется',
+    types.DealStatus.EXPIRED: '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Истек',
+    types.DealStatus.COMPLETED: '<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> Завершено',
+    types.DealStatus.CANCELLED: '<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Заблокировано',
+    types.DealStatus.REJECTED: '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Отклонено',
 }
 HOMOGLYPHS = str.maketrans("ayBkKMnoPpCcTyXxeE", "ауВкКМноРрСсТуХхеЕ")
 
@@ -347,19 +324,17 @@ def get_warn_user_success_message(
 def get_violations_message(
     violations: List[entities.ChatViolationWithUserEntity],
 ) -> str:
-    message = "🚨 <b>Нарушения</b>\n\n"
+    message = '<tg-emoji emoji-id="5283215884712716244">🔨</tg-emoji> <b>Нарушения</b>\n\n'
     active_violations = [violation for violation in violations if violation.is_active]
     inactive_violations = [
         violation for violation in violations if not violation.is_active
     ]
 
     if active_violations:
-        message += "🟢 <b>Активные нарушения</b>\n"
+        message += '<tg-emoji emoji-id="5280622076653245714">🟢</tg-emoji> <b>Активные нарушения</b>\n'
 
     for violation in active_violations:
-        message += (
-            f"📌 #<code>{violation.id}</code> <b>{VIOLATIONS[violation.type]}</b>\n"
-        )
+        message += f'<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> #<code>{violation.id}</code> <b>{VIOLATIONS[violation.type]}</b>\n'
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
         message += f"Выдан {format_user_handle(violation.applied_by_user.usernames, violation.applied_by_user.telegram_id)}\n"
@@ -371,12 +346,10 @@ def get_violations_message(
         message += "</blockquote>\n\n"
 
     if inactive_violations:
-        message += "🔴 <b>Неактивные нарушения</b>\n"
+        message += '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> <b>Неактивные нарушения</b>\n'
 
     for violation in inactive_violations:
-        message += (
-            f"📌 #<code>{violation.id}</code> <b>{VIOLATIONS[violation.type]}</b>\n"
-        )
+        message += f'<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> #<code>{violation.id}</code> <b>{VIOLATIONS[violation.type]}</b>\n'
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
         message += f"Выдан {format_user_handle(violation.applied_by_user.usernames, violation.applied_by_user.telegram_id)}\n"
@@ -445,7 +418,7 @@ def get_event_audit_message(
 
 
 def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
-    message = "👮 <b>Модераторы</b>\n\n"
+    message = '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <b>Модераторы</b>\n\n'
 
     for moderator in moderators:
         if moderator.usernames:
@@ -486,10 +459,10 @@ def get_scam_report_message(scam_report: entities.ScamReportWithRelationsEntity)
     message += f"Дата жалобы: {format_date(scam_report.created_at)}\n\n"
     message += f"<b>Описание</b>\n"
     message += f"<blockquote>{escape(scam_report.description)}</blockquote>\n\n"
-    message += f"<b>Контактная информация</b>\n"
-    message += (
-        f"<blockquote>{format_contact_info(scam_report.contact_info)}</blockquote>\n\n"
-    )
+
+    if scam_report.contact_info:
+        message += f"<b>Контактная информация</b>\n"
+        message += f"<blockquote>{format_contact_info(scam_report.contact_info)}</blockquote>\n\n"
 
     if scam_report.comment:
         message += f"<b>Комментарий модератора</b>\n"
@@ -507,52 +480,52 @@ def get_check_success_message(
     message = f"<b>{REPUTATION_ROLES[reputation.role]}</b>\n\n"
 
     for user in reputation.users:
-        message += f"👤 {format_user_handle(user.usernames, user.telegram_id)}\n"
+        message += f'<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> {format_user_handle(user.usernames, user.telegram_id)}\n'
 
     if reputation.user_details:
-        message += f"\n📌 <b>Реквизиты</b>\n"
+        message += f'\n<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> <b>Реквизиты</b>\n'
 
     for detail in reputation.user_details:
         if not detail.is_public:
             continue
 
-        message += f"🔎 <b>{detail.name}</b>: <code>{detail.value}</code>\n"
+        message += f'<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> <b>{detail.name}</b>: <code>{detail.value}</code>\n'
 
     if reputation.description:
-        message += f"\n🛡️ <b>Описание</b>\n"
+        message += (
+            f'\n<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> <b>Описание</b>\n'
+        )
         message += f"<blockquote>{escape(reputation.description)}</blockquote>\n"
 
     if reputation.role != types.UserReputationRole.SCAMMER:
         if reputation.about:
-            message += f"\n💬 <b>Комментарий пользователя</b>\n"
+            message += f'\n<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> <b>Комментарий пользователя</b>\n'
             message += f"<blockquote>{escape(reputation.about)}</blockquote>\n"
 
         if reputation.amount > 0:
-            message += f"\n💰 Имеет доверенность на сумму <b>{reputation.amount}</b> {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}"
+            message += f'\n<tg-emoji emoji-id="5283212259760315829">🏷</tg-emoji> Имеет доверенность на сумму <b>{reputation.amount}</b> {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}'
         if reputation.review_count > 0:
-            message += f"\n❤️ Имеет <b>{reputation.review_count}</b> {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}"
+            message += f'\n<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Имеет <b>{reputation.review_count}</b> {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}'
         if reputation.applied_report_count > 0:
-            message += f"\n🚫 Опубликовано <b>{reputation.applied_report_count}</b> {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")} на скам"
+            message += f'\n<tg-emoji emoji-id="5283057370354719831">🛡</tg-emoji> Опубликовано <b>{reputation.applied_report_count}</b> {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")} на скам'
 
     if reputation.search_count > 0:
-        message += f"\n🔍 Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}"
+        message += f'\n<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}'
 
-    message += f"\n\n📅 <i>{format_date(datetime.now())}</i>"
+    message += f'\n\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
     return message
 
 
 def get_check_error_message(search: Optional[str] = None) -> str:
-    message = f"<b>👤 Неизвестный пользователь</b>\n\n"
+    message = f'<b><tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Неизвестный пользователь</b>\n\n'
 
     if search:
-        message += (
-            f"📂 Подходящей записи по запросу <i>{escape(search)}</i> не найдено.\n\n"
-        )
+        message += f'<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> Подходящей записи по запросу <i>{escape(search)}</i> не найдено.\n\n'
     else:
-        message += "📂 Такой пользователь не найден.\n\n"
+        message += '<tg-emoji emoji-id="5282953552405241953">📂</tg-emoji> Такой пользователь не найден.\n\n'
 
     message += f"Стремитесь к максимальной безопасности через гарантов Женяши!\n\n"
-    message += f"📅 <i>{format_date(datetime.now())}</i>"
+    message += f'<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
     return message
 
 
@@ -587,13 +560,13 @@ def get_violations_count_message(
     violations_count: Dict[types.ViolationType, int],
     start_date: Optional[datetime],
 ) -> str:
-    message = f"🔎 <b>Статистика нарушений {format_user_handle(user.usernames, user.telegram_id)}</b>\n\n"
+    message = f'<tg-emoji emoji-id="5282953552405241953">🏷</tg-emoji> <b>Статистика нарушений {format_user_handle(user.usernames, user.telegram_id)}</b>\n\n'
 
     for violation_type, count in violations_count.items():
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
     if start_date:
-        message += f"\nОт: {format_date(start_date)}"
+        message += f'\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> От: {format_date(start_date)}'
 
     return message
 
@@ -602,7 +575,7 @@ def get_reviews_message(
     reputation_user: entities.ReputationUserWithRelationsEntity,
     reviews: List[entities.ReviewWithAuthorEntity],
 ) -> str:
-    message = f"💬 <b>Отзывы {format_user_handle(reputation_user.users[0].usernames, reputation_user.users[0].telegram_id)}</b>\n\n"
+    message = f'<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> <b>Отзывы {format_user_handle(reputation_user.users[0].usernames, reputation_user.users[0].telegram_id)}</b>\n\n'
 
     for review in reviews:
         message += f"{format_user_handle(review.author.usernames, review.author.telegram_id)}\n"
@@ -611,8 +584,8 @@ def get_reviews_message(
             message += f"<b>{REPUTATION_ROLES[review.author.reputation_user.role]}</b> ({review.author.reputation_user.review_count} {get_count_word(review.author.reputation_user.review_count, "отзыв", "отзыва", "отзывов")})\n"
 
         message += f"<blockquote>{escape(review.message)}</blockquote>\n"
-        message += f"{review.rating * '⭐'}\n"
-        message += f"<i>{format_date(review.created_at)}</i>\n\n"
+        message += f"{review.rating * '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji>'}\n"
+        message += f'<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(review.created_at)}</i>\n\n'
 
     if len(reviews) == 0:
         message += "<i>Нет отзывов</i>"
@@ -621,21 +594,23 @@ def get_reviews_message(
 
 
 def get_deal_message(deal: entities.ExternalDealWithUsersEntity) -> str:
-    message = f"🤝 <b>Сделка</b>\n\n"
+    message = (
+        f'<tg-emoji emoji-id="5283186855028761775">👏</tg-emoji> <b>Сделка</b>\n\n'
+    )
     message += f"Продавец: {format_user_handle(deal.seller.usernames, deal.seller.telegram_id)}\n"
     message += f"Покупатель: {format_user_handle(deal.buyer.usernames, deal.buyer.telegram_id)}\n"
 
     if deal.status != types.DealStatus.DRAFT:
         message += f"Статус: <b>{DEAL_STATUSES[deal.status]}</b>\n"
         message += (
-            "✅ Продавец подтвердил выполнение сделки\n"
+            '<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> Продавец подтвердил выполнение сделки\n'
             if deal.seller_acceptance
-            else "⌛ Продавец не подтвердил выполнение сделки\n"
+            else '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Продавец не подтвердил выполнение сделки\n'
         )
         message += (
-            "✅ Покупатель подтвердил выполнение сделки\n"
+            '<tg-emoji emoji-id="5283081795833731867">🛡</tg-emoji> Покупатель подтвердил выполнение сделки\n'
             if deal.buyer_acceptance
-            else "⌛ Покупатель не подтвердил выполнение сделки\n"
+            else '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Покупатель не подтвердил выполнение сделки\n'
         )
 
     if deal.agent:
