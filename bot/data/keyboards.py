@@ -230,7 +230,9 @@ def get_subscriptions_keyboard(subscriptions: List[str]) -> InlineKeyboardMarkup
     builder = InlineKeyboardBuilder()
 
     for subscription in subscriptions:
-        builder.button(text="Подписаться", url=f"https://t.me/{subscription}")
+        builder.button(
+            text="Подписаться", url=f"https://t.me/{subscription.replace('@', '')}"
+        )
 
     return builder.as_markup()
 
