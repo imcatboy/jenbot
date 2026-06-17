@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 settings = Settings()
 
 engine = create_async_engine(
-    settings.DATABASE_URL, pool_pre_ping=True, pool_size=10, max_overflow=20
+    settings.DATABASE_URL, pool_pre_ping=True, pool_size=3, max_overflow=3
 )
 session_factory = async_sessionmaker(
     bind=engine, expire_on_commit=False, class_=AsyncSession

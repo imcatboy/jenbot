@@ -9,7 +9,7 @@ class AppContainer(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(modules=["api.dependencies", "api.endpoints"])
 
     settings = providers.Singleton(Settings)
-    engine = providers.Singleton(create_async_engine, settings.provided.DATABASE_URL)
+    engine = providers.Singleton(create_async_engine, settings.provided.DATABASE_URL, pool_pre_ping=True, pool_size=3, max_overflow=3)
     session_factory = providers.Singleton(async_sessionmaker, bind=engine)
     redis = providers.Singleton(
         Redis,
