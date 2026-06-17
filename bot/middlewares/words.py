@@ -48,7 +48,7 @@ class WordsMiddleware(BaseMiddleware):
             if self._matches_ban_word(spaced_message, word):
                 message = await event.answer(
                     text.BAN_WORD_ERROR.format(
-                        text.format_user_handle(
+                        text.format_from_user(
                             event.from_user.username, event.from_user.id
                         ),
                         escape(word),

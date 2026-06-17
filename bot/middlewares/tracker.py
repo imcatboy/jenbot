@@ -58,7 +58,7 @@ class TrackerMiddleware(BaseMiddleware):
                     text=text.TRACKER_MESSAGE.format(
                         event.get_url(),
                         text.format_user_handle(
-                            tracker.tracked_user.username,
+                            tracker.tracked_user.usernames,
                             tracker.tracked_user.telegram_id,
                         ),
                     ),

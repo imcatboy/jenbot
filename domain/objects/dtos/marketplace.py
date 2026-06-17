@@ -58,7 +58,7 @@ class UpdateAdvertisementDTO(BaseDTO):
 
 class SellerDTO(BaseDTO):
     name: Optional[str]
-    username: Optional[str]
+    usernames: List[str]
     rating: float
     avatar_id: Optional[int] = None
     advertisement_count: int

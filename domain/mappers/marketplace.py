@@ -51,7 +51,7 @@ class MarketplaceMapper:
         self, user: entities.UserWithMarketplaceUserEntity
     ) -> dtos.SellerDTO:
         return dtos.SellerDTO(
-            username=user.username,
+            usernames=[username.username for username in user.usernames],
             **user.marketplace_user.model_dump(),
         )
 

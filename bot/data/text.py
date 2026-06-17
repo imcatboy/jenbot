@@ -174,6 +174,13 @@ def _description_from_annotation(annotation: object) -> str | None:
     return None
 
 
+def format_from_user(username: Optional[str], telegram_id: int) -> str:
+    if username:
+        return f"@{username} [<code>{telegram_id}</code>]"
+
+    return f"<code>{telegram_id}</code>"
+
+
 def format_user_handle(
     usernames: List[entities.UsernameEntity], telegram_id: int
 ) -> str:
@@ -224,36 +231,57 @@ def get_count_word(
 
 
 def get_ban_user_success_message(
-    username: str, expires_at: Optional[datetime], reason: str
+    usernames: List[entities.UsernameEntity],
+    telegram_id: int,
+    expires_at: Optional[datetime],
+    reason: str,
 ) -> str:
     if expires_at:
         return BAN_USER_SUCCESS.format(
-            username, format_date(expires_at), escape(reason)
+            format_user_handle(usernames, telegram_id),
+            format_date(expires_at),
+            escape(reason),
         )
     else:
-        return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
+        return BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
+            format_user_handle(usernames, telegram_id), escape(reason)
+        )
 
 
 def get_mute_user_success_message(
-    username: str, expires_at: Optional[datetime], reason: str
+    usernames: List[entities.UsernameEntity],
+    telegram_id: int,
+    expires_at: Optional[datetime],
+    reason: str,
 ) -> str:
     if expires_at:
         return MUTE_USER_SUCCESS.format(
-            username, format_date(expires_at), escape(reason)
+            format_user_handle(usernames, telegram_id),
+            format_date(expires_at),
+            escape(reason),
         )
     else:
-        return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
+        return MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
+            format_user_handle(usernames, telegram_id), escape(reason)
+        )
 
 
 def get_warn_user_success_message(
-    username: str, expires_at: Optional[datetime], reason: str
+    usernames: List[entities.UsernameEntity],
+    telegram_id: int,
+    expires_at: Optional[datetime],
+    reason: str,
 ) -> str:
     if expires_at:
         return WARN_USER_SUCCESS.format(
-            username, format_date(expires_at), escape(reason)
+            format_user_handle(usernames, telegram_id),
+            format_date(expires_at),
+            escape(reason),
         )
     else:
-        return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(username, escape(reason))
+        return WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS.format(
+            format_user_handle(usernames, telegram_id), escape(reason)
+        )
 
 
 def get_violations_message(
@@ -274,7 +302,7 @@ def get_violations_message(
         )
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
-        message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
+        message += f"Выдан {format_user_handle(violation.applied_by_user.usernames, violation.applied_by_user.telegram_id)}\n"
         message += f"От {format_date(violation.created_at)}"
 
         if violation.expires_at:
@@ -291,7 +319,7 @@ def get_violations_message(
         )
         message += f"<blockquote>"
         message += f"{escape(violation.reason)}\n"
-        message += f"Выдан {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
+        message += f"Выдан {format_user_handle(violation.applied_by_user.usernames, violation.applied_by_user.telegram_id)}\n"
         message += f"От {format_date(violation.created_at)}"
 
         if violation.expires_at:
@@ -307,12 +335,12 @@ def get_violations_message(
 
 def get_audit_message(violation: entities.ChatViolationWithUserEntity) -> str:
     message = f"<b>{VIOLATIONS[violation.type]}</b>\n\n"
-    message += f"Выдан: {format_user_handle(violation.applied_by_user.username, violation.applied_by_user.telegram_id)}\n"
+    message += f"Выдан: {format_user_handle(violation.applied_by_user.usernames, violation.applied_by_user.telegram_id)}\n"
 
     if violation.telegram_chat_id:
         message += f"В чате: <code>{violation.telegram_chat_id}</code>\n"
 
-    message += f"Пользователь: {format_user_handle(violation.user.username, violation.user.telegram_id)}\n"
+    message += f"Пользователь: {format_user_handle(violation.user.usernames, violation.user.telegram_id)}\n"
     message += f"От: {format_date(violation.created_at)}"
 
     if violation.expires_at:
@@ -330,8 +358,8 @@ def get_action_audit_message(
     violation_id: Optional[int] = None,
 ) -> str:
     message = f"<b>{CHAT_ACTIONS[action]}</b>\n\n"
-    message += f"Пользователь: {format_user_handle(user.username, user.telegram_id)}\n"
-    message += f"Выполнил: {format_user_handle(applied_by_user.username, applied_by_user.telegram_id)}\n"
+    message += f"Пользователь: {format_user_handle(user.usernames, user.telegram_id)}\n"
+    message += f"Выполнил: {format_user_handle(applied_by_user.usernames, applied_by_user.telegram_id)}\n"
 
     if violation_id:
         message += f"Нарушение: <code>{violation_id}</code>"
@@ -346,7 +374,7 @@ def get_event_audit_message(
     comment: Optional[str] = None,
 ) -> str:
     message = f"<b>{CHAT_EVENTS[event]}</b>\n\n"
-    message += f"Пользователь: {format_user_handle(user.username, user.telegram_id)}\n"
+    message += f"Пользователь: {format_user_handle(user.usernames, user.telegram_id)}\n"
     message += f"В чате: <code>{telegram_chat_id}</code>\n"
 
     if comment:
@@ -360,7 +388,8 @@ def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
     message = "👮 <b>Модераторы</b>\n\n"
 
     for moderator in moderators:
-        message += f"@{moderator.username} "
+        if moderator.usernames:
+            message += f"@{moderator.usernames[0].username} "
 
     return message
 
@@ -368,12 +397,12 @@ def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
 def get_report_message(report: entities.ReportWithUserEntity) -> str:
     message = f"<b>{REPORT_TYPES[report.type]}</b>\n\n"
     message += f"Статус: <b>{REPORT_STATUSES[report.status]}</b>\n"
-    message += f"Пользователь: {format_user_handle(report.user.username, report.user.telegram_id)}\n"
+    message += f"Пользователь: {format_user_handle(report.user.usernames, report.user.telegram_id)}\n"
 
     if report.accused_user:
-        message += f"Обвиняемый: {format_user_handle(report.accused_user.username, report.accused_user.telegram_id)}\n"
+        message += f"Обвиняемый: {format_user_handle(report.accused_user.usernames, report.accused_user.telegram_id)}\n"
     if report.applied_by_user:
-        message += f"Изменил статус: {format_user_handle(report.applied_by_user.username, report.applied_by_user.telegram_id)}\n"
+        message += f"Изменил статус: {format_user_handle(report.applied_by_user.usernames, report.applied_by_user.telegram_id)}\n"
 
     message += f"Дата: {format_date(report.created_at)}\n"
 
@@ -462,7 +491,7 @@ def get_violations_count_message(
     violations_count: Dict[types.ViolationType, int],
     start_date: Optional[datetime],
 ) -> str:
-    message = f"🔎 <b>Статистика нарушений {format_user_handle(user.username, user.telegram_id)}</b>\n\n"
+    message = f"🔎 <b>Статистика нарушений {format_user_handle(user.usernames, user.telegram_id)}</b>\n\n"
 
     for violation_type, count in violations_count.items():
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
