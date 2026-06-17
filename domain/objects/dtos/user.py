@@ -3,7 +3,7 @@ from typing import Optional, List
 from .base import BaseDTO
 
 
-class CreateUserDetailDTO(BaseDTO):
+class UserDetailDTO(BaseDTO):
     name: str
     value: str
     is_public: bool
@@ -15,15 +15,8 @@ class CreateReputationUserDTO(BaseDTO):
     description: Optional[str] = None
     added_by_user_id: int
     role: UserReputationRole
-    details: List[CreateUserDetailDTO]
+    details: List[UserDetailDTO]
     scam_report_ids: List[int]
-
-
-class UpdateUserDetailDTO(BaseDTO):
-    id: Optional[int] = None
-    name: str
-    value: str
-    is_public: bool
 
 
 class UpdateReputationUserDTO(BaseDTO):
@@ -34,7 +27,7 @@ class UpdateReputationUserDTO(BaseDTO):
     description: Optional[str] = None
     about: Optional[str] = None
     role: Optional[UserReputationRole] = None
-    details: Optional[List[UpdateUserDetailDTO]] = None
+    details: Optional[List[UserDetailDTO]] = None
     scam_report_ids: Optional[List[int]] = None
 
 

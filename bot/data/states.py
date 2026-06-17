@@ -16,12 +16,20 @@ class AdminReportState(StatesGroup):
     report_id = State()
 
 
-class AdminScamReportState(StatesGroup):
-    accused_user_id = State()
+class ScamReportState(StatesGroup):
     description = State()
+    contact_info = State()
+    attachments = State()
 
 
-class AdminSetReputationState(StatesGroup):
+class AnswerScamReportState(StatesGroup):
+    scam_report_message_id = State()
+    comment = State()
+    report_status = State()
+    scam_report_id = State()
+
+
+class ReviewState(StatesGroup):
+    rating = State()
+    message = State()
     user_id = State()
-    description = State()
-    role = State()

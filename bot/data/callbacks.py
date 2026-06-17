@@ -39,3 +39,16 @@ class SkipCallback(CallbackData, prefix="skip"):
 
 class ReputationUserCallback(CallbackData, prefix="reputation_user"):
     id: int
+
+
+class ScamReportAcceptCallback(CallbackData, prefix="scam_report_accept"):
+    id: int
+
+
+class ScamReportStatusCallback(CallbackData, prefix="scam_report_status"):
+    id: int
+    status: ReportStatus
+
+
+class ReviewRatingCallback(CallbackData, prefix="review_rating"):
+    rating: int

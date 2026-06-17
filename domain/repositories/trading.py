@@ -2,8 +2,9 @@ from sqlalchemy import or_, select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from .base import BaseRepository
 from domain.objects import exceptions, models, entities, dtos, types
+from .relations import get_scam_report_relations
+from .base import BaseRepository
 
 
 class TradingRepository(BaseRepository):
@@ -152,9 +153,11 @@ class TradingRepository(BaseRepository):
         await self.session.flush()
         return entities.ScamReportEntity.model_validate(scam_report)
 
-    async def get_scam_report(self, id: int) -> entities.ScamReportEntity:
-        scam_report = await self.get_by_id(models.ScamReportModel, id)
-        return entities.ScamReportEntity.model_validate(scam_report)
+    async def get_scam_report(self, id: int) -> entities.ScamReportWithRelationsEntity:
+        scam_report = await self.get_by_id(
+            models.ScamReportModel, id, get_scam_report_relations()
+        )
+        return entities.ScamReportWithRelationsEntity.model_validate(scam_report)
 
     async def get_scam_reports(
         self, reputation_user_id: int
@@ -172,7 +175,28 @@ class TradingRepository(BaseRepository):
             for scam_report in result.scalars().all()
         ]
 
+    async def get_scam_report_count(
+        self, user_id: int, status: types.ReportStatus
+    ) -> int:
+        result = await self.session.execute(
+            select(func.count(models.ScamReportModel.id)).where(
+                models.ScamReportModel.user_id == user_id,
+                models.ScamReportModel.status == status,
+            )
+        )
+        return result.scalar_one_or_none() or 0
+
     async def create_review(self, dto: dtos.InsertReviewDTO) -> entities.ReviewEntity:
+        await self.validator.validate_data_not_exists(
+            models.ReviewModel,
+            author_id=dto.author_id,
+            subject_user_id=dto.subject_user_id,
+        )
+        await self.validator.validate_data_not_exists(
+            models.ReviewModel,
+            author_id=dto.author_id,
+            subject_reputation_user_id=dto.subject_reputation_user_id,
+        )
         review = models.ReviewModel(**dto.model_dump())
         await self.create_relation(review, models.UserModel, dto.author_id)
         await self.create_relation(review, models.UserModel, dto.subject_user_id)
@@ -187,10 +211,26 @@ class TradingRepository(BaseRepository):
         await self.session.flush()
         return entities.ReviewEntity.model_validate(review)
 
-    async def add_review_count(self, user_id: int) -> None:
+    async def review_exists(
+        self, author_id: int, subject_user_id: int, subject_reputation_user_id: int
+    ) -> bool:
+        result = await self.session.execute(
+            select(models.ReviewModel.id)
+            .where(
+                models.ReviewModel.author_id == author_id,
+                models.ReviewModel.subject_user_id == subject_user_id,
+                models.ReviewModel.subject_reputation_user_id
+                == subject_reputation_user_id,
+            )
+            .exists()
+            .select()
+        )
+        return result.scalar()
+
+    async def add_review_count(self, reputation_user_id: int) -> None:
         await self.session.execute(
             update(models.ReputationUserModel)
-            .where(models.ReputationUserModel.users.any(models.UserModel.id == user_id))
+            .where(models.ReputationUserModel.id == reputation_user_id)
             .values(review_count=models.ReputationUserModel.review_count + 1)
         )
 

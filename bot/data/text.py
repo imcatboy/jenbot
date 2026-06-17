@@ -37,6 +37,8 @@ REPORT_ACCUSED_USER_ID_MESSAGE = (
 CANNOT_USE_ACTION_ON_USER = (
     "❌ Вы не можете использовать это действие на этом пользователе."
 )
+REVIEW_ALREADY_EXISTS = "❌ Вы уже оставляли отзыв на этого пользователя, один пользователь может оставить только один отзыв на другого пользователя."
+ACCESS_DENIED = "❌ У вас нет доступа к этому действию."
 STATE_VALIDATION_ERROR = "❌ Ошибка введённого значения, попробуйте ещё раз."
 SET_SETTING_SUCCESS = "💬 Настройка <b>{0}</b> установлена."
 UNWARN_USER_SUCCESS = "💤 Предупреждение стало неактивным."
@@ -50,6 +52,10 @@ REPORT_REASON_MESSAGE = "💬 Введите причину обращения (
 REPORT_ATTACHMENTS_MESSAGE = (
     "📎 Прикрепите фото или видео до 40 МБ одним сообщением (если есть)."
 )
+REVIEW_MESSAGE_MESSAGE = "💬 Введите сообщение для отзыва (до 255 символов)."
+REVIEW_SUCCESS = "⭐ Отзыв успешно оставлен."
+USER_NOT_HAS_REPUTATION_USER = "❌ Указанный пользователь не имеет положительной репутации, что обязательно для получения отзыва."
+REVIEW_RATING_MESSAGE = "💬 Выберите оценку от 1 до 5."
 REPORT_ATTACHMENTS_ERROR = "❌ Пожалуйста, отправьте фото или видео."
 REPORT_USERNAME_NOT_FOUND = "❌ Пользователь {0} не найден. Попробуйте ввести его ID."
 REPORT_USERNAME_MESSAGE = "🔍 Я ранее не видел этого пользователя. Введите его username, если есть, иначе пропустите."
@@ -86,6 +92,14 @@ VIOLATIONS_COUNT_OTHER_USER_FORBIDDEN = (
 )
 UNKNOWN_ERROR = (
     "❌ Произошла неизвестная ошибка. Пожалуйста, сообщите об этом администрации."
+)
+SCAM_REPORT_DESCRIPTION_MESSAGE = "💬 Введите описание жалобы, в случае принятия жалобы эта информация будет опубликована в карточке скамера (до 1024 символов)."
+SCAM_REPORT_CONTACT_INFO_MESSAGE = "💬 Введите всю контактную информацию, которую вы можете предоставить о скамере (до 255 символов)."
+SCAM_REPORT_COUNT_MESSAGE = (
+    "❌ У вас уже есть несколько жалоб на скам. Пожалуйста, дождитесь их рассмотрения."
+)
+SCAM_REPORT_ATTACHMENTS_MESSAGE = (
+    "📎 Прикрепите фото или видео до 40 МБ одним сообщением с доказательствами."
 )
 CHAT_NOT_FOUND = "❌ Чат с ботом не найден или закрыт."
 TRACKER_ADDED = "🔍 Трекер на пользователя {0} успешно добавлен."
@@ -196,6 +210,12 @@ def format_date(date: datetime) -> str:
 
     moscow_timezone = zoneinfo.ZoneInfo("Europe/Moscow")
     return date.astimezone(moscow_timezone).strftime("%d.%m.%Y %H:%M")
+
+
+def format_contact_info(contact_info: str) -> str:
+    return " ".join(
+        [f"<code>{word}</code>" for word in escape(contact_info).split(" ")]
+    )
 
 
 def get_command_usage(command: CommandObject, model: Type[BaseModel]) -> str:
@@ -419,6 +439,28 @@ def get_report_message(report: entities.ReportWithUserEntity) -> str:
     return message
 
 
+def get_scam_report_message(scam_report: entities.ScamReportWithRelationsEntity) -> str:
+    message = f"#<code>{scam_report.id}</code> <b>Жалоба на скамера</b>\n\n"
+    message += f"Статус: <b>{REPORT_STATUSES[scam_report.status]}</b>\n"
+    message += f"От пользователя: {format_user_handle(scam_report.user.usernames, scam_report.user.telegram_id)}\n"
+    message += f"Дата жалобы: {format_date(scam_report.created_at)}\n\n"
+    message += f"<b>Описание</b>\n"
+    message += f"<blockquote>{escape(scam_report.description)}</blockquote>\n\n"
+    message += f"<b>Контактная информация</b>\n"
+    message += (
+        f"<blockquote>{format_contact_info(scam_report.contact_info)}</blockquote>\n\n"
+    )
+
+    if scam_report.comment:
+        message += f"<b>Комментарий модератора</b>\n"
+        message += f"<blockquote>{escape(scam_report.comment)}</blockquote>\n\n"
+
+    if scam_report.applied_by_user:
+        message += f"Обработал: {format_user_handle(scam_report.applied_by_user.usernames, scam_report.applied_by_user.telegram_id)}"
+
+    return message
+
+
 def get_check_success_message(
     reputation: entities.ReputationUserWithRelationsEntity,
 ) -> str:
@@ -482,6 +524,20 @@ def get_report_updated_message(report: entities.ReportWithUserEntity) -> str:
     if report.admin_comment:
         message += "<b>Ответ администратора</b>\n"
         message += f"<blockquote>{escape(report.admin_comment)}</blockquote>\n\n"
+
+    return message
+
+
+def get_scam_report_updated_message(
+    scam_report: entities.ScamReportWithRelationsEntity,
+) -> str:
+    message = f"#<code>{scam_report.id}</code> <b>Жалоба на скамера</b>\n\n"
+    message += f"<blockquote>{escape(scam_report.description)}</blockquote>\n\n"
+    message += f"<b>{REPORT_STATUSES[scam_report.status]}</b>\n"
+
+    if scam_report.comment:
+        message += "<b>Комментарий модератора</b>\n"
+        message += f"<blockquote>{escape(scam_report.comment)}</blockquote>\n\n"
 
     return message
 

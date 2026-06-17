@@ -1,8 +1,8 @@
 from aiogram.exceptions import TelegramAPIError
 from typing import Optional
 
-from domain.services import UserService
 from domain.objects import entities, exceptions
+from domain.services import UserService
 from bot.core import BotProtocol
 
 

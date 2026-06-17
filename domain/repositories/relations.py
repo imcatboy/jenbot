@@ -31,6 +31,22 @@ def get_reputation_user_relations() -> List[Any]:
     ]
 
 
+def get_scam_report_relations() -> List[Any]:
+    return [
+        joinedload(models.ScamReportModel.user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ScamReportModel.accused_reputation_user).options(
+            selectinload(models.ReputationUserModel.users).options(
+                selectinload(models.UserModel.usernames)
+            )
+        ),
+        joinedload(models.ScamReportModel.applied_by_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+    ]
+
+
 def get_violation_relations() -> List[Any]:
     return [
         joinedload(models.ChatViolationModel.user).options(

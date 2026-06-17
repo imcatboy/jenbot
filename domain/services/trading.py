@@ -232,17 +232,29 @@ class TradingService:
         scam_report = await self.trading_repository.update_scam_report(id, dto)
 
         if dto.status == types.ReportStatus.APPROVED:
-            await self.trading_repository.add_scam_report_count(dto.user_id)
+            await self.trading_repository.add_scam_report_count(scam_report.user_id)
 
         return scam_report
 
-    async def get_scam_report(self, id: int) -> entities.ScamReportEntity:
+    async def get_scam_report(self, id: int) -> entities.ScamReportWithRelationsEntity:
         return await self.trading_repository.get_scam_report(id)
 
     async def get_scam_reports(
         self, reputation_user_id: int
     ) -> List[entities.ScamReportEntity]:
         return await self.trading_repository.get_scam_reports(reputation_user_id)
+
+    async def get_user_scam_report_count(
+        self, user_id: int, status: types.ReportStatus
+    ) -> int:
+        return await self.trading_repository.get_scam_report_count(user_id, status)
+
+    async def review_exists(
+        self, author_id: int, subject_user_id: int, subject_reputation_user_id: int
+    ) -> bool:
+        return await self.trading_repository.review_exists(
+            author_id, subject_user_id, subject_reputation_user_id
+        )
 
     async def create_review(self, dto: dtos.CreateReviewDTO) -> entities.ReviewEntity:
         reputation_user = await self.user_repository.get_reputation_user_by_user_id(
@@ -257,7 +269,7 @@ class TradingService:
             subject_reputation_user_id=reputation_user.id,
         )
         review = await self.trading_repository.create_review(insert_review_dto)
-        await self.trading_repository.add_review_count(dto.subject_user_id)
+        await self.trading_repository.add_review_count(reputation_user.id)
         return review
 
     async def create_external_deal(

@@ -26,7 +26,11 @@ class WordsMiddleware(BaseMiddleware):
         event: Message,
         data: Dict[str, Any],
     ) -> Any:
-        user: entities.UserEntity = data["user"]
+        user: entities.UserEntity | None = data.get("user")
+
+        if not user:
+            return await handler(event, data)
+
         audit_actions: AuditActions = data["audit_actions"]
 
         if (

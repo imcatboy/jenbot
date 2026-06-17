@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 
+from domain.objects.entities.user import ReputationUserWithUsersEntity
 from domain.objects.types import DealCondition, DealType, DealStatus, ReportStatus
 from .base import BaseEntity, EntityWithMetadata
 
 if TYPE_CHECKING:
     from .marketplace import ProductOptionEntity, ProductWithImagesEntity
+    from .user import UserEntity
 
 
 class TradeProductOptionEntity(BaseEntity):
@@ -66,3 +68,9 @@ class ScamReportEntity(EntityWithMetadata):
     user_id: int
     accused_reputation_user_id: Optional[int] = None
     applied_by_user_id: Optional[int] = None
+
+
+class ScamReportWithRelationsEntity(ScamReportEntity):
+    user: UserEntity
+    accused_reputation_user: Optional[ReputationUserWithUsersEntity] = None
+    applied_by_user: Optional[UserEntity] = None

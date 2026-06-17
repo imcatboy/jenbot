@@ -210,7 +210,6 @@ export const ReputationCard = () => {
               title="Описание"
               value={draft?.description ?? ""}
               onSave={(value) => updateDraft({ description: value })}
-              disabled={!isAdmin}
             />
             <AreaField
               title="Комментарий пользователя"

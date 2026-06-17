@@ -226,7 +226,10 @@ class UserRepository(BaseRepository):
     ) -> entities.ReputationUserWithRelationsEntity:
         result = await self.session.execute(
             select(models.ReputationUserModel)
-            .join(models.UserModel)
+            .join(
+                models.UserModel,
+                models.UserModel.reputation_user_id == models.ReputationUserModel.id,
+            )
             .where(models.UserModel.id == user_id)
             .options(*get_reputation_user_relations())
         )
@@ -274,7 +277,7 @@ class UserRepository(BaseRepository):
         reputation_users = await self.session.execute(query)
         return [
             entities.ReputationUserWithRelationsEntity.model_validate(reputation_user)
-            for reputation_user in reputation_users.scalars().all()
+            for reputation_user in reputation_users.scalars().unique().all()
         ]
 
     async def get_reputation_user(

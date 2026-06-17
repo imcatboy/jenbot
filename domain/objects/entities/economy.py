@@ -33,6 +33,8 @@ class ChatPurchaseEntity(EntityWithMetadata):
 class ReviewEntity(EntityWithMetadata):
     message: str
     rating: int
-    user_id: int
-    for_user_id: int
-    deal_id: int
+    author_id: int
+    subject_user_id: int
+    subject_reputation_user_id: int
+    deal_id: Optional[int] = None
+    external_deal_id: Optional[int] = None

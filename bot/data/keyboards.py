@@ -37,6 +37,36 @@ REPORT_TYPE_KEYBOARD = InlineKeyboardMarkup(
 )
 
 
+REVIEW_RATING_KEYBOARD = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="⭐",
+                callback_data=ReviewRatingCallback(rating=1).pack(),
+            ),
+            InlineKeyboardButton(
+                text="⭐⭐",
+                callback_data=ReviewRatingCallback(rating=2).pack(),
+            ),
+            InlineKeyboardButton(
+                text="⭐⭐⭐",
+                callback_data=ReviewRatingCallback(rating=3).pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="⭐⭐⭐⭐",
+                callback_data=ReviewRatingCallback(rating=4).pack(),
+            ),
+            InlineKeyboardButton(
+                text="⭐⭐⭐⭐⭐",
+                callback_data=ReviewRatingCallback(rating=5).pack(),
+            ),
+        ],
+    ]
+)
+
+
 REPUTATION_ROLE_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -115,10 +145,59 @@ def get_skip_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return builder.adjust(2).as_markup()
 
 
+def get_scam_report_keyboard(
+    scam_report: entities.ScamReportWithRelationsEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    if not scam_report.applied_by_user:
+        builder.button(
+            text="📌 Рассмотреть",
+            callback_data=ScamReportAcceptCallback(id=scam_report.id).pack(),
+        )
+    else:
+        if scam_report.status != ReportStatus.PENDING:
+            builder.button(
+                text="🔎 На рассмотрении",
+                callback_data=ScamReportStatusCallback(
+                    id=scam_report.id, status=ReportStatus.PENDING
+                ).pack(),
+            )
+        if scam_report.status != ReportStatus.APPROVED:
+            builder.button(
+                text="✅ Принять",
+                callback_data=ScamReportStatusCallback(
+                    id=scam_report.id, status=ReportStatus.APPROVED
+                ).pack(),
+            )
+        if scam_report.status != ReportStatus.REJECTED:
+            builder.button(
+                text="❌ Отклонить",
+                callback_data=ScamReportStatusCallback(
+                    id=scam_report.id, status=ReportStatus.REJECTED
+                ).pack(),
+            )
+        if scam_report.status != ReportStatus.CANCELLED:
+            builder.button(
+                text="⚠️ Отменить",
+                callback_data=ScamReportStatusCallback(
+                    id=scam_report.id, status=ReportStatus.CANCELLED
+                ).pack(),
+            )
+
+    return builder.adjust(3).as_markup()
+
+
 def get_check_keyboard(
+    reputation_user: entities.ReputationUserWithRelationsEntity,
     scam_reports: List[entities.ScamReportEntity],
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+
+    builder.button(
+        text=f"👤 Ссылка на профиль",
+        url=f"tg://user?id={reputation_user.telegram_id}",
+    )
 
     for scam_report in scam_reports:
         builder.button(
@@ -126,7 +205,7 @@ def get_check_keyboard(
             callback_data=CheckCallback(id=scam_report.id).pack(),
         )
 
-    return builder.adjust(2).as_markup()
+    return builder.adjust(1, 2).as_markup()
 
 
 def get_subscriptions_keyboard(subscriptions: List[str]) -> InlineKeyboardMarkup:

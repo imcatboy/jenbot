@@ -1,17 +1,23 @@
 import logging
 import asyncio
 
-from aiogram.types import InputMediaPhoto, InputMediaVideo, ChatPermissions
 from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
 from aiogram.enums import ChatMemberStatus
+from aiogram.types import ChatPermissions
 from typing import List, Optional
 from datetime import datetime
 
-from domain.services import ModerationService, ConfigService, UserService
+from domain.services import (
+    ModerationService,
+    ConfigService,
+    UserService,
+    TradingService,
+)
 from domain.objects.types import UserRole, ViolationType
 from domain.objects import dtos, entities, exceptions
 from bot.data import text, keyboards
 from bot.core import BotProtocol
+from .media import MediaActions
 
 
 logger = logging.getLogger(__name__)
@@ -25,11 +31,15 @@ class ModerationActions:
         user_service: UserService,
         bot: BotProtocol,
         config_service: ConfigService,
+        media_actions: MediaActions,
+        trading_service: TradingService,
     ) -> None:
         self.moderation_service = moderation_service
         self.config_service = config_service
         self.user_service = user_service
+        self.media_actions = media_actions
         self.bot = bot
+        self.trading_service = trading_service
 
     async def _safe_ban(
         self, chat_id: int, user: entities.UserEntity, expires_at: Optional[datetime]
@@ -90,26 +100,41 @@ class ModerationActions:
             raise exceptions.ConfigNotFoundException("admin_chat_id")
 
         if report.attachments:
-            attachments = []
-
-            for attachment in report.attachments:
-                try:
-                    file = await self.bot.get_file(attachment)
-
-                    if "photo" in file.file_path:
-                        attachments.append(InputMediaPhoto(media=file.file_id))
-                    elif "video" in file.file_path:
-                        attachments.append(InputMediaVideo(media=file.file_id))
-                except TelegramAPIError:
-                    continue
-
-            if attachments:
-                await self.bot.send_media_group(admin_chat_id, attachments)
+            media_group = await self.media_actions.create_media_group(
+                report.attachments
+            )
+            await self.bot.send_media_group(
+                admin_chat_id,
+                media_group,
+            )
+            await self.bot.send_message(
+                admin_chat_id,
+                text.get_report_message(report),
+                reply_markup=keyboards.get_report_keyboard(report),
+            )
+            return
 
         await self.bot.send_message(
             admin_chat_id,
             text.get_report_message(report),
             reply_markup=keyboards.get_report_keyboard(report),
+        )
+
+    async def send_scam_report_message(self, scam_report_id: int) -> None:
+        scam_report = await self.trading_service.get_scam_report(scam_report_id)
+        moderation_chat_id = await self.config_service.get("moderation_chat_id")
+
+        if not moderation_chat_id:
+            raise exceptions.ConfigNotFoundException("moderation_chat_id")
+
+        media_group = await self.media_actions.create_media_group(
+            scam_report.attachments
+        )
+        await self.bot.send_media_group(moderation_chat_id, media_group)
+        await self.bot.send_message(
+            moderation_chat_id,
+            text.get_scam_report_message(scam_report),
+            reply_markup=keyboards.get_scam_report_keyboard(scam_report),
         )
 
     async def send_report_updated_message(
@@ -119,6 +144,17 @@ class ModerationActions:
             await self.bot.send_message(
                 report.user.telegram_id,
                 text.get_report_updated_message(report),
+            )
+        except TelegramAPIError:
+            pass
+    
+    async def send_scam_report_updated_message(
+        self, scam_report: entities.ScamReportWithRelationsEntity
+    ) -> None:
+        try:
+            await self.bot.send_message(
+                scam_report.user.telegram_id,
+                text.get_scam_report_updated_message(scam_report),
             )
         except TelegramAPIError:
             pass
