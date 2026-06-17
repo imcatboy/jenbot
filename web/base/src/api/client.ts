@@ -1,5 +1,4 @@
 import axios from "axios";
-import WebApp from "@twa-dev/sdk";
 import qs from "qs";
 
 export const apiClient = axios.create({
@@ -14,14 +13,15 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    let initData = WebApp.initData;
+    const telegramWebApp = window.Telegram?.WebApp;
+    let initData = telegramWebApp?.initData;
 
-    if (!initData && import.meta.env.DEV) {
-      initData = import.meta.env.VITE_DEV_TELEGRAM_INIT_DATA || "";
+    if (!initData && !import.meta.env.PROD) {
+      initData = import.meta.env.VITE_TELEGRAM_INIT_DATA || "XXXX";
     }
 
     if (initData) {
-      config.headers["X-Telegram-Init-Data"] = initData;
+      config.headers.set("X-Telegram-Init-Data", initData);
     }
 
     return config;
