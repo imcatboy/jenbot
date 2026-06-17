@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --fix && npm run lint:styles",
     "lint:styles": "stylelint \"src/**/*.{css,scss}\" --fix",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && scp -r ./dist root@157.22.196.60:jenbot/web/base/ && ssh root@157.22.196.60 \"chmod -R 755 ~/jenbot/web/base/dist && docker exec jenbot-nginx-1 nginx -s reload\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",

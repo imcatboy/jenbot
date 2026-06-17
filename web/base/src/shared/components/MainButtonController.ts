@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useUIStore } from "@/stores";
-import WebApp from "@twa-dev/sdk";
 
 export const MainButtonController = () => {
   const config = useUIStore((state) => state.mainButtonConfig);
 
   useEffect(() => {
-    const mainButton = WebApp.MainButton;
+    const telegramWebApp = window.Telegram?.WebApp;
+    const mainButton = telegramWebApp?.MainButton;
 
     if (!mainButton) return;
 

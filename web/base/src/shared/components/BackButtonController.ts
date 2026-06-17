@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import WebApp from "@twa-dev/sdk";
 import { useUIStore } from "@/stores";
 
 export const BackButtonController = () => {
   const backButtonConfig = useUIStore((state) => state.backButtonConfig);
 
   useEffect(() => {
-    const backButton = WebApp.BackButton;
+    const telegramWebApp = window.Telegram?.WebApp;
+    const backButton = telegramWebApp?.BackButton;
 
     if (!backButton) return;
 
