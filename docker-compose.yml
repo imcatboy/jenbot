@@ -14,7 +14,6 @@ services:
       -c shared_buffers=32MB
       -c work_mem=4MB
       -c maintenance_work_mem=16MB
-      -c max_connections=20
     deploy:
       resources:
         limits:
