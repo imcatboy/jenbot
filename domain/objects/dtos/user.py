@@ -4,6 +4,7 @@ from .base import BaseDTO
 
 
 class UserDetailDTO(BaseDTO):
+    id: Optional[int] = None
     name: str
     value: str
     is_public: bool
