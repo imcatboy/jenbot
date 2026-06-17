@@ -214,7 +214,7 @@ def get_check_keyboard(
     for scam_report in scam_reports:
         builder.button(
             text=f"📌 #{scam_report.id}",
-            callback_data=CheckCallback(id=scam_report.id).pack(),
+            callback_data=CheckCallback(report_id=scam_report.id).pack(),
         )
 
     return builder.adjust(1, 2).as_markup()
