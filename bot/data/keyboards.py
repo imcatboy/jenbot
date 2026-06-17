@@ -194,10 +194,22 @@ def get_check_keyboard(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    builder.button(
-        text=f"👤 Ссылка на профиль",
-        url=f"tg://user?id={reputation_user.telegram_id}",
-    )
+    if reputation_user.users:
+        builder.button(
+            text=f"👤 Ссылка на профиль",
+            url=f"tg://user?id={reputation_user.users[0].telegram_id}",
+        )
+
+    if (
+        reputation_user.review_count > 0
+        and reputation_user.role != UserReputationRole.SCAMMER
+    ):
+        builder.button(
+            text=f"💬 Отзывы",
+            callback_data=ReviewsCallback(
+                reputation_user_id=reputation_user.id, offset=0
+            ).pack(),
+        )
 
     for scam_report in scam_reports:
         builder.button(

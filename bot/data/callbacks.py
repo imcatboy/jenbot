@@ -52,3 +52,8 @@ class ScamReportStatusCallback(CallbackData, prefix="scam_report_status"):
 
 class ReviewRatingCallback(CallbackData, prefix="review_rating"):
     rating: int
+
+
+class ReviewsCallback(CallbackData, prefix="reviews"):
+    reputation_user_id: int
+    offset: int

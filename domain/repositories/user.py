@@ -181,6 +181,11 @@ class UserRepository(BaseRepository):
     async def update_reputation_user(
         self, reputation_user_id: int, dto: dtos.UpdateReputationUserDTO
     ) -> entities.ReputationUserEntity:
+        await self.validator.validate_values_not_exists(
+            models.UserDetailModel,
+            "value",
+            [detail.value for detail in dto.details if detail.id is None],
+        )
         reputation_user = await self.get_by_id(
             models.ReputationUserModel, reputation_user_id
         )
@@ -264,7 +269,7 @@ class UserRepository(BaseRepository):
                 cast(models.UserModel.telegram_id, String).like(f"%{search}%")
             )
 
-        if re.match(r"^@[a-zA-Z0-9_]+$", search):
+        if re.match(r"^[a-zA-Z0-9_]+$", search.replace("@", "")):
             conditions.append(
                 models.UsernameModel.username.ilike(
                     f"%{search.replace("@", "").lower()}%"

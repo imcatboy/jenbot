@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List, Type
 from sqlalchemy import select
 
-from domain.objects import exceptions, BaseModel
+from domain.objects import exceptions, EntityModel
 
 
 class EntityValidator:
@@ -10,13 +10,15 @@ class EntityValidator:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def validate_exists(self, model: Type[BaseModel], entity_id: int) -> None:
+    async def validate_exists(self, model: Type[EntityModel], entity_id: int) -> None:
         entity = await self.session.get(model, entity_id)
 
         if not entity:
             raise exceptions.ObjectNotFoundException(model.__name__, [entity_id])
 
-    async def validate_ids_exist(self, model: Type[BaseModel], ids: List[int]) -> None:
+    async def validate_ids_exist(
+        self, model: Type[EntityModel], ids: List[int]
+    ) -> None:
         if not ids:
             return
 
@@ -32,7 +34,7 @@ class EntityValidator:
             raise exceptions.ObjectNotFoundException(model.__name__, missing_ids)
 
     async def validate_data_not_exists(
-        self, model: Type[BaseModel], **data: Any
+        self, model: Type[EntityModel], **data: Any
     ) -> None:
         if not data:
             return
@@ -43,7 +45,7 @@ class EntityValidator:
         if objects:
             raise exceptions.ObjectAlreadyExistsException(model.__name__, **data)
 
-    async def validate_data_exists(self, model: Type[BaseModel], **data: Any) -> None:
+    async def validate_data_exists(self, model: Type[EntityModel], **data: Any) -> None:
         if not data:
             return
 
@@ -54,7 +56,7 @@ class EntityValidator:
             raise exceptions.ObjectNotFoundException(model.__name__, **data)
 
     async def validate_data_one_exists(
-        self, model: Type[BaseModel], **data: Any
+        self, model: Type[EntityModel], **data: Any
     ) -> None:
         if not data:
             return
@@ -69,7 +71,7 @@ class EntityValidator:
             raise exceptions.TooManyObjectsFoundException(model.__name__, **data)
 
     async def validate_values_not_exists(
-        self, model: Type[BaseModel], column: str, values: List[Any]
+        self, model: Type[EntityModel], column: str, values: List[Any]
     ) -> None:
         if not values:
             return
