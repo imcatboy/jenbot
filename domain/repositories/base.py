@@ -207,7 +207,6 @@ class BaseRepository:
             return
 
         values = set(values)
-
         fk_column = foreign_key_column or parent.fk_name
 
         if not values:
@@ -229,6 +228,7 @@ class BaseRepository:
             for object in current_objects
             if getattr(object, value_column) not in values
         ]
+
         to_add = values - current_values
 
         if to_remove:
@@ -243,9 +243,25 @@ class BaseRepository:
                 )
             )
 
-        for value in to_add:
-            object = child_model(**{value_column: value, fk_column: parent.id})
-            self.session.add(object)
+        if to_add:
+            existing_objects_result = await self.session.execute(
+                select(child_model).where(
+                    getattr(child_model, value_column).in_(list(to_add))
+                )
+            )
+            existing_objects = existing_objects_result.scalars().all()
+            existing_values = set()
+
+            for object in existing_objects:
+                val = getattr(object, value_column)
+                existing_values.add(val)
+                setattr(object, fk_column, parent.id)
+
+            new_values = to_add - existing_values
+
+            for value in new_values:
+                new_object = child_model(**{value_column: value, fk_column: parent.id})
+                self.session.add(new_object)
 
         await self.session.flush()
 
