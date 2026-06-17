@@ -92,7 +92,7 @@ async def username_handler(
 ):
     state_payload = await state.get_data()
     telegram_id = state_payload["accused_user_id"]
-    accused_user = await user_service.get_or_create(telegram_id, [state_data])
+    accused_user = await user_service.get_or_create(telegram_id, [state_data.lower()])
     await state.update_data(accused_user_id=accused_user.id)
     await state.set_state(states.ReportState.reason)
     await message.answer(

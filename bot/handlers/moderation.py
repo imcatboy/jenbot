@@ -83,7 +83,7 @@ async def globalban_handler(
 ):
     if isinstance(command_data.username, str):
         purpose_user = await user_actions.get_telegram_user(
-            command_data.username, message.chat.id
+            command_data.username.lower(), message.chat.id
         )
     elif isinstance(command_data.username, int):
         purpose_user = await user_service.get_or_create(command_data.username)
