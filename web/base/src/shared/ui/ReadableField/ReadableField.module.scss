@@ -7,7 +7,6 @@
   border-radius: 12px;
   border: 1px solid $secondary-bg-color;
   width: 100%;
-  cursor: pointer;
   height: 52px;
 }
 
@@ -32,6 +31,7 @@
 
 .editIcon {
   color: $hint-color;
+  cursor: pointer;
 }
 
 .inputContainer {

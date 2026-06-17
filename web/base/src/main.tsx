@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles/global.scss";
+import { getTelegramWebApp, isTelegramWebApp } from "@/utils";
 import App from "./App.tsx";
 
 declare global {
@@ -12,10 +13,9 @@ declare global {
   }
 }
 
-const telegramWebApp = window.Telegram?.WebApp;
-const isTelegram = telegramWebApp && telegramWebApp.platform !== "unknown";
+const telegramWebApp = getTelegramWebApp();
 
-if (isTelegram) {
+if (isTelegramWebApp() && telegramWebApp) {
   telegramWebApp.expand();
 
   const updateViewportHeight = () => {

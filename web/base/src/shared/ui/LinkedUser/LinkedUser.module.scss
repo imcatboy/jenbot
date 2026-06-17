@@ -33,8 +33,10 @@
 
 .editButton {
   color: $main-color;
+  cursor: pointer;
 }
 
 .removeButton {
   color: $destructive-color;
+  cursor: pointer;
 }

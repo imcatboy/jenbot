@@ -3,7 +3,7 @@ import { useUIStore } from "@/stores";
 import { useCreateUser, useUpdateUser, useUser } from "@/hooks";
 import { useCallback, useEffect, useState } from "react";
 import { Sceleton, TextField, TextFieldList } from "@/shared/ui";
-import { hasDuplicates } from "@/mappers";
+import { hasDuplicates } from "@/utils";
 import { WarningIcon } from "@/assets/icons";
 import type { UserResponse } from "@/api/schemas";
 

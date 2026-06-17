@@ -12,16 +12,38 @@ export const MainButtonController = () => {
 
     mainButton.setText(config.label);
 
-    if (config.isEnabled) mainButton.enable();
-    else mainButton.disable();
-    if (config.isVisible) mainButton.show();
-    else mainButton.hide();
-    if (config.isLoading) mainButton.showProgress();
-    else mainButton.hideProgress();
-    mainButton.onClick(config.onClick);
+    if (config.isEnabled && !mainButton.isActive) {
+      mainButton.setParams({
+        is_active: true,
+        color: telegramWebApp.themeParams.button_color || "#3390EC",
+        text_color: telegramWebApp.themeParams.button_text_color || "#FFFFFF",
+      });
+    } else if (!config.isEnabled && mainButton.isActive) {
+      mainButton.setParams({
+        is_active: false,
+        color: telegramWebApp.themeParams.hint_color || "#8E8E93",
+        text_color: telegramWebApp.themeParams.button_text_color || "#FFFFFF",
+      });
+    }
+
+    if (config.isVisible && !mainButton.isVisible) mainButton.show();
+    else if (!config.isVisible && mainButton.isVisible) mainButton.hide();
+
+    if (config.isLoading && !mainButton.isProgressVisible)
+      mainButton.showProgress();
+    else if (!config.isLoading && mainButton.isProgressVisible)
+      mainButton.hideProgress();
+
+    const handleMainClick = () => {
+      if (config.onClick && config.isEnabled && !config.isLoading) {
+        config.onClick();
+      }
+    };
+
+    mainButton.onClick(handleMainClick);
 
     return () => {
-      mainButton.offClick(config.onClick);
+      mainButton.offClick(handleMainClick);
     };
   }, [config]);
 

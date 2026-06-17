@@ -24,7 +24,7 @@ import {
   useMyUser,
 } from "@/hooks";
 import { useCallback, useEffect } from "react";
-import { draftToCreateRequest, draftToUpdateRequest } from "@/mappers";
+import { draftToCreateRequest, draftToUpdateRequest } from "@/utils";
 import { WarningIcon } from "@/assets/icons";
 import type { ScamReportResponse } from "@/api";
 

@@ -1,6 +1,8 @@
 .app {
   display: flex;
   flex-direction: column;
-  flex: 1 0 auto;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding-bottom: 36px;
 }

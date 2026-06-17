@@ -15,6 +15,7 @@ export const MainSearch = () => {
   const setMainButtonConfig = useUIStore((state) => state.setMainButtonConfig);
   const setBackButtonConfig = useUIStore((state) => state.setBackButtonConfig);
   const setCardId = useUIStore((state) => state.setCardId);
+  const isMainButtonEnabled = debouncedSearch.length >= 3;
 
   const handleCreateCard = useCallback(() => {
     setView("card");
@@ -30,16 +31,19 @@ export const MainSearch = () => {
   useEffect(() => {
     setMainButtonConfig({
       isVisible: true,
-      isEnabled: debouncedSearch.length >= 3,
+      isEnabled: isMainButtonEnabled,
       label: "Создать новую карточку",
       onClick: handleCreateCard,
     });
-  }, [setMainButtonConfig, handleCreateCard, debouncedSearch.length]);
+  }, [setMainButtonConfig, isMainButtonEnabled, handleCreateCard]);
 
-  const handleClick = (reputationUserId: number) => {
-    setCardId(reputationUserId);
-    setView("card");
-  };
+  const handleClick = useCallback(
+    (reputationUserId: number) => {
+      setCardId(reputationUserId);
+      setView("card");
+    },
+    [setCardId, setView],
+  );
 
   return (
     <div className={styles.mainSearch}>

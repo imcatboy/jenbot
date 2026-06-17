@@ -10,15 +10,21 @@ export const BackButtonController = () => {
 
     if (!backButton) return;
 
-    if (backButtonConfig.isVisible) {
+    if (backButtonConfig.isVisible && !backButton.isVisible) {
       backButton.show();
-    } else {
+    } else if (!backButtonConfig.isVisible && backButton.isVisible) {
       backButton.hide();
     }
 
-    backButton.onClick(backButtonConfig.onClick);
+    const handleBackClick = () => {
+      if (backButtonConfig.onClick) {
+        backButtonConfig.onClick();
+      }
+    };
+
+    backButton.onClick(handleBackClick);
     return () => {
-      backButton.offClick(backButtonConfig.onClick);
+      backButton.offClick(handleBackClick);
     };
   }, [backButtonConfig]);
 

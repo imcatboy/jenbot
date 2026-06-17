@@ -66,10 +66,11 @@ export const useUpdateUser = () => {
   });
 };
 
-export const useMyUser = () => {
+export const useMyUser = (enabled?: boolean) => {
   return useQuery({
     queryKey: USER_KEYS.myUser(),
     queryFn: () => userService.getMyUser(),
     staleTime: 1000 * 60 * 5,
+    enabled,
   });
 };
