@@ -26,14 +26,20 @@ class TelegramUserRaw(BaseModel):
     language_code: str | None = None
 
 
-def validate_init_data(init_data: str, max_age: int = 3600) -> TelegramUserRaw:
-    params = dict(parse_qsl(unquote(init_data)))
+def validate_init_data(
+    init_data: str, bot_token: str, max_age: int = 3600
+) -> TelegramUserRaw:
+    params = dict(parse_qsl(init_data))
+
+    if "hash" not in params:
+        raise ValueError("Missing hash")
+
     data_check_string = "\n".join(
         f"{k}={v}" for k, v in sorted(params.items()) if k != "hash"
     )
-    secret_key = hmac.new(
-        b"WebAppData", settings.BOT_TOKEN.encode(), hashlib.sha256
-    ).digest()
+
+    secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+
     calculated_hash = hmac.new(
         secret_key, data_check_string.encode(), hashlib.sha256
     ).hexdigest()
@@ -53,7 +59,7 @@ async def resolve_current_user(
 ) -> entities.UserEntity:
     try:
         telegram_user = validate_init_data(init_data, settings.BOT_TOKEN)
-    except Exception:
+    except Exception as e:
         raise HTTPException(401, "Telegram auth failed")
 
     return await user_service.get_or_create(
