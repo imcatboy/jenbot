@@ -42,10 +42,21 @@ class UserRepository(BaseRepository):
         )
 
         if user:
-            await self.set_many_to_one_relation(
-                user, models.UsernameModel, "username", usernames
-            )
-            await self.session.flush()
+            existing_usernames = {username.username for username in user.usernames}
+            new_usernames = [
+                username for username in usernames if username not in existing_usernames
+            ]
+
+            if new_usernames:
+                await self.set_many_to_one_relation(
+                    user,
+                    models.UsernameModel,
+                    "username",
+                    new_usernames + existing_usernames,
+                )
+                await self.session.flush()
+                await self.session.refresh(user, ["usernames"])
+
             return entities.UserEntity.model_validate(user)
 
         try:

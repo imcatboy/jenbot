@@ -13,34 +13,39 @@ class UserActions:
         self.bot = bot
 
     async def get_telegram_user(
-        self, username: str | int, chat_id: Optional[int] = None
+        self, username_or_id: str | int, chat_id: Optional[int] = None
     ) -> entities.UserEntity:
-        if isinstance(username, str):
-            return await self.user_service.get_by_username(username)
 
-        try:
-            chat = await self.bot.get_chat(username)
-            usernames = [
-                username.lower() for username in chat.active_usernames
-            ]
-            return await self.user_service.get_or_create(chat.id, usernames)
-        except TelegramAPIError:
-            pass
+        if isinstance(username_or_id, str):
+            return await self.user_service.get_by_username(username_or_id.lower())
+
+        collected_usernames = set()
 
         if chat_id:
             try:
-                member = await self.bot.get_chat_member(chat_id, username)
+                member = await self.bot.get_chat_member(
+                    chat_id=chat_id, user_id=username_or_id
+                )
 
-                try:
-                    chat = await self.bot.get_chat(member.user.id)
-                    usernames = [
-                        username.lower() for username in chat.active_usernames
-                    ]
-                except TelegramAPIError:
-                    usernames = [member.user.username.lower()] if member.user.username else []
-
-                return await self.user_service.get_or_create(member.user.id, usernames)
+                if member.user.username:
+                    collected_usernames.add(member.user.username.lower())
             except TelegramAPIError:
                 pass
 
-        raise exceptions.UserNotFoundException(str(username))
+        try:
+            chat = await self.bot.get_chat(username_or_id)
+
+            if chat.active_usernames:
+                for username in chat.active_usernames:
+                    collected_usernames.add(username.lower())
+            elif chat.username:
+                collected_usernames.add(chat.username.lower())
+        except TelegramAPIError:
+            pass
+
+        if collected_usernames or chat_id:
+            return await self.user_service.get_or_create(
+                telegram_id=username_or_id, usernames=list(collected_usernames)
+            )
+
+        raise exceptions.UserNotFoundException(str(username_or_id))

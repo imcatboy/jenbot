@@ -1,5 +1,4 @@
 from typing import Callable, Dict, Any, Awaitable, Union
-from aiogram.exceptions import TelegramAPIError
 from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 
@@ -18,41 +17,26 @@ class UserMiddleware(BaseMiddleware):
     ) -> Any:
         user_service: UserService = data["user_service"]
 
-        if not getattr(event, "from_user", None):
+        if not getattr(event, "from_user", None) or event.from_user.is_bot:
             return await handler(event, data)
 
-        try:
-            chat = await event.bot.get_chat(event.from_user.id)
-            usernames = [
-                username.lower() for username in chat.active_usernames
-            ]
-        except TelegramAPIError:
-            usernames = (
-                [event.from_user.username.lower()] if event.from_user.username else []
-            )
-
-        user = await user_service.get_or_create(event.from_user.id, usernames)
+        from_user = event.from_user
+        usernames = [from_user.username.lower()] if from_user.username else []
+        user = await user_service.get_or_create(from_user.id, usernames)
         data["user"] = user
 
         if (
             isinstance(event, Message)
             and event.reply_to_message
             and event.reply_to_message.from_user
+            and not event.reply_to_message.from_user.is_bot
         ):
-            try:
-                chat = await event.bot.get_chat(event.reply_to_message.from_user.id)
-                usernames = [
-                    username.lower() for username in chat.active_usernames
-                ]
-            except TelegramAPIError:
-                usernames = (
-                    [event.reply_to_message.from_user.username.lower()]
-                    if event.reply_to_message.from_user.username
-                    else []
-                )
-
+            reply_from_user = event.reply_to_message.from_user
+            reply_usernames = (
+                [reply_from_user.username.lower()] if reply_from_user.username else []
+            )
             reply_to_user = await user_service.get_or_create(
-                event.reply_to_message.from_user.id, usernames
+                reply_from_user.id, reply_usernames
             )
             data["reply_to_user"] = reply_to_user
 

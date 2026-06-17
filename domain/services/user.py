@@ -47,7 +47,11 @@ class UserService:
         user = await self.user_cache.get_user_by_telegram_id(telegram_id)
 
         if user:
-            return user
+            existing_usernames = {username.username for username in user.usernames}
+            incoming_usernames = set(usernames)
+
+            if incoming_usernames.issubset(existing_usernames):
+                return user
 
         user = await self.user_repository.get_or_create(telegram_id, usernames)
         await self.user_cache.set_user(user)

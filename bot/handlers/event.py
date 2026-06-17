@@ -1,10 +1,13 @@
-from aiogram.filters import ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER
-from aiogram.exceptions import TelegramAPIError
-from aiogram.types import ChatMemberUpdated
 from aiogram import Router, F
+from aiogram.types import ChatMemberUpdated
+from aiogram.filters.chat_member_updated import (
+    ChatMemberUpdatedFilter,
+    IS_NOT_MEMBER,
+    IS_MEMBER,
+)
 
-from domain.services import UserService
 from domain.objects.types import ChatEvent
+from domain.services import UserService
 from bot.actions import AuditActions
 
 
@@ -22,15 +25,7 @@ async def user_join_handler(
 ) -> None:
     user_data = event.new_chat_member.user
     chat_id = event.chat.id
-
-    try:
-        chat = await event.bot.get_chat(user_data.id)
-        usernames = [
-            username.lower() for username in chat.active_usernames
-        ]
-    except TelegramAPIError:
-        usernames = [user_data.username.lower()] if user_data.username else []
-
+    usernames = [user_data.username.lower()] if user_data.username else []
     user = await user_service.get_or_create(
         telegram_id=user_data.id,
         usernames=usernames,
@@ -49,15 +44,7 @@ async def user_leave_handler(
 ) -> None:
     user_data = event.old_chat_member.user
     chat_id = event.chat.id
-
-    try:
-        chat = await event.bot.get_chat(user_data.id)
-        usernames = [
-            username.lower() for username in chat.active_usernames
-        ]
-    except TelegramAPIError:
-        usernames = [user_data.username.lower()] if user_data.username else []
-
+    usernames = [user_data.username.lower()] if user_data.username else []
     user = await user_service.get_or_create(
         telegram_id=user_data.id,
         usernames=usernames,
