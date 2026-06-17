@@ -53,7 +53,7 @@ fsm_storage = RedisStorage(redis)
 bot = Bot(
     token=settings.BOT_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    # session=AiohttpSession(proxy=settings.PROXY_URL),
+    session=AiohttpSession(proxy=settings.PROXY_URL),
 )
 dp = Dispatcher(storage=fsm_storage)
 
