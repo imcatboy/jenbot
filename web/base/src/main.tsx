@@ -3,15 +3,23 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/styles/global.scss";
 import App from "./App.tsx";
-import WebApp from "@twa-dev/sdk";
 
-const isTelegram = WebApp.platform !== "unknown";
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: typeof import("@twa-dev/sdk").default;
+    };
+  }
+}
+
+const telegramWebApp = window.Telegram?.WebApp;
+const isTelegram = telegramWebApp && telegramWebApp.platform !== "unknown";
 
 if (isTelegram) {
-  WebApp.expand();
+  telegramWebApp.expand();
 
   const updateViewportHeight = () => {
-    const tgHeight = `${WebApp.viewportHeight}px`;
+    const tgHeight = `${telegramWebApp.viewportHeight}px`;
     document.documentElement.style.setProperty(
       "--tg-viewport-height",
       tgHeight,
@@ -19,7 +27,7 @@ if (isTelegram) {
   };
 
   updateViewportHeight();
-  WebApp.onEvent("viewportChanged", updateViewportHeight);
+  telegramWebApp.onEvent("viewportChanged", updateViewportHeight);
 } else {
   document.documentElement.style.setProperty("--tg-viewport-height", "100vh");
 }
