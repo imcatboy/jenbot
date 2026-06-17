@@ -1,5 +1,5 @@
+from typing import Callable, Dict, Any, Awaitable, Union, List
 from aiogram.dispatcher.event.handler import HandlerObject
-from typing import Callable, Dict, Any, Awaitable, Union
 from aiogram.types import Message, CallbackQuery
 from aiogram.exceptions import TelegramAPIError
 from aiogram.enums import ChatMemberStatus
@@ -29,7 +29,7 @@ class SubscriptionsMiddleware(BaseMiddleware):
         if not getattr(event, "from_user", None):
             return await handler(event, data)
 
-        subscriptions = await config_service.get("subscriptions", [])
+        subscriptions: List[str] = await config_service.get("subscriptions", [])
         message: Message | None = None
 
         if isinstance(event, Message):
@@ -49,7 +49,7 @@ class SubscriptionsMiddleware(BaseMiddleware):
                 if not chat_member.status in [
                     ChatMemberStatus.MEMBER,
                     ChatMemberStatus.ADMINISTRATOR,
-                    ChatMemberStatus.OWNER,
+                    ChatMemberStatus.CREATOR,
                 ]:
                     return await message.answer(
                         text.SUBSCRIPTION_ERROR,

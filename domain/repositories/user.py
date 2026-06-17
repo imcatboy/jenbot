@@ -260,16 +260,20 @@ class UserRepository(BaseRepository):
                 cast(models.UserModel.telegram_id, String).like(f"%{search}%")
             )
 
-        if re.match(r"^[a-zA-Z0-9_]+$", search):
-            conditions.append(models.UsernameModel.username.ilike(f"%{search}%"))
+        if re.match(r"^@[a-zA-Z0-9_]+$", search):
+            conditions.append(
+                models.UsernameModel.username.ilike(
+                    f"%{search.replace("@", "").lower()}%"
+                )
+            )
         else:
-            conditions.append(models.UserDetailModel.value.ilike(f"%{search}%"))
+            conditions.append(models.UserDetailModel.value.ilike(f"%{search.lower()}%"))
 
         query = query.where(or_(*conditions))
         reputation_users = await self.session.execute(query)
         return [
             entities.ReputationUserWithRelationsEntity.model_validate(reputation_user)
-            for reputation_user in reputation_users.scalars().unique().all()
+            for reputation_user in reputation_users.scalars().all()
         ]
 
     async def get_reputation_user(

@@ -185,7 +185,7 @@ def format_user_handle(
     usernames: List[entities.UsernameEntity], telegram_id: int
 ) -> str:
     if usernames:
-        return f"@{", ".join([username.username for username in usernames])} [<code>{telegram_id}</code>]"
+        return f"{", ".join([f"@{username.username}" for username in usernames])} [<code>{telegram_id}</code>]"
 
     return f"<code>{telegram_id}</code>"
 
@@ -446,14 +446,14 @@ def get_check_success_message(
             message += f"<blockquote>{escape(reputation.about)}</blockquote>\n"
 
         if reputation.amount > 0:
-            message += f"\n💰 Имеет доверенность на сумму <b>{reputation.amount}</b> рублей {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}"
+            message += f"\n💰 Имеет доверенность на сумму <b>{reputation.amount}</b> {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}"
         if reputation.review_count > 0:
-            message += f"\n❤️ Имеет <b>{reputation.review_count}</b> отзывов {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}"
+            message += f"\n❤️ Имеет <b>{reputation.review_count}</b> {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}"
         if reputation.applied_report_count > 0:
-            message += f"\n🚫 Опубликовано <b>{reputation.applied_report_count}</b> жалоб на скам {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")}"
+            message += f"\n🚫 Опубликовано <b>{reputation.applied_report_count}</b> {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")} на скам"
 
     if reputation.search_count > 0:
-        message += f"\n🔍 Искали <b>{reputation.search_count}</b> раз {get_count_word(reputation.search_count, "раз", "раза", "раз")}"
+        message += f"\n🔍 Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}"
 
     message += f"\n\n📅 <i>{format_date(datetime.now())}</i>"
     return message

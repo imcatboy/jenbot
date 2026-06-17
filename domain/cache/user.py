@@ -163,25 +163,26 @@ class UserCache(BaseCache):
 
         return None
 
-    async def set_reputation_user_by_username(
-        self, username: str, reputation_user: entities.ReputationUserWithRelationsEntity
+    async def set_reputation_users_by_username(
+        self,
+        username: str,
+        reputation_users: List[entities.ReputationUserWithRelationsEntity],
     ) -> None:
-        await self.set_reputation_user(reputation_user)
         await self.set(
-            keys.get_reputation_user_by_username_key(username),
-            reputation_user.id,
+            keys.get_reputation_users_by_username_key(username),
+            ReputationUsersAdapter.dump_json(reputation_users),
             expire=self.reputation_user_ttl,
         )
 
-    async def get_reputation_user_by_username(
+    async def get_reputation_users_by_username(
         self, username: str
-    ) -> entities.ReputationUserWithRelationsEntity | None:
-        reputation_user_id = await self.get(
-            keys.get_reputation_user_by_username_key(username)
+    ) -> List[entities.ReputationUserWithRelationsEntity] | None:
+        reputation_users = await self.get(
+            keys.get_reputation_users_by_username_key(username)
         )
 
-        if reputation_user_id:
-            return await self.get_reputation_user(reputation_user_id)
+        if reputation_users:
+            return ReputationUsersAdapter.validate_json(reputation_users)
 
         return None
 
@@ -217,12 +218,12 @@ class UserCache(BaseCache):
             if reputation_user:
                 return [reputation_user]
         elif re.match(r"^@[a-zA-Z0-9_]+$", search):
-            reputation_user = await self.get_reputation_user_by_username(
+            reputation_users = await self.get_reputation_users_by_username(
                 search.replace("@", "").lower()
             )
 
-            if reputation_user:
-                return [reputation_user]
+            if reputation_users:
+                return reputation_users
         else:
             return await self.get_reputation_users_by_detail(search)
 
@@ -236,10 +237,10 @@ class UserCache(BaseCache):
                 return await self.set_reputation_user_by_telegram_id(
                     int(search), reputation_users[0]
                 )
-        elif re.match(r"^[a-zA-Z0-9_]+$", search):
+        elif re.match(r"^@[a-zA-Z0-9_]+$", search):
             if reputation_users:
-                return await self.set_reputation_user_by_username(
-                    search.lower(), reputation_users[0]
+                return await self.set_reputation_users_by_username(
+                    search.replace("@", "").lower(), reputation_users
                 )
         else:
             await self.set_reputation_users_by_detail(search, reputation_users)

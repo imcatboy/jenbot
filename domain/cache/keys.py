@@ -39,8 +39,8 @@ def get_reputation_user_by_user_id_key(user_id: int) -> str:
     return get_user_key(f"reputation_user_by_user_id:{user_id}")
 
 
-def get_reputation_user_by_username_key(username: str) -> str:
-    return get_user_key(f"reputation_user_by_username:{username}")
+def get_reputation_users_by_username_key(username: str) -> str:
+    return get_user_key(f"reputation_users_by_username:{username}")
 
 
 def get_reputation_user_by_telegram_id_key(telegram_id: int) -> str:

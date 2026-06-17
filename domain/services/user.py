@@ -42,7 +42,7 @@ class UserService:
         return user
 
     async def get_or_create(
-        self, telegram_id: int, usernames: List[str]
+        self, telegram_id: int, usernames: List[str] = []
     ) -> entities.UserEntity:
         user = await self.user_cache.get_user_by_telegram_id(telegram_id)
 

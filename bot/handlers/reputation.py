@@ -1,5 +1,6 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
+from aiogram.enums import ChatType
 from aiogram import Router
 
 from domain.services import UserService, TradingService
@@ -25,7 +26,7 @@ async def check_handler(
     reputation_users = await user_service.get_reputation_users(command_data.search)
 
     if not reputation_users:
-        image = await media_actions.get_telegram_file("user")
+        image = await media_actions.get_telegram_file("unknown_user")
         await message.answer_photo(
             photo=image,
             caption=text.get_check_error_message(command_data.search),
@@ -42,10 +43,11 @@ async def check_handler(
     reputation = reputation_users[0]
     scam_reports = await trading_service.get_scam_reports(reputation.id)
     image = await media_actions.get_telegram_file(reputation.role.value)
+    isPrivate = message.chat.type == ChatType.PRIVATE
     await message.answer_photo(
         photo=image,
         caption=text.get_check_success_message(reputation),
-        reply_markup=keyboards.get_check_keyboard(scam_reports),
+        reply_markup=keyboards.get_check_keyboard(scam_reports) if isPrivate else None,
     )
 
 
@@ -62,7 +64,7 @@ async def reputation_user_callback_handler(
     try:
         reputation_user = await user_service.get_reputation_user(callback_data.id)
     except exceptions.ObjectNotFoundException:
-        image = await media_actions.get_telegram_file("user")
+        image = await media_actions.get_telegram_file("unknown_user")
         await callback.message.answer_photo(
             photo=image,
             caption=text.get_check_error_message(),
@@ -71,10 +73,11 @@ async def reputation_user_callback_handler(
 
     scam_reports = await trading_service.get_scam_reports(reputation_user.id)
     image = await media_actions.get_telegram_file(reputation_user.role.value)
+    isPrivate = callback.message.chat.type == ChatType.PRIVATE
     await callback.message.answer_photo(
         photo=image,
         caption=text.get_check_success_message(reputation_user),
-        reply_markup=keyboards.get_check_keyboard(scam_reports),
+        reply_markup=keyboards.get_check_keyboard(scam_reports) if isPrivate else None,
     )
 
 
