@@ -125,6 +125,7 @@ class UserRepository(BaseRepository):
             select(models.UserModel)
             .join(models.UsernameModel)
             .where(models.UsernameModel.username == username)
+            .options(selectinload(models.UserModel.usernames))
         )
         user = result.scalar_one_or_none()
 
