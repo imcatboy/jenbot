@@ -52,7 +52,7 @@ class UserRepository(BaseRepository):
                     user,
                     models.UsernameModel,
                     "username",
-                    new_usernames + existing_usernames,
+                    new_usernames + list(existing_usernames),
                 )
                 await self.session.flush()
                 await self.session.refresh(user, ["usernames"])

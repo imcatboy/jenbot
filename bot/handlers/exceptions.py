@@ -20,6 +20,9 @@ async def exception_handler(event: ErrorEvent):
     elif event.update.callback_query:
         message = event.update.callback_query.message
 
+    if not message:
+        return True
+
     match event.exception:
         case exceptions.UserNotFoundException():
             await message.answer(text.USER_NOT_FOUND.format(event.exception.username))
