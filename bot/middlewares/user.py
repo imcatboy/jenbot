@@ -24,7 +24,7 @@ class UserMiddleware(BaseMiddleware):
         try:
             chat = await event.bot.get_chat(event.from_user.id)
             usernames = [
-                username.username.lower() for username in chat.active_usernames
+                username.lower() for username in chat.active_usernames
             ]
         except TelegramAPIError:
             usernames = (
@@ -42,7 +42,7 @@ class UserMiddleware(BaseMiddleware):
             try:
                 chat = await event.bot.get_chat(event.reply_to_message.from_user.id)
                 usernames = [
-                    username.username.lower() for username in chat.active_usernames
+                    username.lower() for username in chat.active_usernames
                 ]
             except TelegramAPIError:
                 usernames = (
