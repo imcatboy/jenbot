@@ -125,7 +125,7 @@ Name = Annotated[str, Field(description="Название", min_length=3, max_le
 
 def clean_username(value: Any) -> Any:
     if isinstance(value, str) and value.startswith("@"):
-        return value[1:]
+        return value[1:].lower()
 
     return value
 
