@@ -1,10 +1,11 @@
 import hmac
 import hashlib
 import json
+import logging
 
 from fastapi import Depends, Header, HTTPException, Query
-from urllib.parse import parse_qsl, unquote
 from datetime import datetime, timezone
+from urllib.parse import parse_qsl
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -14,6 +15,7 @@ from api.core.settings import Settings
 from .uow import get_user_service
 
 
+logger = logging.getLogger(__name__)
 settings = Settings()
 
 
@@ -60,6 +62,7 @@ async def resolve_current_user(
     try:
         telegram_user = validate_init_data(init_data, settings.BOT_TOKEN)
     except Exception as e:
+        logger.error(f"InitData validation failed: {e}")
         raise HTTPException(401, "Telegram auth failed")
 
     return await user_service.get_or_create(
@@ -80,6 +83,7 @@ async def get_current_user(
     init_data = header_init_data or query_init_data
 
     if not init_data:
+        logger.error("No init data provided")
         raise HTTPException(401, "Telegram auth failed")
 
     return await resolve_current_user(init_data, user_service)
@@ -97,6 +101,7 @@ async def get_current_user_cached(
     init_data = header_init_data or query_init_data
 
     if not init_data:
+        logger.error("No init data provided")
         raise HTTPException(401, "Telegram auth failed")
 
     cache_key = hashlib.sha256(init_data.encode()).hexdigest()
