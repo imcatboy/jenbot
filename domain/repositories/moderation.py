@@ -1,13 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 from sqlalchemy import update
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from domain.objects.types import ViolationType
 from .relations import (
     get_report_relations,
     get_violation_relations,
     get_tracker_relations,
+    get_reputation_request_relations,
 )
 from domain.objects import models, dtos, entities, exceptions
 from .base import BaseRepository
@@ -212,7 +213,9 @@ class ModerationRepository(BaseRepository):
         )
         self.session.add(tracker)
         await self.session.flush()
-        tracker = await self.get_by_id(models.TrackerModel, tracker.id, get_tracker_relations())
+        tracker = await self.get_by_id(
+            models.TrackerModel, tracker.id, get_tracker_relations()
+        )
         return entities.TrackerWithUserEntity.model_validate(tracker)
 
     async def disable_tracker(
@@ -239,3 +242,49 @@ class ModerationRepository(BaseRepository):
             entities.TrackerWithUserEntity.model_validate(tracker)
             for tracker in trackers
         ]
+
+    async def create_reputation_request(
+        self, user_id: int, about: Optional[str] = None
+    ) -> entities.ReputationRequestEntity:
+        reputation_request = models.ReputationRequestModel(
+            about=about,
+        )
+        await self.create_relation(reputation_request, models.UserModel, user_id)
+        self.session.add(reputation_request)
+        await self.session.flush()
+        return entities.ReputationRequestEntity.model_validate(reputation_request)
+
+    async def update_reputation_request(self, id: int, applied_by_user_id: int) -> None:
+        reputation_request = await self.get_by_id(models.ReputationRequestModel, id)
+        await self.set_optional_relation(
+            reputation_request,
+            models.UserModel,
+            applied_by_user_id,
+            "applied_by_user_id",
+        )
+        reputation_request.is_active = False
+        await self.session.flush()
+
+    async def has_active_reputation_request(self, user_id: int) -> bool:
+        result = await self.session.execute(
+            select(models.ReputationRequestModel.id)
+            .where(
+                models.ReputationRequestModel.user_id == user_id,
+                models.ReputationRequestModel.is_active == True,
+            )
+            .exists()
+            .select()
+        )
+        return result.scalar() or False
+
+    async def get_reputation_request(
+        self, id: int
+    ) -> entities.ReputationRequestWithUserEntity:
+        reputation_request = await self.get_by_id(
+            models.ReputationRequestModel,
+            id,
+            options=get_reputation_request_relations(),
+        )
+        return entities.ReputationRequestWithUserEntity.model_validate(
+            reputation_request
+        )

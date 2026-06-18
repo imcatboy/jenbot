@@ -28,7 +28,11 @@ class TrackerMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         moderation_service: ModerationService = data["moderation_service"]
-        user: entities.UserEntity = data["user"]
+        user: entities.UserEntity | None = data.get("user")
+
+        if not user:
+            return await handler(event, data)
+
         trackers = await moderation_service.get_trackers(user.id)
 
         if not trackers:

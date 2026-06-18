@@ -147,7 +147,36 @@ class ModerationActions:
             )
         except TelegramAPIError:
             pass
-    
+
+    async def send_reputation_request_updated_message(
+        self, user: entities.UserEntity, reason: Optional[str] = None
+    ) -> None:
+        try:
+            await self.bot.send_message(
+                user.telegram_id,
+                (
+                    text.REPUTATION_REQUEST_REJECTED.format(reason)
+                    if reason
+                    else text.REPUTATION_REQUEST_ACCEPTED
+                ),
+            )
+        except TelegramAPIError:
+            pass
+
+    async def send_reputation_request_message(
+        self, reputation_request: entities.ReputationRequestWithUserEntity
+    ) -> None:
+        moderation_chat_id = await self.config_service.get("moderation_chat_id")
+
+        if not moderation_chat_id:
+            raise exceptions.ConfigNotFoundException("moderation_chat_id")
+
+        await self.bot.send_message(
+            moderation_chat_id,
+            text.get_reputation_request_message(reputation_request),
+            reply_markup=keyboards.get_reputation_request_keyboard(reputation_request),
+        )
+
     async def send_scam_report_updated_message(
         self, scam_report: entities.ScamReportWithRelationsEntity
     ) -> None:

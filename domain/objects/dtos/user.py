@@ -16,8 +16,8 @@ class CreateReputationUserDTO(BaseDTO):
     description: Optional[str] = None
     added_by_user_id: int
     role: UserReputationRole
-    details: List[UserDetailDTO]
-    scam_report_ids: List[int]
+    details: List[UserDetailDTO] = []
+    scam_report_ids: List[int] = []
 
 
 class UpdateReputationUserDTO(BaseDTO):

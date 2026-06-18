@@ -74,3 +74,8 @@ class FinishExternalDealCallback(CallbackData, prefix="finish_external_deal"):
 
 class ComplainExternalDealCallback(CallbackData, prefix="complain_external_deal"):
     id: int
+
+
+class ReputationRequestCallback(CallbackData, prefix="reputation_request"):
+    id: int
+    is_accepted: bool

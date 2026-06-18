@@ -1,7 +1,7 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+from domain.objects.types import ViolationType, UserRole, UserReputationRole
 from domain.repositories import ModerationRepository, UserRepository
-from domain.objects.types import ViolationType, UserRole
 from domain.objects import dtos, entities, exceptions
 from domain.services import ConfigService
 from domain.cache import ModerationCache
@@ -115,7 +115,9 @@ class ModerationService:
             user_id, violation_type
         )
 
-    async def add_tracker(self, dto: dtos.AddTrackerDTO) -> entities.TrackerWithUserEntity:
+    async def add_tracker(
+        self, dto: dtos.AddTrackerDTO
+    ) -> entities.TrackerWithUserEntity:
         tracker = await self.moderation_repository.add_tracker(dto)
         trackers = await self.moderation_repository.get_trackers(dto.tracked_user_id)
         await self.moderation_cache.set_trackers(dto.tracked_user_id, trackers)
@@ -139,6 +141,66 @@ class ModerationService:
     async def get_tracker_message(self, tracker_id: int) -> int | None:
         return await self.moderation_cache.get_tracker_message(tracker_id)
 
-    async def disable_tracker(self, tracked_user_id: int, tracking_user_id: int) -> None:
-        await self.moderation_repository.disable_tracker(tracked_user_id, tracking_user_id)
+    async def disable_tracker(
+        self, tracked_user_id: int, tracking_user_id: int
+    ) -> None:
+        await self.moderation_repository.disable_tracker(
+            tracked_user_id, tracking_user_id
+        )
         await self.moderation_cache.invalidate_trackers(tracked_user_id)
+
+    async def create_reputation_request(
+        self, user_id: int, about: Optional[str] = None
+    ) -> entities.ReputationRequestEntity:
+        if await self.has_active_reputation_request(user_id):
+            raise exceptions.ReputationRequestAlreadyExistsException(user_id)
+
+        return await self.moderation_repository.create_reputation_request(
+            user_id, about
+        )
+
+    async def update_reputation_request(
+        self, id: int, applied_by_user_id: int, accepted: bool
+    ) -> None:
+        reputation_request = await self.moderation_repository.get_reputation_request(id)
+
+        if not reputation_request.is_active:
+            raise exceptions.ObjectNotFoundException("reputation_request", [id])
+
+        if not accepted:
+            return await self.moderation_repository.update_reputation_request(
+                id, applied_by_user_id
+            )
+
+        try:
+            reputation_user = await self.user_repository.get_reputation_user_by_user_id(
+                reputation_request.user_id
+            )
+            dto = dtos.UpdateReputationUserDTO(
+                about=reputation_request.about,
+                version=reputation_user.version,
+                added_by_user_id=applied_by_user_id,
+            )
+            await self.user_repository.update_reputation_user(
+                reputation_request.user_id, dto
+            )
+        except exceptions.ObjectNotFoundException:
+            dto = dtos.CreateReputationUserDTO(
+                user_ids=[reputation_request.user_id],
+                about=reputation_request.about,
+                role=UserReputationRole.CLEAN_USER,
+                added_by_user_id=applied_by_user_id,
+            )
+            await self.user_repository.create_reputation_user(dto)
+
+        return await self.moderation_repository.update_reputation_request(
+            id, applied_by_user_id
+        )
+
+    async def get_reputation_request(
+        self, id: int
+    ) -> entities.ReputationRequestWithUserEntity:
+        return await self.moderation_repository.get_reputation_request(id)
+
+    async def has_active_reputation_request(self, user_id: int) -> bool:
+        return await self.moderation_repository.has_active_reputation_request(user_id)

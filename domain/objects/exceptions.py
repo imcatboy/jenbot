@@ -234,3 +234,10 @@ class UserNotParticipantOfExternalDealException(DomainException):
         self.user_id = user_id
         self.external_deal_id = external_deal_id
         super().__init__(f"User {user_id} is not participant of external deal {external_deal_id}")
+    
+
+class ReputationRequestAlreadyExistsException(DomainException):
+
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"Reputation request for user {user_id} already exists")

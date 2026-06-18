@@ -342,3 +342,24 @@ def get_finish_external_deal_keyboard(
         callback_data=ComplainExternalDealCallback(id=external_deal.id).pack(),
     )
     return builder.adjust(2).as_markup()
+
+
+def get_reputation_request_keyboard(
+    reputation_request: entities.ReputationRequestWithUserEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Одобрить",
+        icon_custom_emoji_id="5282782728670977815",
+        callback_data=ReputationRequestCallback(
+            id=reputation_request.id, is_accepted=True
+        ).pack(),
+    )
+    builder.button(
+        text="Отклонить",
+        icon_custom_emoji_id="5280622076653245714",
+        callback_data=ReputationRequestCallback(
+            id=reputation_request.id, is_accepted=False
+        ).pack(),
+    )
+    return builder.adjust(2).as_markup()

@@ -176,3 +176,14 @@ def get_external_deal_with_users_relations() -> List[Any]:
             selectinload(models.UserModel.usernames)
         ),
     ]
+
+
+def get_reputation_request_relations() -> List[Any]:
+    return [
+        joinedload(models.ReputationRequestModel.user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ReputationRequestModel.applied_by_user).options(
+            selectinload(models.UserModel.usernames)
+        ),
+    ]

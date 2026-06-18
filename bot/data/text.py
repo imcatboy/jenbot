@@ -23,11 +23,11 @@ USER_NOT_FOUND = (
 )
 UNBAN_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} разблокирован.'
 MUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
-MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = (
-    '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
-)
+MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
 DEAL_USER_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден. Вероятно, он не общался с ботом.'
-UNMUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} размьючен.'
+UNMUTE_USER_SUCCESS = (
+    '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} размьючен.'
+)
 WARN_USER_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Пользователь {0} предупрежден до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
 WARN_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Пользователь {0} предупрежден\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
 REPORT_ACCUSED_USER_ID_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Введите ID пользователя, которого вы хотите обвинить в нарушении.'
@@ -77,7 +77,9 @@ REPORT_TYPE_MESSAGE = (
 REPORT_REASON_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите причину обращения (до 1024 символов).'
 REPORT_ATTACHMENTS_MESSAGE = '<tg-emoji emoji-id="5282823947472118926">📎</tg-emoji> Прикрепите фото или видео до 40 МБ одним сообщением (если есть).'
 REVIEW_MESSAGE_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите сообщение для отзыва (до 255 символов).'
-REVIEW_SUCCESS = '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Отзыв успешно оставлен.'
+REVIEW_SUCCESS = (
+    '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Отзыв успешно оставлен.'
+)
 USER_NOT_HAS_REPUTATION_USER = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Указанный пользователь не имеет положительной репутации, что обязательно для получения отзыва.'
 REVIEW_RATING_MESSAGE = (
     '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Выберите оценку от 1 до 5.'
@@ -85,7 +87,9 @@ REVIEW_RATING_MESSAGE = (
 REPORT_ATTACHMENTS_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пожалуйста, отправьте фото или видео.'
 REPORT_USERNAME_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден. Попробуйте ввести его ID.'
 REPORT_USERNAME_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Я ранее не видел этого пользователя. Введите его username, если есть, иначе пропустите.'
-THROTTLE_ERROR = '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Пожалуйста, не спамьте.'
+THROTTLE_ERROR = (
+    '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Пожалуйста, не спамьте.'
+)
 REPORT_SUCCESS = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Отправлено успешно. В случае ответа вам будет отправлено уведомление.'
 REPORT_WITH_ATTACHMENTS_SUCCESS = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Отправлено успешно с {0} медиа. В случае ответа вам будет отправлено уведомление.'
 STATE_CANCELLED = (
@@ -102,6 +106,13 @@ SET_REPUTATION_ROLE_MESSAGE = (
 )
 SET_REPUTATION_DESCRIPTION_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите описание для репутации (до 255 символов).'
 REPORT_COMMENT_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите комментарий к обращению (до 1024 символов).'
+REPUTATION_REQUEST_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Введите описание, которое будет отображаться в карточке репутации (до 255 символов).'
+REPUTATION_REQUEST_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Запрос на репутацию успешно отправлен.'
+REPUTATION_REQUEST_EXISTS = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> У вас уже есть незавершенный запрос на репутацию. Пожалуйста, дождитесь его обработки.'
+REPUTATION_REQUEST_ACCEPTED = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Ваш запрос на репутацию принят.'
+REPUTATION_REQUEST_REJECTED = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Ваш запрос на репутацию отклонен.\n\n<b>Причина</b>\n<blockquote>{0}</blockquote>'
+REPUTATION_REQUEST_COMMENT_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите комментарий к запросу на репутацию (до 1024 символов).'
+REPUTATION_REQUEST_COMMENT_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Комментарий успешно отправлен.'
 REPORT_STATUS_UPDATED = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Статус обращения успешно изменен.'
 ADD_BAN_WORD_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Слово <b>{0}</b> успешно добавлено в список запрещённых.'
 REMOVE_BAN_WORD_SUCCESS = '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Слово <b>{0}</b> успешно удалено из списка запрещённых.'
@@ -116,7 +127,9 @@ CHAT_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Чат
 TRACKER_ADDED = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Трекер на пользователя {0} успешно добавлен.'
 TRACKER_REMOVED = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Трекер на пользователя {0} успешно удален.'
 TRACKER_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Новое <a href="{0}">сообщение</a> от пользователя {1}.'
-MODERATORS_MENTIONED = '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> Отчёт отправлен модераторам.'
+MODERATORS_MENTIONED = (
+    '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> Отчёт отправлен модераторам.'
+)
 MANY_REPUTATION_USERS = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Найдено несколько пользователей. Выберите пользователя из списка.'
 VIOLATIONS = {
     types.ViolationType.WARN: '<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Предупреждение',
@@ -324,7 +337,9 @@ def get_warn_user_success_message(
 def get_violations_message(
     violations: List[entities.ChatViolationWithUserEntity],
 ) -> str:
-    message = '<tg-emoji emoji-id="5283215884712716244">🔨</tg-emoji> <b>Нарушения</b>\n\n'
+    message = (
+        '<tg-emoji emoji-id="5283215884712716244">🔨</tg-emoji> <b>Нарушения</b>\n\n'
+    )
     active_violations = [violation for violation in violations if violation.is_active]
     inactive_violations = [
         violation for violation in violations if not violation.is_active
@@ -418,7 +433,9 @@ def get_event_audit_message(
 
 
 def get_moderators_message(moderators: List[entities.UserEntity]) -> str:
-    message = '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <b>Модераторы</b>\n\n'
+    message = (
+        '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <b>Модераторы</b>\n\n'
+    )
 
     for moderator in moderators:
         if moderator.usernames:
@@ -512,7 +529,7 @@ def get_check_success_message(
     if reputation.search_count > 0:
         message += f'\n<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}'
 
-    message += f'\n\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
+    message += f'\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
     return message
 
 
@@ -620,4 +637,22 @@ def get_deal_message(deal: entities.ExternalDealWithUsersEntity) -> str:
     message += f"Дата истечения: {format_date(deal.expires_at)}\n\n"
     message += f"<b>Описание</b>\n"
     message += f"<blockquote>{escape(deal.description)}</blockquote>\n"
+    return message
+
+
+def get_reputation_request_message(
+    reputation_request: entities.ReputationRequestWithUserEntity,
+) -> str:
+    message = f"<b>Запрос на репутацию</b>\n\n"
+    message += f"<b>Статус</b>: {"Ожидает обработки" if reputation_request.is_active else "Обработан модератором"}\n"
+
+    if reputation_request.applied_by_user:
+        message += f"Обработал: {format_user_handle(reputation_request.applied_by_user.usernames, reputation_request.applied_by_user.telegram_id)}\n"
+
+    message += f"<b>Пользователь</b>: {format_user_handle(reputation_request.user.usernames, reputation_request.user.telegram_id)}\n\n"
+
+    if reputation_request.about:
+        message += f"<b>Описание</b>\n"
+        message += f"<blockquote>{escape(reputation_request.about)}</blockquote>\n"
+
     return message

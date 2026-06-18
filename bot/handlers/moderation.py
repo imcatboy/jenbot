@@ -405,7 +405,7 @@ async def rules_handler(
 
 
 @moderation_router.message(Command("moderators", "mod", ignore_case=True))
-@moderation_router.message(F.text.lower() == "@admin")
+@moderation_router.message(F.text.lower().startswith("@admin"))
 async def moderators_handler(
     message: Message,
     user_service: UserService,

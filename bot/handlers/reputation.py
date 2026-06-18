@@ -71,7 +71,7 @@ async def me_handler(
     trading_service: TradingService,
 ):
     try:
-        reputation_user = await user_service.get_reputation_user(user.id)
+        reputation_user = await user_service.get_reputation_user_by_user_id(user.id)
     except exceptions.ObjectNotFoundException:
         image = await media_actions.get_telegram_file("unknown_user")
         await message.answer_photo(

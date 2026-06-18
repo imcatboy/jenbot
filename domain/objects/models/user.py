@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
     from .marketplace import AdvertisementModel, ProductModel, CategoryModel
     from .trading import DealModel, ExternalDealModel, ScamReportModel
+    from .moderation import ReputationRequestModel
 
 
 class UsernameModel(EntityModel):
@@ -205,6 +206,16 @@ class UserModel(EntityModel):
     trackers: Mapped[List[TrackerModel]] = relationship(
         back_populates="tracked_user",
         foreign_keys="TrackerModel.tracked_user_id",
+        cascade="all, delete-orphan",
+    )
+    reputation_requests: Mapped[List[ReputationRequestModel]] = relationship(
+        back_populates="user",
+        foreign_keys="ReputationRequestModel.user_id",
+        cascade="all, delete-orphan",
+    )
+    applied_reputation_requests: Mapped[List[ReputationRequestModel]] = relationship(
+        back_populates="applied_by_user",
+        foreign_keys="ReputationRequestModel.applied_by_user_id",
         cascade="all, delete-orphan",
     )
 

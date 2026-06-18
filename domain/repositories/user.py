@@ -187,11 +187,6 @@ class UserRepository(BaseRepository):
     async def update_reputation_user(
         self, reputation_user_id: int, dto: dtos.UpdateReputationUserDTO
     ) -> entities.ReputationUserEntity:
-        await self.validator.validate_values_not_exists(
-            models.UserDetailModel,
-            "value",
-            [detail.value for detail in dto.details if detail.id is None],
-        )
         reputation_user = await self.get_by_id(
             models.ReputationUserModel, reputation_user_id
         )
@@ -207,7 +202,7 @@ class UserRepository(BaseRepository):
         await self.validator.validate_values_not_exists(
             models.UserDetailModel,
             "value",
-            [detail.value for detail in dto.details if detail.id is None],
+            [detail.value for detail in dto.details if detail.id is None] or [],
         )
 
         if dto.description is not None:

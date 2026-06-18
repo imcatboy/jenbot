@@ -124,14 +124,14 @@ class ReputationRequestModel(EntityModel):
     __tablename__ = "reputation_requests"
     fk_name = "reputation_request_id"
 
-    is_accepted: Mapped[bool] = mapped_column(default=False, index=True)
-    about: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(default=True, index=True)
+    about: Mapped[Optional[str]] = mapped_column(String(255))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     user: Mapped[UserModel] = relationship(
         back_populates="reputation_requests",
         foreign_keys=[user_id],
     )
-    applied_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    applied_by_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
     applied_by_user: Mapped[Optional[UserModel]] = relationship(
         back_populates="applied_reputation_requests",
         foreign_keys=[applied_by_user_id],

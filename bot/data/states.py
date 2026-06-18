@@ -40,3 +40,12 @@ class ExternalDealState(StatesGroup):
     agent_id = State()
     amount = State()
     description = State()
+
+
+class ReputationRequestState(StatesGroup):
+    about = State()
+
+
+class ReputationRequestAcceptState(StatesGroup):
+    id = State()
+    comment = State()

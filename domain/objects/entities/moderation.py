@@ -65,3 +65,15 @@ class TrackerWithUserEntity(TrackerEntity):
 class TelegramFileEntity(EntityWithMetadata):
     name: str
     file_id: str
+
+
+class ReputationRequestEntity(EntityWithMetadata):
+    is_active: bool
+    about: Optional[str] = None
+    user_id: int
+    applied_by_user_id: Optional[int] = None
+
+
+class ReputationRequestWithUserEntity(ReputationRequestEntity):
+    user: UserEntity
+    applied_by_user: Optional[UserEntity] = None

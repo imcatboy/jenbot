@@ -2,15 +2,15 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
-from aiogram import Router
+from aiogram import F, Bot, Router
 from typing import List
 
 from domain.services import UserService, ModerationService, TradingService
 from domain.objects import exceptions, dtos, types, entities
 from domain.objects.types import ReportStatus, UserRole
 from bot.data import states, callbacks, keyboards, text
+from bot.filters import GroupsFilter, UsersFilter
 from bot.actions import ModerationActions
-from bot.filters import GroupsFilter
 
 
 report_router = Router()
@@ -280,3 +280,140 @@ async def scam_report_attachments_handler(
     await moderation_actions.send_scam_report_message(report.id)
     await message.answer(text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(file_ids)))
     await state.clear()
+
+
+@report_router.message(
+    Command("reputation", ignore_case=True),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def reputation_handler(
+    message: Message,
+    user: entities.UserEntity,
+    moderation_service: ModerationService,
+    state: FSMContext,
+):
+    if await moderation_service.has_active_reputation_request(user.id):
+        await message.answer(text.REPUTATION_REQUEST_EXISTS)
+        return
+
+    await state.set_state(states.ReputationRequestState.about)
+    await message.answer(
+        text.REPUTATION_REQUEST_MESSAGE,
+        reply_markup=keyboards.get_skip_keyboard(message.from_user.id),
+    )
+
+
+@report_router.message(
+    states.ReputationRequestState.about,
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"cast": types.Reason},
+)
+async def reputation_request_about_handler(
+    message: Message,
+    state_data: types.Reason,
+    state: FSMContext,
+    moderation_service: ModerationService,
+    user: entities.UserEntity,
+    moderation_actions: ModerationActions,
+):
+    reputation_request = await moderation_service.create_reputation_request(
+        user.id, state_data
+    )
+    reputation_request = await moderation_service.get_reputation_request(
+        reputation_request.id
+    )
+    await moderation_actions.send_reputation_request_message(reputation_request)
+    await message.answer(text.REPUTATION_REQUEST_SUCCESS)
+    await state.clear()
+
+
+@report_router.callback_query(
+    callbacks.SkipCallback.filter(),
+    states.ReputationRequestState.about,
+    GroupsFilter([ChatType.PRIVATE]),
+)
+async def reputation_request_accept_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.SkipCallback,
+    state: FSMContext,
+    user: entities.UserEntity,
+    moderation_service: ModerationService,
+    moderation_actions: ModerationActions,
+):
+    if callback.from_user.id != callback_data.user_id:
+        return
+
+    await state.clear()
+    reputation_request = await moderation_service.create_reputation_request(user.id)
+    reputation_request = await moderation_service.get_reputation_request(
+        reputation_request.id
+    )
+    await moderation_actions.send_reputation_request_message(reputation_request)
+    await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
+
+
+@report_router.callback_query(
+    callbacks.ReputationRequestCallback.filter(F.is_accepted == True),
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+)
+async def reputation_request_accept_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReputationRequestCallback,
+    user: entities.UserEntity,
+    moderation_service: ModerationService,
+    moderation_actions: ModerationActions,
+):
+    await moderation_service.update_reputation_request(callback_data.id, user.id, True)
+    reputation_request = await moderation_service.get_reputation_request(
+        callback_data.id
+    )
+    await moderation_actions.send_reputation_request_updated_message(user)
+    await callback.message.edit_text(
+        text.get_reputation_request_message(reputation_request),
+    )
+    await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
+
+
+@report_router.callback_query(
+    callbacks.ReputationRequestCallback.filter(F.is_accepted == False),
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+)
+async def reputation_request_reject_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReputationRequestCallback,
+    state: FSMContext,
+):
+    await state.set_state(states.ReputationRequestAcceptState.comment)
+    await state.update_data(id=callback_data.id, message_id=callback.message.message_id)
+    await callback.message.answer(text.REPUTATION_REQUEST_COMMENT_MESSAGE)
+
+
+@report_router.message(
+    states.ReputationRequestAcceptState.comment,
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+    flags={"cast": types.Text},
+)
+async def reputation_request_comment_handler(
+    message: Message,
+    state_data: types.Text,
+    state: FSMContext,
+    moderation_service: ModerationService,
+    user: entities.UserEntity,
+    moderation_actions: ModerationActions,
+    bot: Bot,
+):
+    await state.update_data(comment=state_data)
+    data = await state.get_data()
+    await moderation_service.update_reputation_request(data["id"], user.id, False)
+    await state.clear()
+    reputation_request = await moderation_service.get_reputation_request(data["id"])
+    await bot.edit_message_text(
+        text.get_reputation_request_message(reputation_request),
+        chat_id=message.chat.id,
+        message_id=data["message_id"],
+    )
+    await moderation_actions.send_reputation_request_updated_message(
+        reputation_request.user, data["comment"]
+    )
+    await message.answer(text.REPUTATION_REQUEST_COMMENT_SUCCESS)
