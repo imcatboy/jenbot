@@ -88,3 +88,7 @@ class RemoveTrackerCommandDTO(BaseDTO):
 
 class ReviewCommandDTO(BaseDTO):
     username: Optional[UsernameOrTelegramID] = None
+
+
+class GetUserInfoCommandDTO(BaseDTO):
+    username: Optional[UsernameOrTelegramID] = None

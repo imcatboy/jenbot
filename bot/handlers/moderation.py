@@ -546,3 +546,33 @@ async def removebanword_handler(
 ):
     await moderation_service.remove_ban_word(command_data.word)
     await message.answer(text.REMOVE_BAN_WORD_SUCCESS.format(escape(command_data.word)))
+
+
+@moderation_router.message(
+    Command("info", "i", ignore_case=True),
+    flags={
+        "user_role": [UserRole.ADMIN, UserRole.MODERATOR],
+        "command_model": dtos.GetUserInfoCommandDTO,
+    },
+)
+async def info_handler(
+    message: Message,
+    command_data: dtos.GetUserInfoCommandDTO,
+    user_actions: UserActions,
+    moderation_service: ModerationService,
+    reply_to_user: Optional[entities.UserEntity] = None,
+):
+    if command_data.username:
+        purpose_user = await user_actions.get_telegram_user(
+            command_data.username, message.chat.id
+        )
+    elif reply_to_user:
+        purpose_user = reply_to_user
+    else:
+        return await message.answer(text.USERNAME_OR_REPLY_TO_USER_REQUIRED)
+
+    dto = dtos.GetViolationsDTO(
+        user_id=purpose_user.id,
+    )
+    violations_count = await moderation_service.get_violations_count(dto)
+    await message.answer(text.get_user_info_message(purpose_user, violations_count))

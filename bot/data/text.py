@@ -66,6 +66,7 @@ START_MESSAGE = (
     '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> <code>/me</code> — посмотреть свою репутацию\n'
     '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> <code>/review (@username, Telegram ID)</code> — оставить отзыв о пользователе\n'
     '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> <code>/scam</code> — подать жалобу на скамера с доказательствами\n'
+    '<tg-emoji emoji-id="5283081795833731867">🛡️</tg-emoji> <code>/reputation</code> — подать заявку на статус чистого пользователя\n'
     '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n'
     "Стремитесь к максимальной безопасности — проверяйте собеседника перед сделкой.\n\n"
     '<tg-emoji emoji-id="5280548821691046193">🌐</tg-emoji> Актуальные новости и объявления — в нашем канале.\n\n'
@@ -136,6 +137,11 @@ VIOLATIONS = {
     types.ViolationType.MUTE: '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Мьют',
     types.ViolationType.BAN: '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Бан',
 }
+USER_ROLES = {
+    types.UserRole.ADMIN: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Админ',
+    types.UserRole.MODERATOR: '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> Модератор',
+    types.UserRole.USER: '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Пользователь',
+}
 CHAT_ACTIONS = {
     types.ChatAction.UNMUTE: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Размьют',
     types.ChatAction.UNWARN: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Снятие предупреждения',
@@ -155,7 +161,7 @@ REPORT_STATUSES = {
 }
 REPUTATION_ROLES = {
     types.UserReputationRole.SCAMMER: '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> Скамер',
-    types.UserReputationRole.GUARANTOR: '<tg-emoji emoji-id="5283081795833731867">🛡️</tg-emoji> Гарант',
+    types.UserReputationRole.GUARANTOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Гарант',
     types.UserReputationRole.BIG_GUARANTOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Большой гарант',
     types.UserReputationRole.SMALL_GUARANTOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Младший гарант',
     types.UserReputationRole.DEPOSITOR: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Депозитчик',
@@ -654,5 +660,24 @@ def get_reputation_request_message(
     if reputation_request.about:
         message += f"<b>Описание</b>\n"
         message += f"<blockquote>{escape(reputation_request.about)}</blockquote>\n"
+
+    return message
+
+
+def get_user_info_message(
+    user: entities.UserEntity,
+    violations_count: Dict[types.ViolationType, int],
+) -> str:
+    message = f'<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> <b>Информация о пользователе</b>\n\n'
+    message += (
+        f"<b>Пользователь</b>: {format_user_handle(user.usernames, user.telegram_id)}\n"
+    )
+    message += f"<b>Роль</b>: {USER_ROLES[user.role]}\n"
+    message += f"<b>Дата регистрации</b>: {format_date(user.created_at)}\n"
+
+    message += f"<b>Нарушения</b>\n"
+
+    for violation_type, count in violations_count.items():
+        message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
     return message

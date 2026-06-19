@@ -162,6 +162,19 @@ def get_check_keyboard(
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
+    if reputation_user.role == UserReputationRole.SCAMMER:
+        builder.button(
+            text="Оспорить",
+            icon_custom_emoji_id="5282764234541801209",
+            callback_data="dispute_report",
+        )
+
+    builder.button(
+        text="Пожаловаться",
+        icon_custom_emoji_id="5283215884712716244",
+        callback_data="create_scam_report",
+    )
+
     if (
         reputation_user.review_count > 0
         and reputation_user.role != UserReputationRole.SCAMMER
@@ -181,7 +194,7 @@ def get_check_keyboard(
             callback_data=CheckCallback(report_id=scam_report.id).pack(),
         )
 
-    return builder.adjust(1, 2).as_markup()
+    return builder.adjust(2).as_markup()
 
 
 def get_subscriptions_keyboard(subscriptions: List[str]) -> InlineKeyboardMarkup:

@@ -45,16 +45,18 @@ class ModerationRepository(BaseRepository):
             .offset(dto.offset)
         )
 
-        if dto.user_id:
+        if dto.user_id is not None:
             query = query.where(models.ChatViolationModel.user_id == dto.user_id)
-        if dto.applied_by_user_id:
+        if dto.applied_by_user_id is not None:
             query = query.where(
                 models.ChatViolationModel.applied_by_user_id == dto.applied_by_user_id
             )
-        if dto.start_date:
+        if dto.start_date is not None:
             query = query.where(models.ChatViolationModel.created_at >= dto.start_date)
-        if dto.end_date:
+        if dto.end_date is not None:
             query = query.where(models.ChatViolationModel.created_at <= dto.end_date)
+        if dto.is_active is not None:
+            query = query.where(models.ChatViolationModel.is_active == dto.is_active)
 
         result = await self.session.execute(query)
         return [
@@ -70,16 +72,18 @@ class ModerationRepository(BaseRepository):
         )
         query = query.group_by(models.ChatViolationModel.type)
 
-        if dto.user_id:
+        if dto.user_id is not None:
             query = query.where(models.ChatViolationModel.user_id == dto.user_id)
-        if dto.applied_by_user_id:
+        if dto.applied_by_user_id is not None:
             query = query.where(
                 models.ChatViolationModel.applied_by_user_id == dto.applied_by_user_id
             )
-        if dto.start_date:
+        if dto.start_date is not None:
             query = query.where(models.ChatViolationModel.created_at >= dto.start_date)
-        if dto.end_date:
+        if dto.end_date is not None:
             query = query.where(models.ChatViolationModel.created_at <= dto.end_date)
+        if dto.is_active is not None:
+            query = query.where(models.ChatViolationModel.is_active == dto.is_active)
 
         result = await self.session.execute(query)
         return dict(result.all())

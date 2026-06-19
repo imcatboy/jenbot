@@ -25,6 +25,31 @@ async def report_handler(message: Message):
     )
 
 
+@report_router.callback_query(
+    F.data == "dispute_report",
+    GroupsFilter([ChatType.PRIVATE]),
+)
+async def dispute_report_handler(
+    callback: CallbackQuery,
+    user: entities.UserEntity,
+    moderation_service: ModerationService,
+    state: FSMContext,
+):
+    reports = await moderation_service.get_reports(
+        dtos.GetReportsDTO(user_id=user.id, status=ReportStatus.PENDING)
+    )
+
+    if reports and user.role == UserRole.USER:
+        await callback.message.edit_text(text.REPORT_ALREADY_PENDING)
+        return
+
+    await state.update_data(type=types.ReportType.UNBAN)
+    await state.set_state(states.ReportState.reason)
+    await callback.message.edit_text(
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
+    )
+
+
 @report_router.callback_query(callbacks.ReportCallback.filter())
 async def report_callback_handler(
     callback: CallbackQuery,
@@ -198,6 +223,32 @@ async def scam_handler(
 
     await state.set_state(states.ScamReportState.description)
     await message.answer(
+        text.SCAM_REPORT_DESCRIPTION_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(user.id),
+    )
+
+
+@report_router.callback_query(
+    F.data == "create_scam_report",
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def create_scam_report_handler(
+    callback: CallbackQuery,
+    user: entities.UserEntity,
+    trading_service: TradingService,
+    state: FSMContext,
+):
+    scam_report_count = await trading_service.get_user_scam_report_count(
+        user.id, types.ReportStatus.PENDING
+    )
+
+    if scam_report_count >= 3:
+        await callback.message.answer(text.SCAM_REPORT_COUNT_MESSAGE)
+        return
+
+    await state.set_state(states.ScamReportState.description)
+    await callback.message.answer(
         text.SCAM_REPORT_DESCRIPTION_MESSAGE,
         reply_markup=keyboards.get_cancel_keyboard(user.id),
     )
