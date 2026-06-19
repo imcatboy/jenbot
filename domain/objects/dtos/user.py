@@ -14,6 +14,7 @@ class CreateReputationUserDTO(BaseDTO):
     user_ids: List[int]
     amount: Optional[float] = None
     description: Optional[str] = None
+    about: Optional[str] = None
     added_by_user_id: int
     role: UserReputationRole
     details: List[UserDetailDTO] = []

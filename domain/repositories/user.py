@@ -157,6 +157,7 @@ class UserRepository(BaseRepository):
             description=dto.description,
             role=dto.role,
             amount=dto.amount,
+            about=dto.about,
         )
         await self.create_relation(
             reputation_user, models.UserModel, dto.added_by_user_id, "added_by_user_id"
