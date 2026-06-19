@@ -46,7 +46,7 @@ async def dispute_report_handler(
     await state.update_data(type=types.ReportType.UNBAN)
     await state.set_state(states.ReportState.reason)
     await callback.message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id)
     )
 
 
@@ -72,13 +72,13 @@ async def report_callback_handler(
         await state.set_state(states.ReportState.accused_user_id)
         await callback.message.edit_text(
             text.REPORT_ACCUSED_USER_ID_MESSAGE,
-            reply_markup=keyboards.get_cancel_keyboard(user.id),
+            reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
         )
         return
 
     await state.set_state(states.ReportState.reason)
     await callback.message.edit_text(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
+        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id)
     )
 
 
@@ -224,7 +224,7 @@ async def scam_handler(
     await state.set_state(states.ScamReportState.description)
     await message.answer(
         text.SCAM_REPORT_DESCRIPTION_MESSAGE,
-        reply_markup=keyboards.get_cancel_keyboard(user.id),
+        reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
     )
 
 
@@ -250,7 +250,7 @@ async def create_scam_report_handler(
     await state.set_state(states.ScamReportState.description)
     await callback.message.answer(
         text.SCAM_REPORT_DESCRIPTION_MESSAGE,
-        reply_markup=keyboards.get_cancel_keyboard(user.id),
+        reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
     )
 
 
