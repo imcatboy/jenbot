@@ -673,11 +673,12 @@ def get_user_info_message(
         f"<b>Пользователь</b>: {format_user_handle(user.usernames, user.telegram_id)}\n"
     )
     message += f"<b>Роль</b>: {USER_ROLES[user.role]}\n"
-    message += f"<b>Дата регистрации</b>: {format_date(user.created_at)}\n"
+    message += f"<b>Дата регистрации</b>: {format_date(user.created_at)}\n\n"
 
-    message += f"<b>Нарушения</b>\n"
+    if violations_count:
+        message += f"<b>Нарушения</b>\n"
 
-    for violation_type, count in violations_count.items():
-        message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
+        for violation_type, count in violations_count.items():
+            message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
 
     return message
