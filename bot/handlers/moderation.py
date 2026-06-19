@@ -390,7 +390,7 @@ async def removemoderator_handler(
     await user_service.update_role(user.id, UserRole.USER)
     await message.answer(
         text.REMOVE_MODERATOR_SUCCESS.format(
-            text.format_user_handle(user.username, user.telegram_id)
+            text.format_user_handle(user.usernames, user.telegram_id)
         )
     )
 

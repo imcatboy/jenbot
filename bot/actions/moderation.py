@@ -279,15 +279,12 @@ class ModerationActions:
         tracker = await self.moderation_service.add_tracker(dto)
 
         try:
-            username = (
-                tracker.tracked_user.usernames[0].username
-                if tracker.tracked_user.usernames
-                else None
-            )
             await self.bot.send_message(
                 tracker.tracking_user.telegram_id,
                 text.TRACKER_ADDED.format(
-                    text.format_user_handle(username, tracker.tracked_user.telegram_id)
+                    text.format_user_handle(
+                        tracker.tracked_user.usernames, tracker.tracked_user.telegram_id
+                    )
                 ),
             )
         except TelegramAPIError:
@@ -301,13 +298,12 @@ class ModerationActions:
         await self.moderation_service.disable_tracker(tracked_user.id, tracking_user.id)
 
         try:
-            username = (
-                tracked_user.usernames[0].username if tracked_user.usernames else None
-            )
             await self.bot.send_message(
                 tracking_user.telegram_id,
                 text.TRACKER_REMOVED.format(
-                    text.format_user_handle(username, tracked_user.telegram_id)
+                    text.format_user_handle(
+                        tracked_user.usernames, tracked_user.telegram_id
+                    )
                 ),
             )
         except TelegramAPIError:
