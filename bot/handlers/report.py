@@ -40,12 +40,12 @@ async def dispute_report_handler(
     )
 
     if reports and user.role == UserRole.USER:
-        await callback.message.edit_text(text.REPORT_ALREADY_PENDING)
+        await callback.message.answer(text.REPORT_ALREADY_PENDING)
         return
 
     await state.update_data(type=types.ReportType.UNBAN)
     await state.set_state(states.ReportState.reason)
-    await callback.message.edit_text(
+    await callback.message.answer(
         text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(user.id)
     )
 
