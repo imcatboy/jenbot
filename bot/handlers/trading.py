@@ -177,9 +177,10 @@ async def external_deal_accept_handler(
         await callback.message.answer(text.ACCESS_DENIED)
         return
 
+    await callback.answer()
+    await callback.message.edit_text(text.PLEASE_WAIT_MESSAGE)
     await trading_service.start_external_deal(callback_data.id)
     await user_actions.send_message_to_users(deal)
-    await callback.answer()
     await callback.message.edit_text(text.EXTERNAL_DEAL_SUCCESS_MESSAGE)
 
 
@@ -229,8 +230,9 @@ async def finish_external_deal_handler(
     user_actions: UserActions,
     user: entities.UserEntity,
 ):
+    await callback.answer()
+    await callback.message.edit_text(text.PLEASE_WAIT_MESSAGE)
     await trading_service.accept_external_deal(callback_data.id, user.id)
     deal = await trading_service.get_external_deal(callback_data.id)
-    await callback.answer()
-    await callback.message.edit_text(text.EXTERNAL_DEAL_SUCCESS_MESSAGE)
     await user_actions.send_message_to_users(deal)
+    await callback.message.edit_text(text.EXTERNAL_DEAL_SUCCESS_MESSAGE)

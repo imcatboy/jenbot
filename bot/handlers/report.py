@@ -1,8 +1,10 @@
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
 from aiogram import F, Bot, Router
+from contextlib import suppress
 
 from domain.services import UserService, ModerationService, TradingService
 from domain.objects import exceptions, dtos, types, entities
@@ -326,13 +328,18 @@ async def reputation_request_accept_callback_handler(
     if callback.from_user.id != callback_data.user_id:
         return
 
+    await callback.answer()
+    loading = await callback.message.answer(text.PLEASE_WAIT_MESSAGE)
     await state.clear()
     reputation_request = await moderation_service.create_reputation_request(user.id)
     reputation_request = await moderation_service.get_reputation_request(
         reputation_request.id
     )
     await moderation_actions.send_reputation_request_message(reputation_request)
-    await callback.answer()
+
+    with suppress(TelegramBadRequest):
+        await loading.delete()
+    
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
 
 
@@ -347,6 +354,8 @@ async def reputation_request_accept_callback_handler(
     moderation_service: ModerationService,
     moderation_actions: ModerationActions,
 ):
+    await callback.answer()
+    await callback.message.edit_text(text.PLEASE_WAIT_MESSAGE)
     await moderation_service.update_reputation_request(callback_data.id, user.id, True)
     reputation_request = await moderation_service.get_reputation_request(
         callback_data.id
@@ -355,7 +364,6 @@ async def reputation_request_accept_callback_handler(
     await callback.message.edit_text(
         text.get_reputation_request_message(reputation_request),
     )
-    await callback.answer()
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
 
 

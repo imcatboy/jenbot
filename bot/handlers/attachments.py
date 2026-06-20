@@ -1,6 +1,8 @@
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
+from contextlib import suppress
 from aiogram import Router
 from typing import List
 
@@ -88,10 +90,16 @@ async def attachments_preview_handler(
         return
 
     await callback.answer()
-    await media_actions.send_preview(
-        callback.message.chat.id,
-        attachments,
-    )
+    loading = await callback.message.answer(text.ATTACHMENTS_PREVIEW_LOADING)
+    
+    try:
+        await media_actions.send_preview(
+            callback.message.chat.id,
+            attachments,
+        )
+    finally:
+        with suppress(TelegramBadRequest):
+            await loading.delete()
 
 
 @attachments_router.callback_query(
@@ -144,6 +152,12 @@ async def attachments_done_handler(
 
     await callback.answer()
     current_state = await state.get_state()
+    submitting_text = (
+        text.REPORT_SUBMITTING
+        if current_state == states.ReportState.attachments.state
+        else text.SCAM_REPORT_SUBMITTING
+    )
+    await callback.message.edit_text(submitting_text)
     await state.clear()
 
     if current_state == states.ReportState.attachments.state:
@@ -196,6 +210,7 @@ async def attachments_skip_handler(
         return
 
     await callback.answer()
+    await callback.message.edit_text(text.REPORT_SUBMITTING)
     await state.update_data(attachments=[])
     dto = dtos.AddReportDTO(
         reason=data["reason"],

@@ -157,6 +157,19 @@ ATTACHMENTS_DONE_EMPTY = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji
 ATTACHMENTS_UNAVAILABLE = (
     '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вложения недоступны.'
 )
+ATTACHMENTS_SKIP_FORBIDDEN = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пропуск недоступен — вы уже добавили файлы.'
+PLEASE_WAIT_MESSAGE = (
+    '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Пожалуйста, подождите...'
+)
+ATTACHMENTS_PREVIEW_LOADING = (
+    '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Отправляю превью...'
+)
+REPORT_SUBMITTING = (
+    '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Отправляю обращение...'
+)
+SCAM_REPORT_SUBMITTING = (
+    '<tg-emoji emoji-id="5283269090767576749">⌛️</tg-emoji> Отправляю жалобу...'
+)
 CHAT_NOT_FOUND = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Чат с ботом не найден или закрыт.'
 TRACKER_ADDED = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Трекер на пользователя {0} успешно добавлен.'
 TRACKER_REMOVED = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Трекер на пользователя {0} успешно удален.'

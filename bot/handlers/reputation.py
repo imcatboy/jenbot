@@ -1,8 +1,10 @@
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
 from aiogram import Bot, Router
+from contextlib import suppress
 
 from domain.objects.types import UserRole, UserReputationRole
 from domain.objects import dtos, exceptions, entities, types
@@ -107,23 +109,30 @@ async def reputation_user_callback_handler(
     try:
         reputation_user = await user_service.get_reputation_user(callback_data.id)
     except exceptions.ObjectNotFoundException:
-        image = await media_actions.get_telegram_file("unknown_user")
         await callback.answer()
         await callback.message.answer_photo(
-            photo=image,
+            photo=await media_actions.get_telegram_file("unknown_user"),
             caption=text.get_check_error_message(),
         )
         return
 
-    scam_reports = await trading_service.get_scam_reports(reputation_user.id)
-    image = await media_actions.get_telegram_file(reputation_user.role.value)
-    isPrivate = callback.message.chat.type == ChatType.PRIVATE
     await callback.answer()
-    await callback.message.answer_photo(
-        photo=image,
-        caption=text.get_check_success_message(reputation_user),
-        reply_markup=keyboards.get_check_keyboard(scam_reports) if isPrivate else None,
-    )
+    loading = await callback.message.answer(text.PLEASE_WAIT_MESSAGE)
+
+    try:
+        scam_reports = await trading_service.get_scam_reports(reputation_user.id)
+        image = await media_actions.get_telegram_file(reputation_user.role.value)
+        isPrivate = callback.message.chat.type == ChatType.PRIVATE
+        await callback.message.answer_photo(
+            photo=image,
+            caption=text.get_check_success_message(reputation_user),
+            reply_markup=(
+                keyboards.get_check_keyboard(scam_reports) if isPrivate else None
+            ),
+        )
+    finally:
+        with suppress(TelegramBadRequest):
+            await loading.delete()
 
 
 @reputation_router.callback_query(
@@ -137,6 +146,8 @@ async def check_callback_handler(
     trading_service: TradingService,
     media_actions: MediaActions,
 ):
+    await callback.answer()
+    loading = await callback.message.answer(text.PLEASE_WAIT_MESSAGE)
     scam_report = await trading_service.get_scam_report(
         callback_data.report_id,
     )
@@ -145,11 +156,13 @@ async def check_callback_handler(
     )
 
     if not attachments:
-        await callback.answer(text.ATTACHMENTS_UNAVAILABLE, show_alert=True)
+        await loading.edit_text(text.ATTACHMENTS_UNAVAILABLE)
         return
 
-    await callback.answer()
     await callback.message.answer_media_group(attachments)
+
+    with suppress(TelegramBadRequest):
+        await loading.delete()
 
 
 @reputation_router.callback_query(
