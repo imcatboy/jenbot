@@ -93,6 +93,52 @@ def get_cancel_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def get_attachments_keyboard(
+    user_id: int,
+    count: int,
+    allow_skip: bool = False,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    if count > 0:
+        builder.button(
+            text="Посмотреть",
+            icon_custom_emoji_id="5282953552405241953",
+            callback_data=AttachmentsPreviewCallback(user_id=user_id).pack(),
+        )
+        builder.button(
+            text="Готово",
+            icon_custom_emoji_id="5282782728670977815",
+            callback_data=AttachmentsDoneCallback(user_id=user_id).pack(),
+        )
+        builder.button(
+            text="Очистить",
+            icon_custom_emoji_id="5280799020715907724",
+            callback_data=AttachmentsClearCallback(user_id=user_id).pack(),
+        )
+
+    if count == 0 and allow_skip:
+        builder.button(
+            text="Пропустить",
+            icon_custom_emoji_id="5282959170222466892",
+            callback_data=SkipCallback(user_id=user_id).pack(),
+        )
+
+    builder.button(
+        text="Отмена",
+        icon_custom_emoji_id="5280622076653245714",
+        callback_data=CancelCallback(user_id=user_id).pack(),
+    )
+
+    if count > 0:
+        return builder.adjust(2, 2).as_markup()
+
+    if count == 0 and allow_skip:
+        return builder.adjust(2).as_markup()
+
+    return builder.as_markup()
+
+
 def get_skip_keyboard(user_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(

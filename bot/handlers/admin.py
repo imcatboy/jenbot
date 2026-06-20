@@ -45,6 +45,7 @@ async def reportstatus_callback_handler(
         status=callback_data.status,
     )
     await state.set_state(states.AdminReportState.report_status)
+    await callback.answer()
     await callback.message.reply(
         text.REPORT_COMMENT_MESSAGE,
         reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),

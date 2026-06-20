@@ -103,10 +103,13 @@ class ModerationActions:
             media_group = await self.media_actions.create_media_group(
                 report.attachments
             )
-            await self.bot.send_media_group(
-                admin_chat_id,
-                media_group,
-            )
+
+            if media_group:
+                await self.bot.send_media_group(
+                    admin_chat_id,
+                    media_group,
+                )
+
             await self.bot.send_message(
                 admin_chat_id,
                 text.get_report_message(report),
@@ -127,10 +130,14 @@ class ModerationActions:
         if not moderation_chat_id:
             raise exceptions.ConfigNotFoundException("moderation_chat_id")
 
-        media_group = await self.media_actions.create_media_group(
-            scam_report.attachments
-        )
-        await self.bot.send_media_group(moderation_chat_id, media_group)
+        if scam_report.attachments:
+            media_group = await self.media_actions.create_media_group(
+                scam_report.attachments
+            )
+
+            if media_group:
+                await self.bot.send_media_group(moderation_chat_id, media_group)
+
         await self.bot.send_message(
             moderation_chat_id,
             text.get_scam_report_message(scam_report),

@@ -24,5 +24,6 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_DB: int
     PROXY_URL: str
+    MAX_ATTACHMENTS: int
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

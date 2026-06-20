@@ -108,6 +108,7 @@ async def reputation_user_callback_handler(
         reputation_user = await user_service.get_reputation_user(callback_data.id)
     except exceptions.ObjectNotFoundException:
         image = await media_actions.get_telegram_file("unknown_user")
+        await callback.answer()
         await callback.message.answer_photo(
             photo=image,
             caption=text.get_check_error_message(),
@@ -117,6 +118,7 @@ async def reputation_user_callback_handler(
     scam_reports = await trading_service.get_scam_reports(reputation_user.id)
     image = await media_actions.get_telegram_file(reputation_user.role.value)
     isPrivate = callback.message.chat.type == ChatType.PRIVATE
+    await callback.answer()
     await callback.message.answer_photo(
         photo=image,
         caption=text.get_check_success_message(reputation_user),
@@ -141,6 +143,12 @@ async def check_callback_handler(
     attachments = await media_actions.create_media_group(
         scam_report.attachments, scam_report.description
     )
+
+    if not attachments:
+        await callback.answer(text.ATTACHMENTS_UNAVAILABLE, show_alert=True)
+        return
+
+    await callback.answer()
     await callback.message.answer_media_group(attachments)
 
 
@@ -164,6 +172,7 @@ async def scam_report_accept_callback_handler(
             reply_markup=keyboards.get_scam_report_keyboard(report),
         )
     except exceptions.ObjectNotFoundException:
+        await callback.answer()
         await callback.message.answer(text.OBJECT_NOT_FOUND)
 
 
@@ -181,6 +190,7 @@ async def scam_report_status_callback_handler(
     report = await trading_service.get_scam_report(callback_data.id)
 
     if report.applied_by_user_id is not None and report.applied_by_user_id != user.id:
+        await callback.answer()
         await callback.message.answer(text.ACCESS_DENIED)
         return
 
@@ -190,6 +200,7 @@ async def scam_report_status_callback_handler(
         status=callback_data.status,
     )
     await state.set_state(states.AnswerScamReportState.comment)
+    await callback.answer()
     await callback.message.reply(
         text.REPORT_COMMENT_MESSAGE,
         reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),
@@ -279,6 +290,7 @@ async def review_rating_callback_handler(
 ):
     await state.update_data(rating=callback_data.rating)
     await state.set_state(states.ReviewState.message)
+    await callback.answer()
     await callback.message.answer(
         text.REVIEW_MESSAGE_MESSAGE,
         reply_markup=keyboards.get_cancel_keyboard(callback.message.from_user.id),
@@ -333,6 +345,7 @@ async def reviews_callback(
     reviews = reviews[:-1] if has_more else reviews
 
     if callback_data.new_message:
+        await callback.answer()
         await callback.message.answer(
             text.get_reviews_message(reputation_user, reviews),
             reply_markup=keyboards.get_reviews_keyboard(
@@ -343,6 +356,7 @@ async def reviews_callback(
             ),
         )
     else:
+        await callback.answer()
         await callback.message.edit_text(
             text.get_reviews_message(reputation_user, reviews),
             reply_markup=keyboards.get_reviews_keyboard(

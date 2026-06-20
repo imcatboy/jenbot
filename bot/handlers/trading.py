@@ -168,15 +168,18 @@ async def external_deal_accept_handler(
         )
         reputation_user = await user_service.get_reputation_user_by_user_id(user.id)
     except exceptions.UserIsNotGuarantorException:
+        await callback.answer()
         await callback.message.answer(text.DEAL_USER_NOT_GUARANTOR)
         return
 
     if guarantor.id != reputation_user.id or deal.status != types.DealStatus.DRAFT:
+        await callback.answer()
         await callback.message.answer(text.ACCESS_DENIED)
         return
 
     await trading_service.start_external_deal(callback_data.id)
     await user_actions.send_message_to_users(deal)
+    await callback.answer()
     await callback.message.edit_text(text.EXTERNAL_DEAL_SUCCESS_MESSAGE)
 
 
@@ -200,14 +203,17 @@ async def external_deal_delete_handler(
         )
         reputation_user = await user_service.get_reputation_user_by_user_id(user.id)
     except exceptions.UserIsNotGuarantorException:
+        await callback.answer()
         await callback.message.answer(text.DEAL_USER_NOT_GUARANTOR)
         return
 
     if guarantor.id != reputation_user.id or deal.status != types.DealStatus.DRAFT:
+        await callback.answer()
         await callback.message.answer(text.ACCESS_DENIED)
         return
 
     await trading_service.delete_external_deal(callback_data.id)
+    await callback.answer()
     await callback.message.edit_text(text.EXTERNAL_DEAL_DELETED_MESSAGE)
 
 
@@ -225,5 +231,6 @@ async def finish_external_deal_handler(
 ):
     await trading_service.accept_external_deal(callback_data.id, user.id)
     deal = await trading_service.get_external_deal(callback_data.id)
+    await callback.answer()
     await callback.message.edit_text(text.EXTERNAL_DEAL_SUCCESS_MESSAGE)
     await user_actions.send_message_to_users(deal)

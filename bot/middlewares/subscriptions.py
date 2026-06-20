@@ -50,6 +50,7 @@ class SubscriptionsMiddleware(BaseMiddleware):
                     ChatMemberStatus.MEMBER,
                     ChatMemberStatus.ADMINISTRATOR,
                     ChatMemberStatus.CREATOR,
+                    ChatMemberStatus.KICKED,
                 ]:
                     return await message.answer(
                         text.SUBSCRIPTION_ERROR,

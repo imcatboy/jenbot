@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
 from aiogram import F, Bot, Router
-from typing import List
 
 from domain.services import UserService, ModerationService, TradingService
 from domain.objects import exceptions, dtos, types, entities
@@ -40,11 +39,13 @@ async def dispute_report_handler(
     )
 
     if reports and user.role == UserRole.USER:
+        await callback.answer()
         await callback.message.answer(text.REPORT_ALREADY_PENDING)
         return
 
     await state.update_data(type=types.ReportType.UNBAN)
     await state.set_state(states.ReportState.reason)
+    await callback.answer()
     await callback.message.answer(
         text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id)
     )
@@ -128,65 +129,14 @@ async def username_handler(
 
 @report_router.message(states.ReportState.reason, flags={"cast": types.Text})
 async def reason_handler(message: Message, state_data: types.Text, state: FSMContext):
-    await state.update_data(reason=state_data)
+    await state.update_data(reason=state_data, attachments=[])
     await state.set_state(states.ReportState.attachments)
     await message.answer(
         text.REPORT_ATTACHMENTS_MESSAGE,
-        reply_markup=keyboards.get_skip_keyboard(message.from_user.id),
+        reply_markup=keyboards.get_attachments_keyboard(
+            message.from_user.id, 0, allow_skip=True
+        ),
     )
-
-
-@report_router.callback_query(
-    callbacks.SkipCallback.filter(), states.ReportState.attachments
-)
-async def skip_handler(
-    callback: CallbackQuery,
-    callback_data: callbacks.SkipCallback,
-    state: FSMContext,
-    moderation_service: ModerationService,
-    user: entities.UserEntity,
-    moderation_actions: ModerationActions,
-):
-    if callback.from_user.id != callback_data.user_id:
-        return
-
-    await state.update_data(attachments=[])
-    data = await state.get_data()
-    dto = dtos.AddReportDTO(
-        reason=data["reason"],
-        attachments=data["attachments"],
-        type=data["type"],
-        user_id=user.id,
-        accused_user_id=data.get("accused_user_id"),
-    )
-    report = await moderation_service.add_report(dto)
-    await moderation_actions.publish_report(report.id)
-    await callback.message.edit_text(text.REPORT_SUCCESS)
-    await state.clear()
-
-
-@report_router.message(states.ReportState.attachments, flags={"want_files": True})
-async def attachments_handler(
-    message: Message,
-    file_ids: List[str],
-    moderation_service: ModerationService,
-    user: entities.UserEntity,
-    state: FSMContext,
-    moderation_actions: ModerationActions,
-):
-    await state.update_data(attachments=file_ids)
-    data = await state.get_data()
-    await state.clear()
-    dto = dtos.AddReportDTO(
-        reason=data["reason"],
-        attachments=data["attachments"],
-        type=data["type"],
-        user_id=user.id,
-        accused_user_id=data.get("accused_user_id"),
-    )
-    report = await moderation_service.add_report(dto)
-    await moderation_actions.publish_report(report.id)
-    await message.answer(text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(file_ids)))
 
 
 @report_router.callback_query(callbacks.CancelCallback.filter())
@@ -244,10 +194,12 @@ async def create_scam_report_handler(
     )
 
     if scam_report_count >= 3:
+        await callback.answer()
         await callback.message.answer(text.SCAM_REPORT_COUNT_MESSAGE)
         return
 
     await state.set_state(states.ScamReportState.description)
+    await callback.answer()
     await callback.message.answer(
         text.SCAM_REPORT_DESCRIPTION_MESSAGE,
         reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
@@ -280,11 +232,13 @@ async def scam_report_contact_info_handler(
     state_data: types.Text,
     state: FSMContext,
 ):
-    await state.update_data(contact_info=state_data)
+    await state.update_data(contact_info=state_data, attachments=[])
     await state.set_state(states.ScamReportState.attachments)
     await message.answer(
         text.SCAM_REPORT_ATTACHMENTS_MESSAGE,
-        reply_markup=keyboards.get_cancel_keyboard(message.from_user.id),
+        reply_markup=keyboards.get_attachments_keyboard(
+            message.from_user.id, 0, allow_skip=False
+        ),
     )
 
 
@@ -299,38 +253,15 @@ async def skip_handler(
     if callback.from_user.id != callback_data.user_id:
         return
 
-    await state.update_data(contact_info=None)
+    await state.update_data(contact_info=None, attachments=[])
     await state.set_state(states.ScamReportState.attachments)
+    await callback.answer()
     await callback.message.answer(
         text.SCAM_REPORT_ATTACHMENTS_MESSAGE,
-        reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
+        reply_markup=keyboards.get_attachments_keyboard(
+            callback.from_user.id, 0, allow_skip=False
+        ),
     )
-
-
-@report_router.message(
-    states.ScamReportState.attachments,
-    flags={"want_files": True},
-)
-async def scam_report_attachments_handler(
-    message: Message,
-    file_ids: List[str],
-    state: FSMContext,
-    trading_service: TradingService,
-    user: entities.UserEntity,
-    moderation_actions: ModerationActions,
-):
-    await state.update_data(attachments=file_ids)
-    data = await state.get_data()
-    dto = dtos.CreateScamReportDTO(
-        description=data["description"],
-        contact_info=data["contact_info"],
-        attachments=data["attachments"],
-        user_id=user.id,
-    )
-    report = await trading_service.create_scam_report(dto)
-    await moderation_actions.send_scam_report_message(report.id)
-    await message.answer(text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(file_ids)))
-    await state.clear()
 
 
 @report_router.message(
@@ -401,6 +332,7 @@ async def reputation_request_accept_callback_handler(
         reputation_request.id
     )
     await moderation_actions.send_reputation_request_message(reputation_request)
+    await callback.answer()
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
 
 
@@ -423,6 +355,7 @@ async def reputation_request_accept_callback_handler(
     await callback.message.edit_text(
         text.get_reputation_request_message(reputation_request),
     )
+    await callback.answer()
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
 
 
@@ -437,6 +370,7 @@ async def reputation_request_reject_callback_handler(
 ):
     await state.set_state(states.ReputationRequestAcceptState.comment)
     await state.update_data(id=callback_data.id, message_id=callback.message.message_id)
+    await callback.answer()
     await callback.message.answer(text.REPUTATION_REQUEST_COMMENT_MESSAGE)
 
 

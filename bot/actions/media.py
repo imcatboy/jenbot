@@ -7,6 +7,10 @@ from domain.services import MediaService, ConfigService
 from domain.objects import exceptions
 from bot.core import BotProtocol
 from bot.core import MEDIA_MAP
+from bot.data import text
+
+
+TELEGRAM_MEDIA_GROUP_LIMIT = 10
 
 
 class MediaActions:
@@ -46,26 +50,44 @@ class MediaActions:
         has_caption = False
 
         for attachment in files:
+            item_caption = caption if not has_caption else None
+
             try:
                 file = await self.bot.get_file(attachment)
+                path = file.file_path or ""
 
-                if "photo" in file.file_path:
+                if "video" in path:
                     attachments.append(
-                        InputMediaPhoto(
-                            media=file.file_id,
-                            caption=caption if not has_caption else None,
-                        )
+                        InputMediaVideo(media=file.file_id, caption=item_caption)
                     )
-                elif "video" in file.file_path:
+                else:
                     attachments.append(
-                        InputMediaVideo(
-                            media=file.file_id,
-                            caption=caption if not has_caption else None,
-                        )
+                        InputMediaPhoto(media=file.file_id, caption=item_caption)
                     )
-
-                has_caption = True
             except TelegramAPIError:
-                continue
+                attachments.append(
+                    InputMediaPhoto(media=attachment, caption=item_caption)
+                )
+
+            has_caption = True
 
         return attachments
+
+    async def send_preview(
+        self,
+        chat_id: int,
+        file_ids: List[str],
+    ) -> None:
+        for index, offset in enumerate(
+            range(0, len(file_ids), TELEGRAM_MEDIA_GROUP_LIMIT)
+        ):
+            chunk = file_ids[offset : offset + TELEGRAM_MEDIA_GROUP_LIMIT]
+            caption = (
+                text.ATTACHMENTS_PREVIEW_CAPTION.format(len(file_ids))
+                if index == 0
+                else None
+            )
+            media_group = await self.create_media_group(chunk, caption=caption)
+
+            if media_group:
+                await self.bot.send_media_group(chat_id, media_group)

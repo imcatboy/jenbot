@@ -37,6 +37,18 @@ class SkipCallback(CallbackData, prefix="skip"):
     user_id: int
 
 
+class AttachmentsPreviewCallback(CallbackData, prefix="attachments_preview"):
+    user_id: int
+
+
+class AttachmentsDoneCallback(CallbackData, prefix="attachments_done"):
+    user_id: int
+
+
+class AttachmentsClearCallback(CallbackData, prefix="attachments_clear"):
+    user_id: int
+
+
 class ReputationUserCallback(CallbackData, prefix="reputation_user"):
     id: int
 

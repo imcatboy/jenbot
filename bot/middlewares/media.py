@@ -1,9 +1,10 @@
 from aiogram.dispatcher.event.handler import HandlerObject
+from aiogram.fsm.context import FSMContext
 from typing import Callable, Dict, Any, Awaitable, List
 from aiogram.types.message import Message
 from aiogram import BaseMiddleware
 
-from bot.data import text, keyboards
+from bot.data import text, keyboards, states
 
 
 class MediaCheckMiddleware(BaseMiddleware):
@@ -16,7 +17,7 @@ class MediaCheckMiddleware(BaseMiddleware):
     ) -> Any:
         handler_object: HandlerObject | None = data.get("handler")
 
-        if not handler_object or not handler_object.flags.get("want_files"):
+        if not handler_object or not handler_object.flags.get("collect_files"):
             return await handler(event, data)
 
         files: List[str] = []
@@ -36,9 +37,21 @@ class MediaCheckMiddleware(BaseMiddleware):
                 files.append(file_id)
 
         if not files:
+            state: FSMContext | None = data.get("state")
+            count = 0
+            allow_skip = False
+
+            if state:
+                state_data = await state.get_data()
+                count = len(state_data.get("attachments", []))
+                current_state = await state.get_state()
+                allow_skip = current_state == states.ReportState.attachments.state
+
             return await event.answer(
                 text.REPORT_ATTACHMENTS_ERROR,
-                reply_markup=keyboards.get_cancel_keyboard(event.from_user.id),
+                reply_markup=keyboards.get_attachments_keyboard(
+                    event.from_user.id, count, allow_skip
+                ),
             )
 
         data["file_ids"] = files
