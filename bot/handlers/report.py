@@ -49,7 +49,8 @@ async def dispute_report_handler(
     await state.set_state(states.ReportState.reason)
     await callback.answer()
     await callback.message.answer(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id)
+        text.REPORT_REASON_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
     )
 
 
@@ -81,7 +82,8 @@ async def report_callback_handler(
 
     await state.set_state(states.ReportState.reason)
     await callback.message.edit_text(
-        text.REPORT_REASON_MESSAGE, reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id)
+        text.REPORT_REASON_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
     )
 
 
@@ -339,7 +341,7 @@ async def reputation_request_accept_callback_handler(
 
     with suppress(TelegramBadRequest):
         await loading.delete()
-    
+
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
 
 
@@ -361,7 +363,7 @@ async def reputation_request_accept_callback_handler(
         callback_data.id
     )
     await moderation_actions.send_reputation_request_updated_message(user)
-    await callback.message.answer(
+    await callback.message.edit_text(
         text.get_reputation_request_message(reputation_request),
     )
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
