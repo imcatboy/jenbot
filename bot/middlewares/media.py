@@ -4,7 +4,7 @@ from typing import Callable, Dict, Any, Awaitable, List
 from aiogram.types.message import Message
 from aiogram import BaseMiddleware
 
-from bot.data import text, keyboards, states
+from bot.data import text, keyboards, states, attachments
 
 
 class MediaCheckMiddleware(BaseMiddleware):
@@ -24,17 +24,17 @@ class MediaCheckMiddleware(BaseMiddleware):
 
         if "album" in data:
             for message in data["album"]:
-                file_id = self._get_file_id(message)
+                attachment = self._get_attachment(message)
 
-                if not file_id:
+                if not attachment:
                     continue
 
-                files.append(file_id)
+                files.append(attachment)
         else:
-            file_id = self._get_file_id(event)
+            attachment = self._get_attachment(event)
 
-            if file_id:
-                files.append(file_id)
+            if attachment:
+                files.append(attachment)
 
         if not files:
             state: FSMContext | None = data.get("state")
@@ -57,10 +57,10 @@ class MediaCheckMiddleware(BaseMiddleware):
         data["file_ids"] = files
         return await handler(event, data)
 
-    def _get_file_id(self, message: Message) -> str:
+    def _get_attachment(self, message: Message) -> str | None:
         if message.photo:
-            return message.photo[-1].file_id
+            return attachments.encode_attachment(message.photo[-1].file_id, "photo")
         if message.video:
-            return message.video.file_id
+            return attachments.encode_attachment(message.video.file_id, "video")
 
         return None

@@ -4,10 +4,10 @@ from typing import List, Optional
 from pathlib import Path
 
 from domain.services import MediaService, ConfigService
+from bot.data import text, attachments
 from domain.objects import exceptions
 from bot.core import BotProtocol
 from bot.core import MEDIA_MAP
-from bot.data import text
 
 
 TELEGRAM_MEDIA_GROUP_LIMIT = 10
@@ -31,7 +31,6 @@ class MediaActions:
             return file.file_id
         except exceptions.ObjectNotFoundException:
             pass
-
         admin_chat_id = await self.config_service.get("admin_chat_id")
 
         if not admin_chat_id:
@@ -51,27 +50,37 @@ class MediaActions:
 
         for attachment in files:
             item_caption = caption if not has_caption else None
+            media = await self._create_input_media(attachment, item_caption)
 
-            try:
-                file = await self.bot.get_file(attachment)
-                path = file.file_path or ""
-
-                if "video" in path:
-                    attachments.append(
-                        InputMediaVideo(media=file.file_id, caption=item_caption)
-                    )
-                else:
-                    attachments.append(
-                        InputMediaPhoto(media=file.file_id, caption=item_caption)
-                    )
-            except TelegramAPIError:
-                attachments.append(
-                    InputMediaPhoto(media=attachment, caption=item_caption)
-                )
-
-            has_caption = True
-
+            if media:
+                attachments.append(media)
+                has_caption = True
+        
         return attachments
+
+    async def _create_input_media(
+        self,
+        attachment: str,
+        caption: Optional[str],
+    ) -> InputMediaPhoto | InputMediaVideo | None:
+        file_id, media_type = attachments.parse_attachment(attachment)
+
+        if media_type == "video":
+            return InputMediaVideo(media=file_id, caption=caption)
+
+        if media_type == "photo":
+            return InputMediaPhoto(media=file_id, caption=caption)
+
+        try:
+            file = await self.bot.get_file(file_id)
+            path = file.file_path or ""
+
+            if "video" in path:
+                return InputMediaVideo(media=file.file_id, caption=caption)
+
+            return InputMediaPhoto(media=file.file_id, caption=caption)
+        except TelegramAPIError:
+            return None
 
     async def send_preview(
         self,

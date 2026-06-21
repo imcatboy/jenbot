@@ -6,8 +6,8 @@ from contextlib import suppress
 from aiogram import Router
 from typing import List
 
+from bot.data import states, callbacks, keyboards, text, attachments
 from domain.services import ModerationService, TradingService
-from bot.data import states, callbacks, keyboards, text
 from bot.actions import ModerationActions, MediaActions
 from bot.filters import CollectAttachmentsFilter
 from domain.objects import entities, dtos
@@ -28,38 +28,45 @@ async def collect_attachment_handler(
     settings: Settings,
 ):
     data = await state.get_data()
-    attachments = list(data.get("attachments", []))
-    new_ids = [file_id for file_id in file_ids if file_id not in attachments]
+    attachments_list = list(data.get("attachments", []))
+    existing_file_ids = {
+        attachments.attachment_file_id(attachment) for attachment in attachments_list
+    }
+    new_ids = [
+        file_id
+        for file_id in file_ids
+        if attachments.attachment_file_id(file_id) not in existing_file_ids
+    ]
     duplicates = len(file_ids) - len(new_ids)
     current_state = await state.get_state()
     allow_skip = current_state == states.ReportState.attachments.state
     keyboard = keyboards.get_attachments_keyboard(
-        message.from_user.id, len(attachments), allow_skip
+        message.from_user.id, len(attachments_list), allow_skip
     )
 
     if not new_ids:
         await message.answer(
-            text.ATTACHMENTS_DUPLICATES_ONLY.format(len(attachments), duplicates),
+            text.ATTACHMENTS_DUPLICATES_ONLY.format(len(attachments_list), duplicates),
             reply_markup=keyboard,
         )
         return
 
-    if len(attachments) + len(new_ids) > settings.MAX_ATTACHMENTS:
+    if len(attachments_list) + len(new_ids) > settings.MAX_ATTACHMENTS:
         await message.answer(
             text.ATTACHMENTS_LIMIT.format(settings.MAX_ATTACHMENTS),
             reply_markup=keyboard,
         )
         return
 
-    attachments.extend(new_ids)
-    await state.update_data(attachments=attachments)
+    attachments_list.extend(new_ids)
+    await state.update_data(attachments=attachments_list)
     keyboard = keyboards.get_attachments_keyboard(
-        message.from_user.id, len(attachments), allow_skip
+        message.from_user.id, len(attachments_list), allow_skip
     )
 
     response = text.ATTACHMENTS_RECEIVED.format(
         len(new_ids),
-        len(attachments),
+        len(attachments_list),
         settings.MAX_ATTACHMENTS,
     )
 
@@ -83,19 +90,19 @@ async def attachments_preview_handler(
         return
 
     data = await state.get_data()
-    attachments = list(data.get("attachments", []))
+    attachments_list = list(data.get("attachments", []))
 
-    if not attachments:
+    if not attachments_list:
         await callback.answer(text.ATTACHMENTS_PREVIEW_EMPTY, show_alert=True)
         return
 
     await callback.answer()
     loading = await callback.message.answer(text.ATTACHMENTS_PREVIEW_LOADING)
-    
+
     try:
         await media_actions.send_preview(
             callback.message.chat.id,
-            attachments,
+            attachments_list,
         )
     finally:
         with suppress(TelegramBadRequest):
@@ -144,9 +151,9 @@ async def attachments_done_handler(
         return
 
     data = await state.get_data()
-    attachments = list(data.get("attachments", []))
+    attachments_list = list(data.get("attachments", []))
 
-    if not attachments:
+    if not attachments_list:
         await callback.answer(text.ATTACHMENTS_DONE_EMPTY, show_alert=True)
         return
 
@@ -163,7 +170,7 @@ async def attachments_done_handler(
     if current_state == states.ReportState.attachments.state:
         dto = dtos.AddReportDTO(
             reason=data["reason"],
-            attachments=attachments,
+            attachments=attachments_list,
             type=data["type"],
             user_id=user.id,
             accused_user_id=data.get("accused_user_id"),
@@ -171,19 +178,19 @@ async def attachments_done_handler(
         report = await moderation_service.add_report(dto)
         await moderation_actions.publish_report(report.id)
         await callback.message.edit_text(
-            text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(attachments))
+            text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(attachments_list))
         )
     elif current_state == states.ScamReportState.attachments.state:
         dto = dtos.CreateScamReportDTO(
             description=data["description"],
             contact_info=data["contact_info"],
-            attachments=attachments,
+            attachments=attachments_list,
             user_id=user.id,
         )
         report = await trading_service.create_scam_report(dto)
         await moderation_actions.send_scam_report_message(report.id)
         await callback.message.edit_text(
-            text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(attachments))
+            text.REPORT_WITH_ATTACHMENTS_SUCCESS.format(len(attachments_list))
         )
 
 
@@ -203,9 +210,9 @@ async def attachments_skip_handler(
         return
 
     data = await state.get_data()
-    attachments = list(data.get("attachments", []))
+    attachments_list = list(data.get("attachments", []))
 
-    if attachments:
+    if attachments_list:
         await callback.answer(text.ATTACHMENTS_SKIP_FORBIDDEN, show_alert=True)
         return
 
