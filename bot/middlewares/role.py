@@ -17,8 +17,11 @@ class RoleMiddleware(BaseMiddleware):
         event: Union[Message, CallbackQuery],
         data: Dict[str, Any],
     ) -> Any:
-        user: entities.UserEntity = data["user"]
+        user: entities.UserEntity | None = data["user"]
         handler_object: HandlerObject = data["handler"]
+
+        if not user:
+            return
 
         if not handler_object or not handler_object.flags.get("user_role") or not user:
             return await handler(event, data)

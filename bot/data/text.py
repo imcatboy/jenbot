@@ -15,6 +15,10 @@ COMMAND_ARGUMENTS_ERROR = '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoj
 COMMAND_ARGUMENTS_COUNT_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Неверное число аргументов.\n\n<code>{0}</code>'
 COMMAND_ARGUMENTS_VALIDATION_ERROR = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Ошибка валидации!\n\n<code>{0}</code>'
 USER_NOT_ALLOWED_TO_ACTION = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Вы не имеете прав на выполнение этого действия.'
+SENDER_CHAT_NOT_ALLOWED = (
+    '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Бот недоступен при отправке сообщений '
+    "от имени канала или анонимно. Отправьте команду от своего аккаунта."
+)
 VIOLATIONS_OTHER_USER_FORBIDDEN = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Просмотр нарушений другого пользователя доступен только модераторам и администраторам.'
 BAN_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} заблокирован до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
 BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Пользователь {0} заблокирован\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'

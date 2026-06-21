@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 
 from domain.services import UserService
+from bot.data import text
 
 
 class UserMiddleware(BaseMiddleware):
@@ -17,6 +18,9 @@ class UserMiddleware(BaseMiddleware):
     ) -> Any:
         user_service: UserService = data["user_service"]
 
+        if isinstance(event, Message) and event.sender_chat:
+            return
+
         if not getattr(event, "from_user", None) or event.from_user.is_bot:
             return await handler(event, data)
 
@@ -28,6 +32,7 @@ class UserMiddleware(BaseMiddleware):
         if (
             isinstance(event, Message)
             and event.reply_to_message
+            and not event.reply_to_message.sender_chat
             and event.reply_to_message.from_user
             and not event.reply_to_message.from_user.is_bot
         ):
