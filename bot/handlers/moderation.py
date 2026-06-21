@@ -284,10 +284,10 @@ async def unwarn_handler(
     moderation_service: ModerationService,
     audit_actions: AuditActions,
 ):
-    await moderation_service.unwarn_user(command_data.id)
     violation = await moderation_service.get_violation(command_data.id)
+    await moderation_service.unwarn_user(command_data.id)
     await audit_actions.upload_action_audit(
-        ChatAction.UNWARN, violation.user, violation.applied_by_user, command_data.id
+        ChatAction.UNWARN, violation.user, violation.applied_by_user, violation.id
     )
     await message.answer(text.UNWARN_USER_SUCCESS)
 
