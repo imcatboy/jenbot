@@ -74,7 +74,9 @@ START_MESSAGE = (
     '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n'
     "Стремитесь к максимальной безопасности — проверяйте собеседника перед сделкой.\n\n"
     '<tg-emoji emoji-id="5280548821691046193">🌐</tg-emoji> Актуальные новости и объявления — в нашем канале.\n\n'
-    '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>'
+    '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>\n\n'
+    '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> При использовании Бота вы соглашаетесь с '
+    '<a href="https://docs.google.com/document/d/e/2PACX-1vTvjrD2GuDtUTV8mQ7VsZRnf0QnL90fBS4Nvk7LP7hBvLDXwTHtKhTAkHlm0E0NjehSFjMC4wz93X-l/pub">пользовательским соглашением</a>.'
 )
 REPORT_TYPE_MESSAGE = (
     '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Выберите тип обращения.'
