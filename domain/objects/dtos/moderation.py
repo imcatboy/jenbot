@@ -86,3 +86,10 @@ class AddTrackerDTO(BaseDTO):
     tracked_user_id: int
     tracking_user_id: int
     expires_at: Optional[datetime] = None
+
+
+class GetAppliedScamReportsCountDTO(BaseDTO):
+    applied_by_user_id: Optional[int] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    status: Optional[ReportStatus] = None

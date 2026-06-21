@@ -633,12 +633,16 @@ def get_scam_report_updated_message(
 def get_violations_count_message(
     user: entities.UserEntity,
     violations_count: Dict[types.ViolationType, int],
+    applied_scam_reports_count: int,
     start_date: Optional[datetime],
 ) -> str:
     message = f'<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> <b>Статистика нарушений {format_user_handle(user.usernames, user.telegram_id)}</b>\n\n'
 
     for violation_type, count in violations_count.items():
         message += f"<b>{VIOLATIONS[violation_type]}</b>: {count} шт.\n"
+
+    if applied_scam_reports_count > 0:
+        message += f'\n<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> <b>Рассмотрено жалоб на скам</b>: {applied_scam_reports_count} шт.\n'
 
     if start_date:
         message += f'\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> От: {format_date(start_date)}'

@@ -88,6 +88,25 @@ class ModerationRepository(BaseRepository):
         result = await self.session.execute(query)
         return dict(result.all())
 
+    async def get_applied_scam_reports_count(
+        self, dto: dtos.GetAppliedScamReportsCountDTO
+    ) -> int:
+        query = select(func.count(models.ScamReportModel.id))
+
+        if dto.applied_by_user_id is not None:
+            query = query.where(
+                models.ScamReportModel.applied_by_user_id == dto.applied_by_user_id
+            )
+        if dto.start_date is not None:
+            query = query.where(models.ScamReportModel.created_at >= dto.start_date)
+        if dto.end_date is not None:
+            query = query.where(models.ScamReportModel.created_at <= dto.end_date)
+        if dto.status is not None:
+            query = query.where(models.ScamReportModel.status == dto.status)
+
+        result = await self.session.execute(query)
+        return result.scalar() or 0
+
     async def set_violation_active(self, violation_id: int, is_active: bool) -> None:
         violation = await self.get_by_id(models.ChatViolationModel, violation_id)
         violation.is_active = is_active

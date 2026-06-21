@@ -8,7 +8,7 @@ from html import escape
 
 from bot.actions import UserActions, ModerationActions, AuditActions
 from domain.services import ModerationService, ConfigService
-from domain.objects.types import UserRole, ChatAction
+from domain.objects.types import ReportStatus, UserRole, ChatAction
 from bot.filters import GroupsFilter, UsersFilter
 from bot.data import text, callbacks, keyboards
 from domain.objects import dtos, entities
@@ -454,8 +454,19 @@ async def violationscount_handler(
         applied_by_user_id=purpose_user.id,
     )
     violations_count = await moderation_service.get_violations_count(dto)
+    dto = dtos.GetAppliedScamReportsCountDTO(
+        applied_by_user_id=purpose_user.id,
+        start_date=start_date,
+        end_date=end_date,
+        status=ReportStatus.APPROVED,
+    )
+    applied_scam_reports_count = (
+        await moderation_service.get_applied_scam_reports_count(dto)
+    )
     await message.answer(
-        text.get_violations_count_message(purpose_user, violations_count, start_date)
+        text.get_violations_count_message(
+            purpose_user, violations_count, applied_scam_reports_count, start_date
+        )
     )
 
 

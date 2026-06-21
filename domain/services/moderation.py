@@ -204,3 +204,8 @@ class ModerationService:
 
     async def has_active_reputation_request(self, user_id: int) -> bool:
         return await self.moderation_repository.has_active_reputation_request(user_id)
+
+    async def get_applied_scam_reports_count(
+        self, dto: dtos.GetAppliedScamReportsCountDTO
+    ) -> int:
+        return await self.moderation_repository.get_applied_scam_reports_count(dto)
