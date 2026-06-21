@@ -137,6 +137,10 @@ class ModerationRepository(BaseRepository):
             .values(is_active=False)
         )
 
+    async def delete_violation(self, violation_id: int) -> None:
+        violation = await self.get_by_id(models.ChatViolationModel, violation_id)
+        await self.session.delete(violation)
+
     async def add_report(self, dto: dtos.AddReportDTO) -> entities.ReportEntity:
         report = models.ReportModel(**dto.model_dump())
         await self.create_relation(report, models.UserModel, dto.user_id)

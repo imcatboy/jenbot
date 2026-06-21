@@ -50,8 +50,7 @@ class ModerationService:
         violation_dto = dtos.AddViolationDTO(
             **dto.model_dump(), type=ViolationType.WARN
         )
-        violation = await self.add_violation(violation_dto)
-        return violation
+        return await self.add_violation(violation_dto)
 
     async def unwarn_user(self, violation_id: int) -> None:
         violation = await self.moderation_repository.get_violation(violation_id)
@@ -59,7 +58,7 @@ class ModerationService:
         if violation.type != ViolationType.WARN:
             raise exceptions.ObjectNotFoundException("violation", [violation_id])
 
-        await self.moderation_repository.set_violation_active(violation_id, False)
+        await self.moderation_repository.delete_violation(violation_id)
 
     async def add_report(self, dto: dtos.AddReportDTO) -> entities.ReportEntity:
         return await self.moderation_repository.add_report(dto)
