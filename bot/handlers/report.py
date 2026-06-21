@@ -355,16 +355,19 @@ async def reputation_request_accept_callback_handler(
     moderation_actions: ModerationActions,
 ):
     await callback.answer()
-    await callback.message.edit_text(text.PLEASE_WAIT_MESSAGE)
+    loading = await callback.message.answer(text.PLEASE_WAIT_MESSAGE)
     await moderation_service.update_reputation_request(callback_data.id, user.id, True)
     reputation_request = await moderation_service.get_reputation_request(
         callback_data.id
     )
     await moderation_actions.send_reputation_request_updated_message(user)
-    await callback.message.edit_text(
+    await callback.message.answer(
         text.get_reputation_request_message(reputation_request),
     )
     await callback.message.answer(text.REPUTATION_REQUEST_SUCCESS)
+
+    with suppress(TelegramBadRequest):
+        await loading.delete()
 
 
 @report_router.callback_query(

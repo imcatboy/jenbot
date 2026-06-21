@@ -203,7 +203,11 @@ class UserRepository(BaseRepository):
         await self.validator.validate_values_not_exists(
             models.UserDetailModel,
             "value",
-            [detail.value for detail in dto.details if detail.id is None] or [],
+            (
+                [detail.value for detail in dto.details if detail.id is None]
+                if dto.details is not None
+                else []
+            ),
         )
 
         if dto.description is not None:
