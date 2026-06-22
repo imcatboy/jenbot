@@ -220,6 +220,15 @@ REPUTATION_ROLES = {
     types.UserReputationRole.ADMIN: '<tg-emoji emoji-id="5282858788246824770">✅</tg-emoji> Админ',
     types.UserReputationRole.CLEAN_USER: '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Чистый пользователь',
 }
+INLINE_REPUTATION_ROLES = {
+    types.UserReputationRole.SCAMMER: "Скамер",
+    types.UserReputationRole.GUARANTOR: "Гарант",
+    types.UserReputationRole.BIG_GUARANTOR: "Большой гарант",
+    types.UserReputationRole.SMALL_GUARANTOR: "Младший гарант",
+    types.UserReputationRole.DEPOSITOR: "Депозитчик",
+    types.UserReputationRole.ADMIN: "Админ",
+    types.UserReputationRole.CLEAN_USER: "Чистый пользователь",
+}
 CHAT_EVENTS = {
     types.ChatEvent.JOIN: '<tg-emoji emoji-id="5283186855028761775">👏</tg-emoji> Вход',
     types.ChatEvent.LEAVE: '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Выход',
@@ -274,6 +283,22 @@ def _description_from_annotation(annotation: object) -> str | None:
                 return found
 
     return None
+
+
+def format_reputation_user(
+    reputation: entities.ReputationUserWithRelationsEntity,
+) -> str:
+    display_parts = []
+
+    for user in reputation.users:
+        if user.usernames:
+            display_parts.extend(
+                [f"@{username.username}" for username in user.usernames]
+            )
+        else:
+            display_parts.append(str(user.telegram_id))
+
+    return " ".join(display_parts)
 
 
 def format_from_user(username: Optional[str], telegram_id: int) -> str:

@@ -1,5 +1,12 @@
+from aiogram.types import (
+    InlineQuery,
+    InlineQueryResultArticle,
+    InlineQueryResultPhoto,
+    InputTextMessageContent,
+    Message,
+    CallbackQuery,
+)
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.enums import ChatType
@@ -379,3 +386,46 @@ async def reviews_callback(
                 has_more,
             ),
         )
+
+
+@reputation_router.inline_query()
+async def check_inline_handler(
+    inline_query: InlineQuery,
+    user_service: UserService,
+):
+    query_text = inline_query.query.strip()
+
+    if not query_text:
+        return
+
+    reputation_users = await user_service.get_reputation_users(query_text)
+    results = []
+
+    if not reputation_users:
+        results.append(
+            InlineQueryResultArticle(
+                id="unknown_user",
+                title="Неизвестный пользователь",
+                description=f"Подходящей записи по запросу {query_text} не найдено",
+                input_message_content=InputTextMessageContent(
+                    message_text=text.get_check_error_message(query_text)
+                ),
+            )
+        )
+
+    else:
+        for reputation in reputation_users:
+            description = text.format_reputation_user(reputation)
+            caption_text = text.get_check_success_message(reputation)
+            results.append(
+                InlineQueryResultArticle(
+                    id=f"rep_{reputation.id}",
+                    title=f"{text.INLINE_REPUTATION_ROLES[reputation.role]}",
+                    description=description,
+                    input_message_content=InputTextMessageContent(
+                        message_text=caption_text
+                    ),
+                )
+            )
+
+    await inline_query.answer(results, cache_time=5, is_personal=True)
