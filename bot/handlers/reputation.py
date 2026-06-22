@@ -395,7 +395,7 @@ async def check_inline_handler(
 ):
     query_text = inline_query.query.strip()
 
-    if not query_text:
+    if not query_text or len(query_text) < 3:
         return
 
     reputation_users = await user_service.get_reputation_users(query_text)
