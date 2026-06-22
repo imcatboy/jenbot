@@ -114,6 +114,7 @@ DEAL_NOT_DRAFT = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Сде
 SET_REPUTATION_ROLE_MESSAGE = (
     '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> Выберите роль пользователя.'
 )
+DISCLAIMER_MESSAGE = '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> <b>ВАЖНО!</b> <i>Не доверяйте сообщениям бота, которые не были вызваны вами лично, так как они могут быть подделаны.</i>'
 SET_REPUTATION_DESCRIPTION_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите описание для репутации (до 255 символов).'
 REPORT_COMMENT_MESSAGE = '<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> Введите комментарий к обращению (до 1024 символов).'
 REPUTATION_REQUEST_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Введите описание, которое будет отображаться в карточке репутации (до 255 символов).'
@@ -595,24 +596,25 @@ def get_check_success_message(
         message += (
             f'\n<tg-emoji emoji-id="5283081795833731867">🛡️</tg-emoji> <b>Описание</b>\n'
         )
-        message += f"<blockquote>{escape(reputation.description)}</blockquote>\n"
+        message += f"<blockquote>{escape(reputation.description)}</blockquote>\n\n"
 
     if reputation.role != types.UserReputationRole.SCAMMER:
         if reputation.about:
             message += f'\n<tg-emoji emoji-id="5282973734456565994">💬</tg-emoji> <b>Комментарий пользователя</b>\n'
-            message += f"<blockquote>{escape(reputation.about)}</blockquote>\n"
+            message += f"<blockquote>{escape(reputation.about)}</blockquote>\n\n"
 
         if reputation.amount > 0:
-            message += f'\n<tg-emoji emoji-id="5283212259760315829">🔎</tg-emoji> Имеет доверенность на сумму <b>{reputation.amount}</b> {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}'
+            message += f'<tg-emoji emoji-id="5283212259760315829">🔎</tg-emoji> Имеет доверенность на сумму <b>{reputation.amount}</b> {get_count_word(reputation.amount, "рубль", "рубля", "рублей")}\n'
         if reputation.review_count > 0:
-            message += f'\n<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Имеет <b>{reputation.review_count}</b> {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}'
+            message += f'<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> Имеет <b>{reputation.review_count}</b> {get_count_word(reputation.review_count, "отзыв", "отзыва", "отзывов")}\n'
         if reputation.applied_report_count > 0:
-            message += f'\n<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Опубликовано <b>{reputation.applied_report_count}</b> {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")} на скам'
+            message += f'<tg-emoji emoji-id="5283057370354719831">🛡️</tg-emoji> Опубликовано <b>{reputation.applied_report_count}</b> {get_count_word(reputation.applied_report_count, "жалоба", "жалобы", "жалоб")} на скам\n'
 
     if reputation.search_count > 0:
-        message += f'\n<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}'
+        message += f'<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Искали <b>{reputation.search_count}</b> {get_count_word(reputation.search_count, "раз", "раза", "раз")}\n'
 
-    message += f'\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
+    message += f"\n{DISCLAIMER_MESSAGE}"
+    message += f'\n\n<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
     return message
 
 
@@ -624,7 +626,7 @@ def get_check_error_message(search: Optional[str] = None) -> str:
     else:
         message += '<tg-emoji emoji-id="5282953552405241953">📂</tg-emoji> Такой пользователь не найден.\n\n'
 
-    message += f"Стремитесь к максимальной безопасности через гарантов Женяши!\n\n"
+    message += f"{DISCLAIMER_MESSAGE}\n\n"
     message += f'<tg-emoji emoji-id="5280834024699370557">📅</tg-emoji> <i>{format_date(datetime.now())}</i>'
     return message
 
