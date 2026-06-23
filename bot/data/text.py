@@ -25,6 +25,7 @@ BAN_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5283057370354719831">
 USER_NOT_FOUND = (
     '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден.'
 )
+CHECK_USER_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Введите реквизит, @username или Telegram ID пользователя, чтобы проверить его репутацию.'
 UNBAN_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} разблокирован.'
 MUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
 MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'
@@ -65,18 +66,29 @@ START_MESSAGE = (
     '<tg-emoji emoji-id="5283186855028761775">👏</tg-emoji> <b>Добро пожаловать!</b>\n\n'
     "Я — бот <b>Женяши</b>. Помогаю проверять людей на безопасность перед сделкой: "
     "гарантов, депозитчиков, скамеров и обычных участников.\n\n"
+    "<b>Быстрая проверка в любом чате</b>\n"
+    "Введите <code>@{bot_username} (@username / Telegram ID / реквизит)</code>, "
+    "выберите результат и отправьте карточку репутации собеседнику или используйте команду "
+    "<code>/check (реквизит, @username, Telegram ID)</code> в любом чате с ботом\n\n"
+    '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Полный список команд — <code>/help</code>\n\n'
+    '<tg-emoji emoji-id="5280548821691046193">🌐</tg-emoji> Новости и объявления — в нашем канале.\n\n'
+    '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> <i>При использовании бота вы соглашаетесь с '
+    '<a href="https://docs.google.com/document/d/e/2PACX-1vTvjrD2GuDtUTV8mQ7VsZRnf0QnL90fBS4Nvk7LP7hBvLDXwTHtKhTAkHlm0E0NjehSFjMC4wz93X-l/pub">пользовательским соглашением</a></i>'
+)
+HELP_MESSAGE = (
+    '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> <b>Справка по командам</b>\n\n'
     "<b>Основные команды</b>\n"
     '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> <code>/check (реквизит, @username, Telegram ID)</code> — узнать репутацию пользователя\n'
+    '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> <code>t.me/{bot_username}?start=check_username</code> — проверка по ссылке (username или Telegram ID)\n'
     '<tg-emoji emoji-id="5280758334490713359">👤</tg-emoji> <code>/me</code> — посмотреть свою репутацию\n'
     '<tg-emoji emoji-id="5282912415208480548">❤️</tg-emoji> <code>/review (@username, Telegram ID)</code> — оставить отзыв о пользователе\n'
     '<tg-emoji emoji-id="5282962236829115303">⚠️</tg-emoji> <code>/scam</code> — подать жалобу на скамера с доказательствами\n'
     '<tg-emoji emoji-id="5283081795833731867">🛡️</tg-emoji> <code>/reputation</code> — подать заявку на статус чистого пользователя\n'
     '<tg-emoji emoji-id="5280572564270260024">✈️</tg-emoji> <code>/report</code> — обратиться по нарушению, разбану или с вопросом\n\n'
+    "<b>Inline-режим</b>\n"
+    "В любом чате: <code>@{bot_username} @username</code> — проверка без перехода в бота.\n\n"
     "Стремитесь к максимальной безопасности — проверяйте собеседника перед сделкой.\n\n"
-    '<tg-emoji emoji-id="5280548821691046193">🌐</tg-emoji> Актуальные новости и объявления — в нашем канале.\n\n'
-    '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> У вас есть вопросы или предложения? <i>Обратитесь к главному и единственному разработчику — @imcatboy</i>\n\n'
-    '<tg-emoji emoji-id="5282959170222466892">➕</tg-emoji> При использовании Бота вы соглашаетесь с '
-    '<a href="https://docs.google.com/document/d/e/2PACX-1vTvjrD2GuDtUTV8mQ7VsZRnf0QnL90fBS4Nvk7LP7hBvLDXwTHtKhTAkHlm0E0NjehSFjMC4wz93X-l/pub">пользовательским соглашением</a>.'
+    '<tg-emoji emoji-id="5280806004332730789">⚙️</tg-emoji> Технические вопросы и предложения — @imcatboy'
 )
 REPORT_TYPE_MESSAGE = (
     '<tg-emoji emoji-id="5280769308132155241">📌</tg-emoji> Выберите тип обращения.'

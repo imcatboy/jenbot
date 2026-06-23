@@ -91,3 +91,7 @@ class ComplainExternalDealCallback(CallbackData, prefix="complain_external_deal"
 class ReputationRequestCallback(CallbackData, prefix="reputation_request"):
     id: int
     is_accepted: bool
+
+
+class ReviewCallback(CallbackData, prefix="review"):
+    user_id: int

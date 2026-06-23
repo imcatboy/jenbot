@@ -1,28 +1,42 @@
 from aiogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
-    InlineQueryResultPhoto,
     InputTextMessageContent,
     Message,
     CallbackQuery,
 )
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command
 from aiogram.enums import ChatType
-from aiogram import Bot, Router
+from aiogram import F, Bot, Router
 from contextlib import suppress
+from typing import Optional
 
+from bot.filters import GroupsFilter, UsersFilter, CheckStartDeepLinkFilter
+from bot.actions import MediaActions, ModerationActions, ReputationActions
 from domain.objects.types import UserRole, UserReputationRole
 from domain.objects import dtos, exceptions, entities, types
 from domain.services import UserService, TradingService
 from bot.data import states, text, keyboards, callbacks
-from bot.actions import MediaActions, ModerationActions
-from bot.filters import GroupsFilter, UsersFilter
-from bot.actions.user import UserActions
+from bot.actions import UserActions
 
 
 reputation_router = Router()
+
+
+@reputation_router.message(
+    CommandStart(deep_link=True),
+    CheckStartDeepLinkFilter(),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def start_check_handler(
+    message: Message,
+    check_search: str,
+    reputation_actions: ReputationActions,
+):
+    await reputation_actions.send_check(message, check_search)
 
 
 @reputation_router.message(
@@ -32,40 +46,45 @@ reputation_router = Router()
 async def check_handler(
     message: Message,
     command_data: dtos.CheckCommandDTO,
-    media_actions: MediaActions,
-    user_service: UserService,
-    trading_service: TradingService,
+    reputation_actions: ReputationActions,
+    reply_to_user: Optional[entities.UserEntity] = None,
 ):
-    reputation_users = await user_service.get_reputation_users(command_data.search)
-
-    if not reputation_users:
-        image = await media_actions.get_telegram_file("unknown_user")
-        await message.answer_photo(
-            photo=image,
-            caption=text.get_check_error_message(command_data.search),
-        )
+    if reply_to_user:
+        await reputation_actions.send_check_by_reply(message, reply_to_user)
         return
 
-    if len(reputation_users) > 1:
-        await message.answer(
-            text.MANY_REPUTATION_USERS,
-            reply_markup=keyboards.get_reputation_user_keyboard(reputation_users),
-        )
-        return
+    await reputation_actions.send_check(message, command_data.search)
 
-    reputation = reputation_users[0]
-    scam_reports = await trading_service.get_scam_reports(reputation.id)
-    image = await media_actions.get_telegram_file(reputation.role.value)
-    isPrivate = message.chat.type == ChatType.PRIVATE
-    await message.answer_photo(
-        photo=image,
-        caption=text.get_check_success_message(reputation),
-        reply_markup=(
-            keyboards.get_check_keyboard(reputation, scam_reports)
-            if isPrivate
-            else None
-        ),
+
+@reputation_router.callback_query(
+    F.data == "check_user",
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def check_user_callback_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    await state.set_state(states.CheckState.search)
+    await callback.message.answer(
+        text.CHECK_USER_MESSAGE,
+        reply_markup=keyboards.get_cancel_keyboard(callback.from_user.id),
     )
+    await callback.answer()
+
+
+@reputation_router.message(
+    states.CheckState.search,
+    flags={"cast": types.Text},
+)
+async def check_user_search_handler(
+    message: Message,
+    state_data: types.Text,
+    state: FSMContext,
+    reputation_actions: ReputationActions,
+):
+    await state.clear()
+    await reputation_actions.send_check(message, state_data)
 
 
 @reputation_router.message(
@@ -74,33 +93,23 @@ async def check_handler(
 )
 async def me_handler(
     message: Message,
-    user_service: UserService,
     user: entities.UserEntity,
-    media_actions: MediaActions,
-    trading_service: TradingService,
+    reputation_actions: ReputationActions,
 ):
-    try:
-        reputation_user = await user_service.get_reputation_user_by_user_id(user.id)
-    except exceptions.ObjectNotFoundException:
-        image = await media_actions.get_telegram_file("unknown_user")
-        await message.answer_photo(
-            photo=image,
-            caption=text.get_check_error_message(),
-        )
-        return
+    await reputation_actions.send_own_reputation(message, user.id)
 
-    image = await media_actions.get_telegram_file(reputation_user.role.value)
-    scam_reports = await trading_service.get_scam_reports(reputation_user.id)
-    isPrivate = message.chat.type == ChatType.PRIVATE
-    await message.answer_photo(
-        photo=image,
-        caption=text.get_check_success_message(reputation_user),
-        reply_markup=(
-            keyboards.get_check_keyboard(reputation_user, scam_reports)
-            if isPrivate
-            else None
-        ),
-    )
+
+@reputation_router.callback_query(
+    F.data == "my_reputation",
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def my_reputation_callback_handler(
+    callback: CallbackQuery,
+    user: entities.UserEntity,
+    reputation_actions: ReputationActions,
+):
+    await reputation_actions.send_own_reputation(callback.message, user.id)
 
 
 @reputation_router.callback_query(
@@ -110,8 +119,8 @@ async def reputation_user_callback_handler(
     callback: CallbackQuery,
     callback_data: callbacks.ReputationUserCallback,
     user_service: UserService,
+    reputation_actions: ReputationActions,
     media_actions: MediaActions,
-    trading_service: TradingService,
 ):
     try:
         reputation_user = await user_service.get_reputation_user(callback_data.id)
@@ -127,16 +136,7 @@ async def reputation_user_callback_handler(
     loading = await callback.message.answer(text.PLEASE_WAIT_MESSAGE)
 
     try:
-        scam_reports = await trading_service.get_scam_reports(reputation_user.id)
-        image = await media_actions.get_telegram_file(reputation_user.role.value)
-        isPrivate = callback.message.chat.type == ChatType.PRIVATE
-        await callback.message.answer_photo(
-            photo=image,
-            caption=text.get_check_success_message(reputation_user),
-            reply_markup=(
-                keyboards.get_check_keyboard(scam_reports) if isPrivate else None
-            ),
-        )
+        await reputation_actions.send_card(callback.message, reputation_user)
     finally:
         with suppress(TelegramBadRequest):
             await loading.delete()
@@ -294,6 +294,43 @@ async def review_handler(
     await state.update_data(user_id=target_user.id)
     await state.set_state(states.ReviewState.rating)
     await message.answer(
+        text.REVIEW_RATING_MESSAGE, reply_markup=keyboards.REVIEW_RATING_KEYBOARD
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.ReviewCallback.filter(),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def review_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReviewCallback,
+    user_service: UserService,
+    user: entities.UserEntity,
+    trading_service: TradingService,
+    state: FSMContext,
+):
+    try:
+        target_user = await user_service.get_by_id(callback_data.user_id)
+        reputation_user = await user_service.get_reputation_user_by_user_id(
+            target_user.id
+        )
+
+        if reputation_user.role == UserReputationRole.SCAMMER:
+            await callback.message.answer(text.USER_IS_SCAMMER)
+            return
+    except exceptions.ObjectNotFoundException:
+        await callback.message.answer(text.USER_NOT_HAS_REPUTATION_USER)
+        return
+
+    if await trading_service.review_exists(user.id, target_user.id, reputation_user.id):
+        await callback.message.answer(text.REVIEW_ALREADY_EXISTS)
+        return
+
+    await state.update_data(user_id=target_user.id)
+    await state.set_state(states.ReviewState.rating)
+    await callback.message.answer(
         text.REVIEW_RATING_MESSAGE, reply_markup=keyboards.REVIEW_RATING_KEYBOARD
     )
 

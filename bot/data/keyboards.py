@@ -2,8 +2,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
-from domain.objects import entities
 from domain.objects.types import ReportType, ReportStatus, UserReputationRole
+from domain.objects import entities
 from bot.data.callbacks import *
 
 
@@ -11,10 +11,30 @@ START_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="⭐ Наш канал",
+                text="Моя репутация",
+                icon_custom_emoji_id="5283081795833731867",
+                callback_data="my_reputation",
+            ),
+            InlineKeyboardButton(
+                text="Подать жалобу",
+                icon_custom_emoji_id="5282962236829115303",
+                callback_data="create_scam_report",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="Проверить",
+                icon_custom_emoji_id="5282953552405241953",
+                callback_data="check_user",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Наш канал",
+                icon_custom_emoji_id="5282912415208480548",
                 url="https://t.me/larionnews",
             )
-        ]
+        ],
     ]
 )
 
@@ -203,6 +223,7 @@ def get_scam_report_keyboard(
 
 
 def get_check_keyboard(
+    bot_username: str,
     reputation_user: entities.ReputationUserWithRelationsEntity,
     scam_reports: List[entities.ScamReportEntity],
 ) -> InlineKeyboardMarkup:
@@ -231,6 +252,22 @@ def get_check_keyboard(
             callback_data=ReviewsCallback(
                 reputation_user_id=reputation_user.id, offset=0, new_message=True
             ).pack(),
+        )
+
+    user = reputation_user.users[0] if reputation_user.users else None
+
+    if reputation_user.role != UserReputationRole.SCAMMER and user:
+        builder.button(
+            text="Оставить отзыв",
+            icon_custom_emoji_id="5282912415208480548",
+            callback_data=ReviewCallback(user_id=user.id).pack(),
+        )
+
+    if user:
+        builder.button(
+            text="Ссылка на карточку",
+            icon_custom_emoji_id="5282953552405241953",
+            url=f"https://t.me/{bot_username}?start=check_{user.telegram_id}",
         )
 
     for scam_report in scam_reports:

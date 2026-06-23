@@ -49,3 +49,7 @@ class ReputationRequestState(StatesGroup):
 class ReputationRequestAcceptState(StatesGroup):
     id = State()
     comment = State()
+
+
+class CheckState(StatesGroup):
+    search = State()

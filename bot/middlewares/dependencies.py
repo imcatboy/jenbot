@@ -81,9 +81,15 @@ class DIMiddleware(BaseMiddleware):
             media_actions=media_actions,
             trading_service=trading_service,
         )
+        reputation_actions = ReputationActions(
+            user_service=user_service,
+            trading_service=trading_service,
+            media_actions=media_actions,
+        )
         data["trading_service"] = trading_service
         data["audit_actions"] = audit_actions
         data["moderation_actions"] = moderation_actions
+        data["reputation_actions"] = reputation_actions
         user_actions = UserActions(user_service=user_service, bot=bot)
         data["user_actions"] = user_actions
         return await handler(event, data)

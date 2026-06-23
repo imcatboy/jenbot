@@ -9,6 +9,14 @@ from domain.services import ConfigService
 from bot.data import text, keyboards
 
 
+ALLOWED_STATUSES = {
+    ChatMemberStatus.MEMBER,
+    ChatMemberStatus.ADMINISTRATOR,
+    ChatMemberStatus.CREATOR,
+    ChatMemberStatus.KICKED,
+}
+
+
 class SubscriptionsMiddleware(BaseMiddleware):
 
     async def __call__(
@@ -26,8 +34,18 @@ class SubscriptionsMiddleware(BaseMiddleware):
 
         config_service: ConfigService = data["config_service"]
 
+        if not await self.ensure_subscribed(event, config_service):
+            return
+
+        return await handler(event, data)
+
+    async def ensure_subscribed(
+        self,
+        event: Union[Message, CallbackQuery],
+        config_service: ConfigService,
+    ) -> bool:
         if not getattr(event, "from_user", None):
-            return await handler(event, data)
+            return True
 
         subscriptions: List[str] = await config_service.get("subscriptions", [])
         message: Message | None = None
@@ -37,8 +55,8 @@ class SubscriptionsMiddleware(BaseMiddleware):
         elif isinstance(event, CallbackQuery):
             message = event.message
 
-        if not message:
-            return await handler(event, data)
+        if not message or not subscriptions:
+            return True
 
         for subscription in subscriptions:
             try:
@@ -46,22 +64,19 @@ class SubscriptionsMiddleware(BaseMiddleware):
                     subscription, event.from_user.id
                 )
 
-                if not chat_member.status in [
-                    ChatMemberStatus.MEMBER,
-                    ChatMemberStatus.ADMINISTRATOR,
-                    ChatMemberStatus.CREATOR,
-                    ChatMemberStatus.KICKED,
-                ]:
-                    return await message.answer(
+                if chat_member.status not in ALLOWED_STATUSES:
+                    await message.answer(
                         text.SUBSCRIPTION_ERROR,
                         reply_markup=keyboards.get_subscriptions_keyboard(
                             subscriptions
                         ),
                     )
+                    return False
             except TelegramAPIError:
-                return await message.answer(
+                await message.answer(
                     text.SUBSCRIPTION_ERROR,
                     reply_markup=keyboards.get_subscriptions_keyboard(subscriptions),
                 )
+                return False
 
-        return await handler(event, data)
+        return True

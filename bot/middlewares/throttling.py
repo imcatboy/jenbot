@@ -30,7 +30,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         if cache_key in self.cache:
             if isinstance(event, CallbackQuery):
                 await event.answer(
-                    "Too many requests! Please wait a second.", show_alert=False
+                    "Слишком много запросов! Пожалуйста, подождите.", show_alert=False
                 )
 
             return
