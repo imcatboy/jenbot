@@ -319,7 +319,7 @@ async def reputation_request_about_handler(
     states.ReputationRequestState.about,
     GroupsFilter([ChatType.PRIVATE]),
 )
-async def reputation_request_accept_callback_handler(
+async def reputation_request_callback_handler(
     callback: CallbackQuery,
     callback_data: callbacks.SkipCallback,
     state: FSMContext,
@@ -362,7 +362,7 @@ async def reputation_request_accept_callback_handler(
     reputation_request = await moderation_service.get_reputation_request(
         callback_data.id
     )
-    await moderation_actions.send_reputation_request_updated_message(user)
+    await moderation_actions.send_reputation_request_updated_message(reputation_request.user)
     await callback.message.edit_text(
         text.get_reputation_request_message(reputation_request),
     )
