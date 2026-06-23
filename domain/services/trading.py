@@ -266,6 +266,9 @@ class TradingService:
             dto.subject_user_id
         )
 
+        if dto.subject_user_id == dto.author_id:
+            raise exceptions.UserIsSelfException(dto.author_id)
+
         if reputation_user.role == UserReputationRole.SCAMMER:
             raise exceptions.UserIsScammerException(dto.subject_user_id)
 

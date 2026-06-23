@@ -287,6 +287,10 @@ async def review_handler(
         await message.answer(text.USER_NOT_HAS_REPUTATION_USER)
         return
 
+    if target_user.id == user.id:
+        await message.answer(text.USER_IS_SELF)
+        return
+
     if await trading_service.review_exists(user.id, target_user.id, reputation_user.id):
         await message.answer(text.REVIEW_ALREADY_EXISTS)
         return
@@ -322,6 +326,10 @@ async def review_callback_handler(
             return
     except exceptions.ObjectNotFoundException:
         await callback.message.answer(text.USER_NOT_HAS_REPUTATION_USER)
+        return
+
+    if target_user.id == user.id:
+        await callback.message.answer(text.USER_IS_SELF)
         return
 
     if await trading_service.review_exists(user.id, target_user.id, reputation_user.id):

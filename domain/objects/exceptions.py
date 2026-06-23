@@ -241,3 +241,10 @@ class ReputationRequestAlreadyExistsException(DomainException):
     def __init__(self, user_id: int):
         self.user_id = user_id
         super().__init__(f"Reputation request for user {user_id} already exists")
+    
+
+class UserIsSelfException(DomainException):
+
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"User {user_id} is self")

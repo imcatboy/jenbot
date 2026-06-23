@@ -54,6 +54,9 @@ async def exception_handler(event: ErrorEvent):
         case exceptions.DealNotDraftException():
             await message.answer(text.DEAL_NOT_DRAFT)
             return True
+        case exceptions.UserIsSelfException():
+            await message.answer(text.USER_IS_SELF)
+            return True
 
     logger.exception(
         f"Unhandled exception: {event.exception}", exc_info=event.exception
