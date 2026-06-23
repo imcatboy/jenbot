@@ -26,6 +26,7 @@ USER_NOT_FOUND = (
     '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> Пользователь {0} не найден.'
 )
 CHECK_USER_MESSAGE = '<tg-emoji emoji-id="5282953552405241953">🔎</tg-emoji> Введите реквизит, @username или Telegram ID пользователя, чтобы проверить его репутацию.'
+REPLY_MESSAGE_OR_SEARCH_REQUIRED = '<tg-emoji emoji-id="5280622076653245714">❌</tg-emoji> В команде <code>/check</code> нужно указать реквизит, @username или Telegram ID пользователя или ответить на сообщение пользователя, чтобы проверить его репутацию.'
 UNBAN_USER_SUCCESS = '<tg-emoji emoji-id="5282764234541801209">⬅️</tg-emoji> Пользователь {0} разблокирован.'
 MUTE_USER_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен до <b>{1}</b>\n\n<b>Причина</b>\n<blockquote>{2}</blockquote>'
 MUTE_USER_WITHOUT_EXPIRES_AT_SUCCESS = '<tg-emoji emoji-id="5282796481156262136">🔒</tg-emoji> Пользователь {0} замьючен\n\n<b>Причина</b>\n<blockquote>{1}</blockquote>'

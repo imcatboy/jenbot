@@ -57,7 +57,7 @@ class RemoveModeratorCommandDTO(BaseDTO):
 
 
 class CheckCommandDTO(BaseDTO):
-    search: Search
+    search: Optional[Search] = None
 
 
 class SetReputationCommandDTO(BaseDTO):

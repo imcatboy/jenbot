@@ -52,6 +52,9 @@ async def check_handler(
     if reply_to_user:
         await reputation_actions.send_check_by_reply(message, reply_to_user)
         return
+    elif not command_data.search:
+        await message.answer(text.REPLY_MESSAGE_OR_SEARCH_REQUIRED)
+        return
 
     await reputation_actions.send_check(message, command_data.search)
 
