@@ -375,6 +375,7 @@ async def review_message_handler(
     user: entities.UserEntity,
     state: FSMContext,
     trading_service: TradingService,
+    moderation_actions: ModerationActions,
 ):
     await state.update_data(message=message.text)
     data = await state.get_data()
@@ -385,7 +386,9 @@ async def review_message_handler(
         rating=data["rating"],
         message=data["message"],
     )
-    await trading_service.create_review(dto)
+    review = await trading_service.create_review(dto)
+    review = await trading_service.get_review(review.id)
+    await moderation_actions.send_new_review_message(review)
     await message.answer(text.REVIEW_SUCCESS)
 
 
@@ -477,3 +480,108 @@ async def check_inline_handler(
             )
 
     await inline_query.answer(results, cache_time=5, is_personal=True)
+
+
+@reputation_router.message(
+    Command("myreviews", ignore_case=True),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def my_reviews_handler(
+    message: Message,
+    user: entities.UserEntity,
+    trading_service: TradingService,
+):
+    dto = dtos.GetMyReviewsDTO(user_id=user.id, limit=6, offset=0)
+    reviews = await trading_service.get_my_reviews(dto)
+    has_more = len(reviews) == dto.limit
+    reviews = reviews[:-1] if has_more else reviews
+    await message.answer(
+        text.get_my_reviews_message(reviews),
+        reply_markup=keyboards.get_my_reviews_keyboard(
+            0,
+            dto.limit - 1,
+            reviews,
+            has_more,
+        ),
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.MyReviewsCallback.filter(),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def my_reviews_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.MyReviewsCallback,
+    trading_service: TradingService,
+    user: entities.UserEntity,
+):
+    dto = dtos.GetMyReviewsDTO(user_id=user.id, limit=6, offset=callback_data.offset)
+    reviews = await trading_service.get_my_reviews(dto)
+    has_more = len(reviews) == dto.limit
+    reviews = reviews[:-1] if has_more else reviews
+    await callback.answer()
+    await callback.message.edit_text(
+        text.get_my_reviews_message(reviews),
+        reply_markup=keyboards.get_my_reviews_keyboard(
+            callback_data.offset,
+            dto.limit - 1,
+            reviews,
+            has_more,
+        ),
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.ReviewDeleteCallback.filter(F.accepted == True),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def review_delete_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReviewDeleteCallback,
+    trading_service: TradingService,
+    user: entities.UserEntity,
+    bot: Bot,
+):
+    await trading_service.delete_my_review(callback_data.id, user.id)
+    await callback.answer()
+    await callback.message.answer(text.REVIEW_DELETED)
+    dto = dtos.GetMyReviewsDTO(user_id=user.id, limit=6, offset=callback_data.offset)
+    reviews = await trading_service.get_my_reviews(dto)
+    has_more = len(reviews) == dto.limit
+    reviews = reviews[:-1] if has_more else reviews
+    await bot.edit_message_text(
+        text.get_my_reviews_message(reviews),
+        reply_markup=keyboards.get_my_reviews_keyboard(
+            callback_data.offset,
+            dto.limit - 1,
+            reviews,
+            has_more,
+        ),
+        chat_id=callback.message.chat.id,
+        message_id=callback_data.message_id,
+    )
+
+
+@reputation_router.callback_query(
+    callbacks.ReviewDeleteCallback.filter(F.accepted == False),
+    GroupsFilter([ChatType.PRIVATE]),
+    flags={"subscriptions": True},
+)
+async def review_delete_cancel_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReviewDeleteCallback,
+):
+    await callback.answer()
+    await callback.message.answer(
+        text.REVIEW_DELETE_MESSAGE,
+        reply_markup=keyboards.get_review_delete_keyboard(
+            callback_data.id,
+            callback.from_user.id,
+            callback_data.offset,
+            callback.message.message_id,
+        ),
+    )

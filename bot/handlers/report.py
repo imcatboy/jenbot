@@ -362,7 +362,9 @@ async def reputation_request_accept_callback_handler(
     reputation_request = await moderation_service.get_reputation_request(
         callback_data.id
     )
-    await moderation_actions.send_reputation_request_updated_message(reputation_request.user)
+    await moderation_actions.send_reputation_request_updated_message(
+        reputation_request.user
+    )
     await callback.message.edit_text(
         text.get_reputation_request_message(reputation_request),
     )
@@ -381,14 +383,14 @@ async def reputation_request_reject_callback_handler(
     callback_data: callbacks.ReputationRequestCallback,
     state: FSMContext,
 ):
-    await state.set_state(states.ReputationRequestAcceptState.comment)
+    await state.set_state(states.ReputationRequestDeclineState.comment)
     await state.update_data(id=callback_data.id, message_id=callback.message.message_id)
     await callback.answer()
     await callback.message.answer(text.REPUTATION_REQUEST_COMMENT_MESSAGE)
 
 
 @report_router.message(
-    states.ReputationRequestAcceptState.comment,
+    states.ReputationRequestDeclineState.comment,
     UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
     flags={"cast": types.Text},
 )
@@ -415,3 +417,46 @@ async def reputation_request_comment_handler(
         reputation_request.user, data["comment"]
     )
     await message.answer(text.REPUTATION_REQUEST_COMMENT_SUCCESS)
+
+
+@report_router.callback_query(
+    callbacks.ReviewDeleteAdminCallback.filter(),
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+)
+async def review_delete_admin_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ReviewDeleteAdminCallback,
+    state: FSMContext,
+):
+    await state.set_state(states.ReviewDeleteState.comment)
+    await state.update_data(id=callback_data.id, message_id=callback.message.message_id)
+    await callback.answer()
+    await callback.message.answer(text.REVIEW_DELETE_COMMENT_MESSAGE)
+
+
+@report_router.message(
+    states.ReviewDeleteState.comment,
+    UsersFilter([UserRole.ADMIN, UserRole.MODERATOR]),
+    flags={"cast": types.Text},
+)
+async def review_delete_comment_handler(
+    message: Message,
+    state_data: types.Text,
+    state: FSMContext,
+    trading_service: TradingService,
+    moderation_actions: ModerationActions,
+    user: entities.UserEntity,
+    bot: Bot,
+):
+    await state.update_data(comment=state_data)
+    data = await state.get_data()
+    review = await trading_service.get_review(data["id"])
+    await trading_service.delete_review(data["id"])
+    await state.clear()
+    await bot.edit_message_text(
+        text.get_new_review_message(review, deleted_by_user=user),
+        chat_id=message.chat.id,
+        message_id=data["message_id"],
+    )
+    await moderation_actions.send_review_deleted_message(review, data["comment"])
+    await message.answer(text.REVIEW_DELETED)

@@ -180,9 +180,7 @@ class ModerationService:
                 version=reputation_user.version,
                 added_by_user_id=applied_by_user_id,
             )
-            await self.user_repository.update_reputation_user(
-                reputation_request.user_id, dto
-            )
+            await self.user_repository.update_reputation_user(reputation_user.id, dto)
         except exceptions.ObjectNotFoundException:
             dto = dtos.CreateReputationUserDTO(
                 user_ids=[reputation_request.user_id],

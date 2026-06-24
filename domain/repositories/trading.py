@@ -5,8 +5,10 @@ from typing import List, Optional
 from domain.objects import exceptions, models, entities, dtos, types
 from .relations import (
     get_scam_report_relations,
-    get_review_relations,
+    get_review_author_relations,
     get_external_deal_with_users_relations,
+    get_review_subject_relations,
+    get_review_relations,
 )
 from .base import BaseRepository
 
@@ -215,6 +217,14 @@ class TradingRepository(BaseRepository):
         await self.session.flush()
         return entities.ReviewEntity.model_validate(review)
 
+    async def delete_my_review(self, id: int, user_id: int) -> None:
+        review = await self.get_one_by_data(models.ReviewModel, id=id, author_id=user_id)
+        await self.session.delete(review)
+
+    async def delete_review(self, id: int) -> None:
+        review = await self.get_by_id(models.ReviewModel, id)
+        await self.session.delete(review)
+
     async def review_exists(
         self, author_id: int, subject_user_id: int, subject_reputation_user_id: int
     ) -> bool:
@@ -231,6 +241,10 @@ class TradingRepository(BaseRepository):
         )
         return result.scalar()
 
+    async def get_review(self, id: int) -> entities.ReviewWithRelationsEntity:
+        review = await self.get_by_id(models.ReviewModel, id, get_review_relations())
+        return entities.ReviewWithRelationsEntity.model_validate(review)
+
     async def get_reviews(
         self, dto: dtos.GetReviewsDTO
     ) -> List[entities.ReviewWithAuthorEntity]:
@@ -239,13 +253,29 @@ class TradingRepository(BaseRepository):
             .where(
                 models.ReviewModel.subject_reputation_user_id == dto.reputation_user_id
             )
-            .options(*get_review_relations())
+            .options(*get_review_author_relations())
             .order_by(models.ReviewModel.created_at.desc())
             .offset(dto.offset)
             .limit(dto.limit)
         )
         return [
             entities.ReviewWithAuthorEntity.model_validate(review)
+            for review in result.scalars().all()
+        ]
+
+    async def get_my_reviews(
+        self, dto: dtos.GetMyReviewsDTO
+    ) -> List[entities.ReviewWithSubjectEntity]:
+        result = await self.session.execute(
+            select(models.ReviewModel)
+            .options(*get_review_subject_relations())
+            .where(models.ReviewModel.author_id == dto.user_id)
+            .order_by(models.ReviewModel.created_at.desc())
+            .offset(dto.offset)
+            .limit(dto.limit)
+        )
+        return [
+            entities.ReviewWithSubjectEntity.model_validate(review)
             for review in result.scalars().all()
         ]
 

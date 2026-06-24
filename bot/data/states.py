@@ -46,10 +46,17 @@ class ReputationRequestState(StatesGroup):
     about = State()
 
 
-class ReputationRequestAcceptState(StatesGroup):
+class ReputationRequestDeclineState(StatesGroup):
     id = State()
     comment = State()
+    message_id = State()
 
 
 class CheckState(StatesGroup):
     search = State()
+
+
+class ReviewDeleteState(StatesGroup):
+    id = State()
+    comment = State()
+    message_id = State()

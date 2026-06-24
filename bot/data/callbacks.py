@@ -1,4 +1,5 @@
 from aiogram.filters.callback_data import CallbackData
+from typing import Optional
 
 from domain.objects.types import ReportType, ReportStatus, UserReputationRole
 
@@ -70,6 +71,21 @@ class ReviewsCallback(CallbackData, prefix="reviews"):
     reputation_user_id: int
     offset: int
     new_message: bool
+
+
+class MyReviewsCallback(CallbackData, prefix="my_reviews"):
+    offset: int
+
+
+class ReviewDeleteCallback(CallbackData, prefix="review_delete"):
+    id: int
+    offset: int
+    accepted: bool
+    message_id: Optional[int] = None
+
+
+class ReviewDeleteAdminCallback(CallbackData, prefix="review_delete_admin"):
+    id: int
 
 
 class ExternalDealAcceptCallback(CallbackData, prefix="external_deal_accept"):

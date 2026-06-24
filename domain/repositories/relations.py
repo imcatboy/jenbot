@@ -155,12 +155,28 @@ def get_tracker_relations() -> List[Any]:
     ]
 
 
-def get_review_relations() -> List[Any]:
+def get_review_author_relations() -> List[Any]:
     return [
         joinedload(models.ReviewModel.author).options(
             selectinload(models.UserModel.usernames),
             joinedload(models.UserModel.reputation_user),
         ),
+    ]
+
+
+def get_review_subject_relations() -> List[Any]:
+    return [
+        joinedload(models.ReviewModel.subject_user).options(
+            selectinload(models.UserModel.usernames),
+            joinedload(models.UserModel.reputation_user),
+        ),
+    ]
+
+
+def get_review_relations() -> List[Any]:
+    return [
+        *get_review_author_relations(),
+        *get_review_subject_relations(),
     ]
 
 

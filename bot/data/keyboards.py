@@ -26,7 +26,12 @@ START_KEYBOARD = InlineKeyboardMarkup(
                 text="Проверить",
                 icon_custom_emoji_id="5282953552405241953",
                 callback_data="check_user",
-            )
+            ),
+            InlineKeyboardButton(
+                text="Оставленные отзывы",
+                icon_custom_emoji_id="5282912415208480548",
+                callback_data=MyReviewsCallback(offset=0).pack(),
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -288,6 +293,72 @@ def get_subscriptions_keyboard(subscriptions: List[str]) -> InlineKeyboardMarkup
             text="Подписаться", url=f"https://t.me/{subscription.replace('@', '')}"
         )
 
+    return builder.as_markup()
+
+
+def get_my_reviews_keyboard(
+    offset: int,
+    limit: int,
+    reviews: List[entities.ReviewWithSubjectEntity],
+    has_more: bool,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+
+    if offset > 0:
+        builder.button(
+            text="⬅️ Назад",
+            callback_data=MyReviewsCallback(offset=max(0, offset - limit)).pack(),
+        )
+
+    if has_more:
+        builder.button(
+            text="➡️ Вперед",
+            callback_data=MyReviewsCallback(offset=offset + limit).pack(),
+        )
+
+    for index, review in enumerate(reviews):
+        builder.button(
+            text=f"{index + 1}. Удалить отзыв",
+            icon_custom_emoji_id="5280622076653245714",
+            callback_data=ReviewDeleteCallback(
+                id=review.id, offset=offset, accepted=False
+            ).pack(),
+        )
+
+    return builder.adjust(2).as_markup()
+
+
+def get_review_delete_keyboard(
+    id: int,
+    telegram_id: int,
+    offset: int,
+    message_id: int,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Да, удалить отзыв",
+        icon_custom_emoji_id="5280622076653245714",
+        callback_data=ReviewDeleteCallback(
+            id=id, offset=offset, accepted=True, message_id=message_id
+        ).pack(),
+    )
+    builder.button(
+        text="Отменить",
+        icon_custom_emoji_id="5282782728670977815",
+        callback_data=CancelCallback(user_id=telegram_id).pack(),
+    )
+    return builder.adjust(2).as_markup()
+
+
+def get_review_admin_keyboard(
+    review: entities.ReviewWithRelationsEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Отозвать отзыв",
+        icon_custom_emoji_id="5280622076653245714",
+        callback_data=ReviewDeleteAdminCallback(id=review.id).pack(),
+    )
     return builder.as_markup()
 
 

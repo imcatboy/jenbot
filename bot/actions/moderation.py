@@ -195,6 +195,31 @@ class ModerationActions:
         except TelegramAPIError:
             pass
 
+    async def send_new_review_message(
+        self, review: entities.ReviewWithRelationsEntity
+    ) -> None:
+        moderation_chat_id = await self.config_service.get("moderation_chat_id")
+
+        if not moderation_chat_id:
+            raise exceptions.ConfigNotFoundException("moderation_chat_id")
+
+        await self.bot.send_message(
+            moderation_chat_id,
+            text.get_new_review_message(review),
+            reply_markup=keyboards.get_review_admin_keyboard(review),
+        )
+
+    async def send_review_deleted_message(
+        self, review: entities.ReviewWithRelationsEntity, reason: Optional[str] = None
+    ) -> None:
+        try:
+            await self.bot.send_message(
+                review.author.telegram_id,
+                text.get_review_deleted_message(review, reason),
+            )
+        except TelegramAPIError:
+            pass
+
     async def ban_user(self, dto: dtos.BanUserDTO) -> entities.ChatViolationEntity:
         user = await self.user_service.get_by_id(dto.user_id)
 

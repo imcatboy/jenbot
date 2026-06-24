@@ -8,7 +8,7 @@ from .base import EntityWithMetadata
 
 
 if TYPE_CHECKING:
-    from .user import UserWithReputationUserEntity
+    from .user import UserWithReputationUserEntity, UserEntity
 
 
 class TransactionEntity(EntityWithMetadata):
@@ -46,3 +46,12 @@ class ReviewEntity(EntityWithMetadata):
 
 class ReviewWithAuthorEntity(ReviewEntity):
     author: UserWithReputationUserEntity
+
+
+class ReviewWithSubjectEntity(ReviewEntity):
+    subject_user: UserWithReputationUserEntity
+
+
+class ReviewWithRelationsEntity(ReviewEntity):
+    author: UserEntity
+    subject_user: UserWithReputationUserEntity

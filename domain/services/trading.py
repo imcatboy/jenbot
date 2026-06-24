@@ -261,6 +261,20 @@ class TradingService:
     ) -> List[entities.ReviewWithAuthorEntity]:
         return await self.trading_repository.get_reviews(dto)
 
+    async def get_my_reviews(
+        self, dto: dtos.GetMyReviewsDTO
+    ) -> List[entities.ReviewWithSubjectEntity]:
+        return await self.trading_repository.get_my_reviews(dto)
+
+    async def get_review(self, id: int) -> entities.ReviewWithRelationsEntity:
+        return await self.trading_repository.get_review(id)
+
+    async def delete_my_review(self, id: int, user_id: int) -> None:
+        await self.trading_repository.delete_my_review(id, user_id)
+
+    async def delete_review(self, id: int) -> None:
+        return await self.trading_repository.delete_review(id)
+
     async def create_review(self, dto: dtos.CreateReviewDTO) -> entities.ReviewEntity:
         reputation_user = await self.user_repository.get_reputation_user_by_user_id(
             dto.subject_user_id

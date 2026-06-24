@@ -88,6 +88,7 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="me", description="Узнать свою репутацию"),
         BotCommand(command="review", description="Оставить отзыв о пользователе"),
         BotCommand(command="scam", description="Подать жалобу на скамера"),
+        BotCommand(command="myreviews", description="Посмотреть оставленные отзывы"),
         BotCommand(
             command="reputation",
             description="Подать заявку на статус чистого пользователя",

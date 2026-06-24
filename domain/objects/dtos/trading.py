@@ -93,3 +93,7 @@ class UpdateExternalDealDTO(BaseDTO):
 
 class GetReviewsDTO(GetDTO):
     reputation_user_id: int
+
+
+class GetMyReviewsDTO(GetDTO):
+    user_id: int
