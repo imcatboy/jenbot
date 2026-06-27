@@ -1,8 +1,7 @@
-import asyncio
+import logging
 
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.enums import ChatMemberStatus
-from datetime import datetime
 from aiogram import Bot
 from typing import List
 
@@ -11,11 +10,9 @@ from domain.objects.types import ViolationType
 from domain.objects import entities
 
 
-async def _check_warn_active(violation: entities.ChatViolationWithUserEntity) -> bool:
-    if not violation.expires_at or violation.expires_at > datetime.now():
-        return True
+logger = logging.getLogger(__name__)
 
-    return False
+STATUS_VIOLATIONS_BATCH_SIZE = 50
 
 
 async def _check_status_active(
@@ -44,27 +41,51 @@ async def _check_status_active(
 
 async def actualize_violations_loop(
     bot: Bot, moderation_service: ModerationService, config_service: ConfigService
-):
-    violations = await moderation_service.get_violations_to_actualize()
-    inactive_violations_ids: List[int] = []
+) -> None:
+    expired_warns = await moderation_service.deactivate_expired_warn_violations()
+
+    if expired_warns:
+        logger.info("Deactivated %s expired warn violations", expired_warns)
+
+    violations = await moderation_service.get_status_violations_to_actualize(
+        STATUS_VIOLATIONS_BATCH_SIZE
+    )
+
+    if not violations:
+        return
+
     chat_ids: List[int] = await config_service.get("chats", [])
+    inactive_violations_ids: List[int] = []
+    checked_violations_ids: List[int] = []
 
     for violation in violations:
-        if violation.type == ViolationType.WARN:
-            if not await _check_warn_active(violation):
-                inactive_violations_ids.append(violation.id)
-        elif violation.type == ViolationType.MUTE:
-            if not await _check_status_active(
-                ChatMemberStatus.RESTRICTED, violation, bot, chat_ids
-            ):
-                inactive_violations_ids.append(violation.id)
-        elif violation.type == ViolationType.BAN:
-            if not await _check_status_active(
-                ChatMemberStatus.KICKED, violation, bot, chat_ids
-            ):
-                inactive_violations_ids.append(violation.id)
+        checked_violations_ids.append(violation.id)
 
-        await asyncio.sleep(1)
+        try:
+            if violation.type == ViolationType.MUTE:
+                if not await _check_status_active(
+                    ChatMemberStatus.RESTRICTED, violation, bot, chat_ids
+                ):
+                    inactive_violations_ids.append(violation.id)
+            elif violation.type == ViolationType.BAN:
+                if not await _check_status_active(
+                    ChatMemberStatus.KICKED, violation, bot, chat_ids
+                ):
+                    inactive_violations_ids.append(violation.id)
+        except TelegramNetworkError:
+            checked_violations_ids.pop()
+            raise
+
+    still_active_ids = [
+        vid for vid in checked_violations_ids if vid not in inactive_violations_ids
+    ]
 
     if inactive_violations_ids:
         await moderation_service.set_violations_active(inactive_violations_ids, False)
+        logger.info(
+            "Deactivated %s mute/ban violations after status check",
+            len(inactive_violations_ids),
+        )
+
+    if still_active_ids:
+        await moderation_service.touch_violations_updated_at(still_active_ids)

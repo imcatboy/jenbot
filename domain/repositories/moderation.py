@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 from sqlalchemy import update
 from typing import Dict, List, Optional
+from datetime import datetime
 
 from domain.objects.types import ViolationType
 from .relations import (
@@ -209,18 +210,50 @@ class ModerationRepository(BaseRepository):
             )
         )
 
-    async def get_violations_to_actualize(
-        self,
-    ) -> List[entities.ChatViolationWithUserEntity]:
-        violations = await self.get_all_by_data(
-            models.ChatViolationModel,
-            is_active=True,
-            options=get_violation_relations(),
+    async def deactivate_expired_warn_violations(self) -> int:
+        result = await self.session.execute(
+            update(models.ChatViolationModel)
+            .where(
+                models.ChatViolationModel.is_active.is_(True),
+                models.ChatViolationModel.type == ViolationType.WARN,
+                models.ChatViolationModel.expires_at.isnot(None),
+                models.ChatViolationModel.expires_at <= datetime.now(),
+            )
+            .values(is_active=False)
         )
+        return result.rowcount or 0
+
+    async def get_status_violations_to_actualize(
+        self, limit: int
+    ) -> List[entities.ChatViolationWithUserEntity]:
+        query = (
+            select(models.ChatViolationModel)
+            .where(
+                models.ChatViolationModel.is_active.is_(True),
+                models.ChatViolationModel.type.in_(
+                    [ViolationType.MUTE, ViolationType.BAN]
+                ),
+            )
+            .order_by(models.ChatViolationModel.updated_at.asc())
+            .limit(limit)
+            .options(*get_violation_relations())
+        )
+        result = await self.session.execute(query)
         return [
             entities.ChatViolationWithUserEntity.model_validate(violation)
-            for violation in violations
+            for violation in result.scalars().all()
         ]
+
+    async def touch_violations_updated_at(self, ids: List[int]) -> None:
+        if not ids:
+            return
+
+        await self.session.execute(
+            update(models.ChatViolationModel)
+            .where(models.ChatViolationModel.id.in_(ids))
+            .values(updated_at=datetime.now())
+        )
+        await self.session.flush()
 
     async def add_tracker(
         self, dto: dtos.AddTrackerDTO

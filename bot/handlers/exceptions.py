@@ -1,5 +1,6 @@
 import logging
 
+from aiogram.exceptions import TelegramNetworkError
 from aiogram.types import ErrorEvent, Message
 from aiogram import Router
 
@@ -21,6 +22,10 @@ async def exception_handler(event: ErrorEvent):
         message = event.update.callback_query.message
 
     if not message:
+        return True
+
+    if isinstance(event.exception, TelegramNetworkError):
+        logger.warning("Network error while handling update: %s", event.exception)
         return True
 
     match event.exception:

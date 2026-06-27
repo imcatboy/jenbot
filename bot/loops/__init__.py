@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from aiogram.exceptions import TelegramNetworkError
 from redis.asyncio import Redis
 from aiogram import Bot
 from typing import List
@@ -36,7 +37,7 @@ class SchedulerService:
                 await task
             except asyncio.CancelledError:
                 pass
-            logger.info("Scheduler stopped")
+        logger.info("Scheduler stopped")
 
     async def _run_violations_loop(self):
         while True:
@@ -46,17 +47,23 @@ class SchedulerService:
                     user_repository = UserRepository(uow.session)
                     config_repository = ConfigRepository(uow.session, self.redis)
                     config_service = ConfigService(config_repository=config_repository)
-                    moderation_cache = ModerationCache(redis=self.redis, tracker_ttl=60 * 60 * 24)
+                    moderation_cache = ModerationCache(
+                        redis=self.redis, tracker_ttl=60 * 60 * 24
+                    )
                     moderation_service = ModerationService(
                         moderation_repository=moderation_repository,
                         user_repository=user_repository,
                         config_service=config_service,
                         moderation_cache=moderation_cache,
                     )
-                    await actualize_violations_loop(self.bot, moderation_service, config_service)
+                    await actualize_violations_loop(
+                        self.bot, moderation_service, config_service
+                    )
             except asyncio.CancelledError:
                 break
+            except TelegramNetworkError as e:
+                logger.warning("Scheduler network error, will retry: %s", e)
             except Exception as e:
-                logger.error(f"❌ Scheduler critical error: {e}", exc_info=True)
+                logger.error("Scheduler error: %s", e, exc_info=True)
             finally:
                 await asyncio.sleep(60)

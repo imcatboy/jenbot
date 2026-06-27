@@ -81,10 +81,18 @@ class ModerationService:
     ) -> None:
         return await self.moderation_repository.update_report(report_id, dto)
 
-    async def get_violations_to_actualize(
-        self,
+    async def deactivate_expired_warn_violations(self) -> int:
+        return await self.moderation_repository.deactivate_expired_warn_violations()
+
+    async def get_status_violations_to_actualize(
+        self, limit: int
     ) -> List[entities.ChatViolationWithUserEntity]:
-        return await self.moderation_repository.get_violations_to_actualize()
+        return await self.moderation_repository.get_status_violations_to_actualize(
+            limit
+        )
+
+    async def touch_violations_updated_at(self, ids: List[int]) -> None:
+        return await self.moderation_repository.touch_violations_updated_at(ids)
 
     async def set_violations_active(self, ids: List[int], is_active: bool) -> None:
         return await self.moderation_repository.set_violations_active(ids, is_active)
