@@ -4,8 +4,8 @@ from typing import Optional
 
 from domain.services import ModerationService, ConfigService
 from domain.objects.types import ChatAction, ChatEvent
+from bot.core import BotProtocol, with_telegram_retry
 from domain.objects import entities, exceptions
-from bot.core import BotProtocol
 from bot.data import text
 
 
@@ -32,14 +32,20 @@ class AuditActions:
 
         if message:
             try:
-                await self.bot.forward_message(
-                    audit_chat_id, message.chat.id, message.message_id
+                await with_telegram_retry(
+                    lambda: self.bot.forward_message(
+                        audit_chat_id, message.chat.id, message.message_id
+                    )
                 )
-                await message.delete()
+                await with_telegram_retry(lambda: message.delete())
             except TelegramBadRequest:
                 pass
 
-        await self.bot.send_message(audit_chat_id, text.get_audit_message(violation))
+        await with_telegram_retry(
+            lambda: self.bot.send_message(
+                audit_chat_id, text.get_audit_message(violation)
+            )
+        )
 
     async def upload_action_audit(
         self,
@@ -53,9 +59,13 @@ class AuditActions:
         if not audit_chat_id:
             raise exceptions.ConfigNotFoundException("audit_chat_id")
 
-        await self.bot.send_message(
-            audit_chat_id,
-            text.get_action_audit_message(action, user, applied_by_user, violation_id),
+        await with_telegram_retry(
+            lambda: self.bot.send_message(
+                audit_chat_id,
+                text.get_action_audit_message(
+                    action, user, applied_by_user, violation_id
+                ),
+            )
         )
 
     async def upload_event_audit(
@@ -71,16 +81,20 @@ class AuditActions:
         if not audit_chat_id:
             raise exceptions.ConfigNotFoundException("audit_chat_id")
 
-        await self.bot.send_message(
-            audit_chat_id,
-            text.get_event_audit_message(event, user, telegram_chat_id, comment),
+        await with_telegram_retry(
+            lambda: self.bot.send_message(
+                audit_chat_id,
+                text.get_event_audit_message(event, user, telegram_chat_id, comment),
+            )
         )
 
         if message:
             try:
-                await self.bot.forward_message(
-                    audit_chat_id, message.chat.id, message.message_id
+                await with_telegram_retry(
+                    lambda: self.bot.forward_message(
+                        audit_chat_id, message.chat.id, message.message_id
+                    )
                 )
-                await message.delete()
+                await with_telegram_retry(lambda: message.delete())
             except TelegramBadRequest:
                 pass
