@@ -150,3 +150,22 @@ class BotProtocol(Protocol):
         reply_to_message_id: Optional[int] = None,
         request_timeout: Optional[int] = None,
     ) -> Message: ...
+
+    async def edit_message_text(
+        self,
+        text: str,
+        business_connection_id: Optional[str] = None,
+        chat_id: Optional[Union[int, str]] = None,
+        message_id: Optional[int] = None,
+        inline_message_id: Optional[str] = None,
+        parse_mode: Optional[Union[str, Default]] = Default("parse_mode"),
+        entities: Optional[list[MessageEntity]] = None,
+        link_preview_options: Optional[Union[LinkPreviewOptions, Default]] = Default(
+            "link_preview"
+        ),
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        disable_web_page_preview: Optional[Union[bool, Default]] = Default(
+            "link_preview_is_disabled"
+        ),
+        request_timeout: Optional[int] = None,
+    ) -> Union[Message, bool]: ...

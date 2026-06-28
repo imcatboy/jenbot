@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import or_, select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
@@ -6,7 +7,7 @@ from domain.objects import exceptions, models, entities, dtos, types
 from .relations import (
     get_scam_report_relations,
     get_review_author_relations,
-    get_external_deal_with_users_relations,
+    get_external_deal_with_relations_relations,
     get_review_subject_relations,
     get_review_relations,
 )
@@ -218,7 +219,9 @@ class TradingRepository(BaseRepository):
         return entities.ReviewEntity.model_validate(review)
 
     async def delete_my_review(self, id: int, user_id: int) -> None:
-        review = await self.get_one_by_data(models.ReviewModel, id=id, author_id=user_id)
+        review = await self.get_one_by_data(
+            models.ReviewModel, id=id, author_id=user_id
+        )
         await self.session.delete(review)
 
     async def delete_review(self, id: int) -> None:
@@ -296,12 +299,18 @@ class TradingRepository(BaseRepository):
         )
 
     async def create_external_deal(
-        self, dto: dtos.CreateExternalDealDTO
+        self, dto: dtos.InsertExternalDealDTO
     ) -> entities.ExternalDealEntity:
         external_deal = models.ExternalDealModel(**dto.model_dump())
         await self.create_relation(external_deal, models.UserModel, dto.seller_id)
         await self.create_relation(external_deal, models.UserModel, dto.buyer_id)
         await self.set_optional_relation(external_deal, models.UserModel, dto.agent_id)
+        await self.create_relation(
+            external_deal, models.ReputationUserModel, dto.warranty_reputation_user_id
+        )
+        await self.create_relation(
+            external_deal, models.UserModel, dto.created_by_user_id
+        )
         self.session.add(external_deal)
         await self.session.flush()
         return entities.ExternalDealEntity.model_validate(external_deal)
@@ -313,33 +322,48 @@ class TradingRepository(BaseRepository):
 
         if dto.status is not None:
             external_deal.status = dto.status
-        if dto.seller_acceptance is not None:
-            external_deal.seller_acceptance = dto.seller_acceptance
-        if dto.buyer_acceptance is not None:
-            external_deal.buyer_acceptance = dto.buyer_acceptance
+        if dto.seller_condition is not None:
+            external_deal.seller_condition = dto.seller_condition
+        if dto.buyer_condition is not None:
+            external_deal.buyer_condition = dto.buyer_condition
 
         await self.session.flush()
         return entities.ExternalDealEntity.model_validate(external_deal)
 
-    async def get_external_deal(self, id: int) -> entities.ExternalDealWithUsersEntity:
+    async def get_external_deal(
+        self, id: int
+    ) -> entities.ExternalDealWithRelationsEntity:
         external_deal = await self.get_by_id(
-            models.ExternalDealModel, id, get_external_deal_with_users_relations()
+            models.ExternalDealModel, id, get_external_deal_with_relations_relations()
         )
-        return entities.ExternalDealWithUsersEntity.model_validate(external_deal)
+        return entities.ExternalDealWithRelationsEntity.model_validate(external_deal)
 
-    async def get_external_deal_amount(self, reputation_id: int) -> float:
-        result = await self.session.scalar(
-            select(func.sum(models.ExternalDealModel.amount))
-            .join(
-                models.UserModel,
+    async def get_external_deal_by_user_id(
+        self, id: int, user_id: int
+    ) -> entities.ExternalDealWithRelationsEntity:
+        result = await self.session.execute(
+            select(models.ExternalDealModel)
+            .where(
+                models.ExternalDealModel.id == id,
                 or_(
-                    models.ExternalDealModel.seller_id == models.UserModel.id,
-                    models.ExternalDealModel.buyer_id == models.UserModel.id,
-                    models.ExternalDealModel.agent_id == models.UserModel.id,
+                    models.ExternalDealModel.seller_id == user_id,
+                    models.ExternalDealModel.buyer_id == user_id,
+                    models.ExternalDealModel.agent_id == user_id,
                 ),
             )
-            .where(
-                models.UserModel.reputation_user_id == reputation_id,
+            .options(*get_external_deal_with_relations_relations())
+        )
+        external_deal = result.scalar_one_or_none()
+
+        if not external_deal:
+            raise exceptions.ObjectNotFoundException("ExternalDealModel", [id])
+
+        return entities.ExternalDealWithRelationsEntity.model_validate(external_deal)
+
+    async def get_external_deal_amount(self, reputation_id: int) -> float:
+        result = await self.session.execute(
+            select(func.sum(models.ExternalDealModel.refund_amount)).where(
+                models.ExternalDealModel.warranty_reputation_user_id == reputation_id,
                 models.ExternalDealModel.status.in_(
                     [
                         types.DealStatus.PENDING,
@@ -349,8 +373,98 @@ class TradingRepository(BaseRepository):
                 ),
             )
         )
-        return result.scalar_one_or_none() or 0.0
+        value = result.scalar_one_or_none()
+        return float(value) if value is not None else 0.0
 
     async def delete_external_deal(self, id: int) -> None:
         deal = await self.get_by_id(models.ExternalDealModel, id)
         await self.session.delete(deal)
+
+    async def expire_external_deals(self) -> None:
+        await self.session.execute(
+            update(models.ExternalDealModel)
+            .where(
+                models.ExternalDealModel.expires_at < datetime.now(),
+                models.ExternalDealModel.status == types.DealStatus.PENDING,
+            )
+            .values(status=types.DealStatus.EXPIRED)
+        )
+
+    async def create_external_deal_notification(
+        self, dto: dtos.CreateExternalDealNotificationDTO
+    ) -> entities.ExternalDealNotificationEntity:
+        external_deal_notification = models.ExternalDealNotificationModel(
+            **dto.model_dump()
+        )
+        await self.create_relation(
+            external_deal_notification, models.ExternalDealModel, dto.external_deal_id
+        )
+        await self.create_relation(
+            external_deal_notification, models.UserModel, dto.user_id
+        )
+        self.session.add(external_deal_notification)
+        await self.session.flush()
+        return entities.ExternalDealNotificationEntity.model_validate(
+            external_deal_notification
+        )
+
+    async def update_external_deal_notification(
+        self, id: int, dto: dtos.UpdateExternalDealNotificationDTO
+    ) -> entities.ExternalDealNotificationEntity:
+        external_deal_notification = await self.get_by_id(
+            models.ExternalDealNotificationModel, id
+        )
+
+        if dto.telegram_message_id is not None:
+            external_deal_notification.telegram_message_id = dto.telegram_message_id
+        if dto.telegram_chat_id is not None:
+            external_deal_notification.telegram_chat_id = dto.telegram_chat_id
+
+        await self.session.flush()
+        return entities.ExternalDealNotificationEntity.model_validate(
+            external_deal_notification
+        )
+
+    async def get_external_deal_notification(
+        self, external_deal_id: int, user_id: int
+    ) -> entities.ExternalDealNotificationEntity:
+        external_deal_notification = await self.get_one_by_data(
+            models.ExternalDealNotificationModel,
+            external_deal_id=external_deal_id,
+            user_id=user_id,
+        )
+        return entities.ExternalDealNotificationEntity.model_validate(
+            external_deal_notification
+        )
+
+    async def get_expired_external_deals(
+        self,
+    ) -> List[entities.ExternalDealWithRelationsEntity]:
+        result = await self.session.execute(
+            select(models.ExternalDealModel)
+            .where(
+                models.ExternalDealModel.expires_at < datetime.now(),
+                models.ExternalDealModel.status == types.DealStatus.PENDING,
+            )
+            .options(*get_external_deal_with_relations_relations())
+        )
+        return [
+            entities.ExternalDealWithRelationsEntity.model_validate(external_deal)
+            for external_deal in result.scalars().all()
+        ]
+
+    async def get_external_deals_by_ids(
+        self, ids: List[int]
+    ) -> List[entities.ExternalDealWithRelationsEntity]:
+        if not ids:
+            return []
+
+        result = await self.session.execute(
+            select(models.ExternalDealModel)
+            .where(models.ExternalDealModel.id.in_(ids))
+            .options(*get_external_deal_with_relations_relations())
+        )
+        return [
+            entities.ExternalDealWithRelationsEntity.model_validate(external_deal)
+            for external_deal in result.scalars().all()
+        ]

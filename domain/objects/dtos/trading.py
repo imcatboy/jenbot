@@ -77,18 +77,25 @@ class InsertReviewDTO(CreateReviewDTO):
 
 
 class CreateExternalDealDTO(BaseDTO):
-    amount: float
+    deal_amount: float
+    payment: Optional[str] = None
     description: str
     expires_at: datetime
     seller_id: int
     buyer_id: int
     agent_id: Optional[int] = None
+    created_by_user_id: int
+
+
+class InsertExternalDealDTO(CreateExternalDealDTO):
+    refund_amount: float
+    warranty_reputation_user_id: int
 
 
 class UpdateExternalDealDTO(BaseDTO):
     status: Optional[DealStatus] = None
-    seller_acceptance: Optional[bool] = None
-    buyer_acceptance: Optional[bool] = None
+    seller_condition: Optional[DealCondition] = None
+    buyer_condition: Optional[DealCondition] = None
 
 
 class GetReviewsDTO(GetDTO):
@@ -97,3 +104,15 @@ class GetReviewsDTO(GetDTO):
 
 class GetMyReviewsDTO(GetDTO):
     user_id: int
+
+
+class CreateExternalDealNotificationDTO(BaseDTO):
+    external_deal_id: int
+    user_id: int
+    telegram_chat_id: int
+    telegram_message_id: int
+
+
+class UpdateExternalDealNotificationDTO(BaseDTO):
+    telegram_message_id: Optional[int] = None
+    telegram_chat_id: Optional[int] = None

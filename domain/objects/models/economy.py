@@ -129,13 +129,3 @@ class ReviewModel(EntityModel):
         foreign_keys=[subject_user_id],
         back_populates="reviews_received",
     )
-    deal_id: Mapped[Optional[int]] = mapped_column(ForeignKey("deals.id"), index=True)
-    deal: Mapped[Optional[DealModel]] = relationship(
-        back_populates="reviews", foreign_keys=[deal_id]
-    )
-    external_deal_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("external_deals.id"), index=True
-    )
-    external_deal: Mapped[Optional[ExternalDealModel]] = relationship(
-        back_populates="reviews", foreign_keys=[external_deal_id]
-    )

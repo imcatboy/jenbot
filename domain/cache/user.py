@@ -217,9 +217,9 @@ class UserCache(BaseCache):
 
             if reputation_user:
                 return [reputation_user]
-        elif re.match(r"^[a-zA-Z0-9_]+$", search.replace("@", "")):
+        elif re.match(r"^@[a-zA-Z0-9_]+$", search):
             reputation_users = await self.get_reputation_users_by_username(
-                search.replace("@", "").lower()
+                search.lower()
             )
 
             if reputation_users:
@@ -237,7 +237,7 @@ class UserCache(BaseCache):
                 return await self.set_reputation_user_by_telegram_id(
                     int(search), reputation_users[0]
                 )
-        elif re.match(r"^[a-zA-Z0-9_]+$", search.replace("@", "")):
+        elif re.match(r"^@[a-zA-Z0-9_]+$", search):
             if reputation_users:
                 return await self.set_reputation_users_by_username(
                     search.replace("@", "").lower(), reputation_users

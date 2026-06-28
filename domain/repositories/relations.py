@@ -180,7 +180,7 @@ def get_review_relations() -> List[Any]:
     ]
 
 
-def get_external_deal_with_users_relations() -> List[Any]:
+def get_external_deal_with_relations_relations() -> List[Any]:
     return [
         joinedload(models.ExternalDealModel.seller).options(
             selectinload(models.UserModel.usernames)
@@ -189,6 +189,14 @@ def get_external_deal_with_users_relations() -> List[Any]:
             selectinload(models.UserModel.usernames)
         ),
         joinedload(models.ExternalDealModel.agent).options(
+            selectinload(models.UserModel.usernames)
+        ),
+        joinedload(models.ExternalDealModel.warranty_reputation_user).options(
+            selectinload(models.ReputationUserModel.users).options(
+                selectinload(models.UserModel.usernames)
+            )
+        ),
+        joinedload(models.ExternalDealModel.created_by_user).options(
             selectinload(models.UserModel.usernames)
         ),
     ]

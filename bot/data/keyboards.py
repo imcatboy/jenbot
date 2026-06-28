@@ -2,7 +2,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from typing import List
 
-from domain.objects.types import ReportType, ReportStatus, UserReputationRole
+from domain.objects.types import (
+    DealCondition,
+    ReportType,
+    ReportStatus,
+    UserReputationRole,
+    DealStatus,
+)
 from domain.objects import entities
 from bot.data.callbacks import *
 
@@ -478,37 +484,63 @@ def get_reviews_keyboard(
 
 
 def get_external_deal_accept_keyboard(
-    external_deal: entities.ExternalDealWithUsersEntity,
+    external_deal: entities.ExternalDealWithRelationsEntity,
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(
-        text="Принять",
+        text="Начать сделку",
         icon_custom_emoji_id="5282782728670977815",
-        callback_data=ExternalDealAcceptCallback(id=external_deal.id).pack(),
+        callback_data=ChangeExternalDealDraftCallback(
+            id=external_deal.id, is_accepted=True
+        ).pack(),
     )
     builder.button(
         text="Удалить",
         icon_custom_emoji_id="5280622076653245714",
-        callback_data=ExternalDealDeleteCallback(id=external_deal.id).pack(),
+        callback_data=ChangeExternalDealDraftCallback(
+            id=external_deal.id, is_accepted=False
+        ).pack(),
     )
     return builder.adjust(2).as_markup()
 
 
-def get_finish_external_deal_keyboard(
-    external_deal: entities.ExternalDealWithUsersEntity,
+def get_change_external_deal_status_keyboard(
+    external_deal: entities.ExternalDealWithRelationsEntity,
+    is_seller: bool,
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(
-        text="Завершить",
-        icon_custom_emoji_id="5282782728670977815",
-        callback_data=FinishExternalDealCallback(id=external_deal.id).pack(),
+    condition = (
+        external_deal.seller_condition if is_seller else external_deal.buyer_condition
     )
-    builder.button(
-        text="Пожаловаться",
-        icon_custom_emoji_id="5280622076653245714",
-        callback_data=ComplainExternalDealCallback(id=external_deal.id).pack(),
-    )
-    return builder.adjust(2).as_markup()
+
+    if condition not in [DealCondition.COMPLAINT, DealCondition.ACCEPTED]:
+        builder.button(
+            text="Завершить сделку",
+            icon_custom_emoji_id="5282782728670977815",
+            callback_data=ChangeExternalDealStatusCallback(
+                id=external_deal.id, condition=DealCondition.ACCEPTED
+            ).pack(),
+        )
+
+    if condition not in [DealCondition.COMPLAINT, DealCondition.CANCELLED]:
+        builder.button(
+            text="Отменить сделку",
+            icon_custom_emoji_id="5280622076653245714",
+            callback_data=ChangeExternalDealStatusCallback(
+                id=external_deal.id, condition=DealCondition.CANCELLED
+            ).pack(),
+        )
+
+    if not condition:
+        builder.button(
+            text="Подать жалобу",
+            icon_custom_emoji_id="5283215884712716244",
+            callback_data=ChangeExternalDealStatusCallback(
+                id=external_deal.id, condition=DealCondition.COMPLAINT
+            ).pack(),
+        )
+
+    return builder.adjust(3).as_markup()
 
 
 def get_reputation_request_keyboard(
@@ -527,6 +559,52 @@ def get_reputation_request_keyboard(
         icon_custom_emoji_id="5280622076653245714",
         callback_data=ReputationRequestCallback(
             id=reputation_request.id, is_accepted=False
+        ).pack(),
+    )
+    return builder.adjust(2).as_markup()
+
+
+def get_external_deal_first_role_keyboard(
+    with_agent: bool = False,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Продавец",
+        icon_custom_emoji_id="5283081795833731867",
+        callback_data=ExternalDealFirstRoleCallback(is_seller=True).pack(),
+    )
+    builder.button(
+        text="Покупатель",
+        icon_custom_emoji_id="5283081795833731867",
+        callback_data=ExternalDealFirstRoleCallback(is_buyer=True).pack(),
+    )
+
+    if with_agent:
+        builder.button(
+            text="Посредник",
+            icon_custom_emoji_id="5283081795833731867",
+            callback_data=ExternalDealFirstRoleCallback(is_agent=True).pack(),
+        )
+
+    return builder.adjust(3).as_markup()
+
+
+def get_resolve_external_deal_keyboard(
+    external_deal: entities.ExternalDealWithRelationsEntity,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Завершить сделку",
+        icon_custom_emoji_id="5282782728670977815",
+        callback_data=ResolveExternalDealCallback(
+            id=external_deal.id, status=DealStatus.COMPLETED
+        ).pack(),
+    )
+    builder.button(
+        text="Отменить сделку",
+        icon_custom_emoji_id="5280622076653245714",
+        callback_data=ResolveExternalDealCallback(
+            id=external_deal.id, status=DealStatus.CANCELLED
         ).pack(),
     )
     return builder.adjust(2).as_markup()

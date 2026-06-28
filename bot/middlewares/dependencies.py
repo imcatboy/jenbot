@@ -72,6 +72,7 @@ class DIMiddleware(BaseMiddleware):
             marketplace_repository=marketplace_repository,
             messaging_repository=messaging_repository,
             user_repository=user_repository,
+            user_service=user_service,
         )
         moderation_actions = ModerationActions(
             moderation_service=moderation_service,
@@ -86,6 +87,10 @@ class DIMiddleware(BaseMiddleware):
             trading_service=trading_service,
             media_actions=media_actions,
         )
+        trading_actions = TradingActions(
+            bot=bot, trading_service=trading_service, config_service=config_service
+        )
+        data["trading_actions"] = trading_actions
         data["trading_service"] = trading_service
         data["audit_actions"] = audit_actions
         data["moderation_actions"] = moderation_actions

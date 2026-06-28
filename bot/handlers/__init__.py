@@ -6,6 +6,7 @@ from .report import report_router
 from .event import event_router
 from .admin import admin_router
 from .user import user_router
+from .trading import trading_router
 
 
 handler_routers = [
@@ -17,4 +18,5 @@ handler_routers = [
     event_router,
     admin_router,
     user_router,
+    trading_router,
 ]

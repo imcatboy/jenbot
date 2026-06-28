@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from sqlalchemy import ARRAY, CheckConstraint, Enum, ForeignKey, Index, Numeric, String
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    CheckConstraint,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
@@ -99,8 +108,6 @@ class DealModel(EntityModel):
     buyer_condition: Mapped[Optional[DealCondition]] = mapped_column(
         Enum(DealCondition, name="DEAL_CONDITION"), index=True
     )
-    seller_acceptance: Mapped[bool] = mapped_column(default=False)
-    buyer_acceptance: Mapped[bool] = mapped_column(default=False)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped[ProductModel] = relationship(
         back_populates="deals",
@@ -153,9 +160,6 @@ class DealModel(EntityModel):
         secondary=trade_deals_product_options,
         back_populates="trade_deals",
     )
-    reviews: Mapped[List[ReviewModel]] = relationship(
-        back_populates="deal", cascade="all, delete-orphan"
-    )
     chats: Mapped[List[ChatModel]] = relationship(
         back_populates="deal", cascade="all, delete-orphan"
     )
@@ -166,8 +170,16 @@ class ExternalDealModel(EntityModel):
     fk_name = "external_deal_id"
     __table_args__ = (
         CheckConstraint(
-            "amount > 0",
-            name="ck_external_deals_amount_positive",
+            "deal_amount > 0",
+            name="ck_external_deals_deal_amount_positive",
+        ),
+        CheckConstraint(
+            "refund_amount > 0",
+            name="ck_external_deals_refund_amount_positive",
+        ),
+        CheckConstraint(
+            "deal_amount >= refund_amount",
+            name="ck_external_deals_deal_amount_greater_than_refund_amount",
         ),
         CheckConstraint(
             "expires_at > created_at",
@@ -184,14 +196,20 @@ class ExternalDealModel(EntityModel):
         ),
     )
 
-    amount: Mapped[float] = mapped_column(Numeric(precision=10, scale=2))
+    deal_amount: Mapped[float] = mapped_column(Numeric(precision=10, scale=2))
+    refund_amount: Mapped[float] = mapped_column(Numeric(precision=10, scale=2))
+    payment: Mapped[Optional[str]] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(String(255))
     expires_at: Mapped[datetime] = mapped_column(index=True)
     status: Mapped[DealStatus] = mapped_column(
         Enum(DealStatus, name="DEAL_STATUS"), default=DealStatus.DRAFT, index=True
     )
-    buyer_acceptance: Mapped[bool] = mapped_column(default=False)
-    seller_acceptance: Mapped[bool] = mapped_column(default=False)
+    seller_condition: Mapped[Optional[DealCondition]] = mapped_column(
+        Enum(DealCondition, name="DEAL_CONDITION"), index=True
+    )
+    buyer_condition: Mapped[Optional[DealCondition]] = mapped_column(
+        Enum(DealCondition, name="DEAL_CONDITION"), index=True
+    )
     seller_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     seller: Mapped[UserModel] = relationship(
         back_populates="external_seller_deals", foreign_keys=[seller_id]
@@ -204,9 +222,44 @@ class ExternalDealModel(EntityModel):
     agent: Mapped[Optional[UserModel]] = relationship(
         back_populates="external_agent_deals", foreign_keys=[agent_id]
     )
-    reviews: Mapped[List[ReviewModel]] = relationship(
+    warranty_reputation_user_id: Mapped[int] = mapped_column(
+        ForeignKey("reputation_users.id"), index=True
+    )
+    warranty_reputation_user: Mapped[ReputationUserModel] = relationship(
+        back_populates="warranty_external_deals",
+        foreign_keys=[warranty_reputation_user_id],
+    )
+    created_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_by_user: Mapped[UserModel] = relationship(
+        back_populates="created_external_deals", foreign_keys=[created_by_user_id]
+    )
+    notifications: Mapped[List[ExternalDealNotificationModel]] = relationship(
         back_populates="external_deal", cascade="all, delete-orphan"
     )
+
+
+class ExternalDealNotificationModel(EntityModel):
+    __tablename__ = "external_deal_notifications"
+    fk_name = "external_deal_notification_id"
+    __table_args__ = (
+        Index(
+            "ix_external_deal_notifications_external_deal_id_user_id",
+            "external_deal_id",
+            "user_id",
+            unique=True,
+        ),
+    )
+
+    telegram_chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    telegram_message_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    external_deal_id: Mapped[int] = mapped_column(
+        ForeignKey("external_deals.id"), index=True
+    )
+    external_deal: Mapped[ExternalDealModel] = relationship(
+        back_populates="notifications"
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user: Mapped[UserModel] = relationship(back_populates="external_deal_notifications")
 
 
 class ScamReportModel(EntityModel):

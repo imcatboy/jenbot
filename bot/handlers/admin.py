@@ -6,12 +6,14 @@ from aiogram.filters import Command
 from aiogram import Router, Bot
 from html import escape
 
+from bot.actions.trading import TradingActions
 from domain.services import ConfigService, ModerationService
 from bot.data import text, callbacks, states, keyboards
 from domain.objects import dtos, types, entities
 from domain.objects.types import UserRole
 from bot.actions import ModerationActions
 from bot.filters import UsersFilter
+from domain.services.trading import TradingService
 
 admin_router = Router()
 admin_router.message.filter(UsersFilter([UserRole.ADMIN]))
@@ -82,3 +84,20 @@ async def reportstatus_handler(
     )
     await moderation_actions.send_report_updated_message(report)
     await message.answer(text.REPORT_STATUS_UPDATED)
+
+
+@admin_router.callback_query(
+    callbacks.ResolveExternalDealCallback.filter(), UsersFilter([UserRole.ADMIN])
+)
+async def resolve_external_deal_callback_handler(
+    callback: CallbackQuery,
+    callback_data: callbacks.ResolveExternalDealCallback,
+    trading_service: TradingService,
+    trading_actions: TradingActions,
+):
+    await trading_service.resolve_external_deal(callback_data.id, callback_data.status)
+    await callback.answer()
+    deal = await trading_service.get_external_deal(callback_data.id)
+    await trading_actions.send_external_deal_messages(deal)
+    await callback.message.reply(text.EXTERNAL_DEAL_STATUS_CHANGED_MESSAGE)
+    await callback.message.edit_text(text.get_external_deal_message(deal))

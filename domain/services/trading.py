@@ -7,6 +7,7 @@ from domain.repositories import (
     UserRepository,
 )
 from domain.objects import entities, dtos, exceptions, types, UserReputationRole
+from domain.services import UserService
 
 
 class TradingService:
@@ -17,11 +18,13 @@ class TradingService:
         marketplace_repository: MarketplaceRepository,
         messaging_repository: MessagingRepository,
         user_repository: UserRepository,
+        user_service: UserService,
     ) -> None:
         self.trading_repository = trading_repository
         self.marketplace_repository = marketplace_repository
         self.messaging_repository = messaging_repository
         self.user_repository = user_repository
+        self.user_service = user_service
 
     async def buy_advertisement_option(
         self, dto: dtos.BuyAdvertisementOptionDTO
@@ -165,6 +168,10 @@ class TradingService:
             await self.trading_repository.update_deal(
                 id, dtos.UpdateDealDTO(seller_condition=condition)
             )
+        else:
+            raise exceptions.UserIsNotParticipantException(user_id)
+
+        await self.change_status(id)
 
     async def change_status(self, id: int) -> None:
         deal = await self.trading_repository.get_deal(id)
@@ -281,7 +288,7 @@ class TradingService:
         )
 
         if dto.subject_user_id == dto.author_id:
-            raise exceptions.UserIsSelfException(dto.author_id)
+            raise exceptions.UserIsSelfException(dto.author_id, dto.subject_user_id)
 
         if reputation_user.role == UserReputationRole.SCAMMER:
             raise exceptions.UserIsScammerException(dto.subject_user_id)
@@ -297,23 +304,80 @@ class TradingService:
     async def create_external_deal(
         self, dto: dtos.CreateExternalDealDTO
     ) -> entities.ExternalDealEntity:
-        return await self.trading_repository.create_external_deal(dto)
+        reputation_user = await self.user_service.get_warranty_reputation_user(
+            [dto.agent_id] if dto.agent_id else [dto.seller_id, dto.buyer_id]
+        )
 
-    async def get_external_deal(self, id: int) -> entities.ExternalDealWithUsersEntity:
+        if reputation_user.role == UserReputationRole.DEPOSITOR and dto.agent_id:
+            raise exceptions.UserIsNotGuarantorException(dto.agent_id)
+
+        if dto.created_by_user_id not in [dto.seller_id, dto.buyer_id, dto.agent_id]:
+            raise exceptions.UserIsNotParticipantException(dto.created_by_user_id)
+
+        if (
+            dto.seller_id == dto.buyer_id
+            or dto.buyer_id == dto.agent_id
+            or dto.agent_id == dto.seller_id
+        ):
+            raise exceptions.UserIsSelfException(
+                dto.seller_id, dto.buyer_id, dto.agent_id
+            )
+
+        try:
+            seller = await self.user_repository.get_reputation_user_by_user_id(
+                dto.seller_id
+            )
+
+            if seller.role == UserReputationRole.SCAMMER:
+                raise exceptions.UserIsScammerException(dto.seller_id)
+        except exceptions.ObjectNotFoundException:
+            pass
+
+        try:
+            buyer = await self.user_repository.get_reputation_user_by_user_id(
+                dto.buyer_id
+            )
+
+            if buyer.role == UserReputationRole.SCAMMER:
+                raise exceptions.UserIsScammerException(dto.buyer_id)
+        except exceptions.ObjectNotFoundException:
+            pass
+
+        insert_external_deal_dto = dtos.InsertExternalDealDTO(
+            **dto.model_dump(),
+            refund_amount=min(dto.deal_amount, reputation_user.amount),
+            warranty_reputation_user_id=reputation_user.id,
+        )
+        return await self.trading_repository.create_external_deal(
+            insert_external_deal_dto
+        )
+
+    async def get_external_deal(
+        self, id: int
+    ) -> entities.ExternalDealWithRelationsEntity:
         return await self.trading_repository.get_external_deal(id)
 
-    async def start_external_deal(self, id: int) -> entities.ExternalDealEntity:
+    async def start_external_deal(
+        self, id: int, user_id: int
+    ) -> entities.ExternalDealEntity:
         external_deal = await self.trading_repository.get_external_deal(id)
+        reputation_user = await self.user_repository.get_reputation_user_by_user_id(
+            user_id
+        )
 
         if external_deal.status != types.DealStatus.DRAFT:
             raise exceptions.DealNotDraftException(external_deal.id)
 
-        guarantor: Optional[entities.ReputationUserEntity] = None
+        if external_deal.warranty_reputation_user_id != reputation_user.id:
+            raise exceptions.UserIsNotGuarantorException(user_id)
 
         if external_deal.agent_id:
             agent = await self.user_repository.get_reputation_user_by_user_id(
                 external_deal.agent_id
             )
+
+            if agent.role == UserReputationRole.SCAMMER:
+                raise exceptions.UserIsScammerException(external_deal.agent_id)
 
             if not agent or agent.role not in [
                 UserReputationRole.SMALL_GUARANTOR,
@@ -321,76 +385,187 @@ class TradingService:
                 UserReputationRole.BIG_GUARANTOR,
             ]:
                 raise exceptions.UserIsNotGuarantorException(external_deal.agent_id)
-
-            guarantor = agent
         else:
-            seller = await self.user_repository.get_reputation_user_by_user_id(
-                external_deal.seller_id
-            )
-            buyer = await self.user_repository.get_reputation_user_by_user_id(
-                external_deal.buyer_id
-            )
+            try:
+                seller = await self.user_repository.get_reputation_user_by_user_id(
+                    external_deal.seller_id
+                )
 
-            if seller and seller.role == UserReputationRole.SCAMMER:
-                raise exceptions.UserIsScammerException(external_deal.seller_id)
+                if seller.role == UserReputationRole.SCAMMER:
+                    raise exceptions.UserIsScammerException(external_deal.seller_id)
+            except exceptions.ObjectNotFoundException:
+                pass
 
-            if buyer and buyer.role == UserReputationRole.SCAMMER:
-                raise exceptions.UserIsScammerException(external_deal.buyer_id)
+            try:
+                buyer = await self.user_repository.get_reputation_user_by_user_id(
+                    external_deal.buyer_id
+                )
 
-            guarantor_roles = [
-                UserReputationRole.SMALL_GUARANTOR,
-                UserReputationRole.GUARANTOR,
-                UserReputationRole.BIG_GUARANTOR,
-                UserReputationRole.DEPOSITOR,
-            ]
-
-            if seller and seller.role in guarantor_roles:
-                guarantor = seller
-            elif buyer and buyer.role in guarantor_roles:
-                guarantor = buyer
-
-        if not guarantor:
-            raise exceptions.UserIsNotGuarantorException(
-                external_deal.seller_id, external_deal.buyer_id
-            )
+                if buyer.role == UserReputationRole.SCAMMER:
+                    raise exceptions.UserIsScammerException(external_deal.buyer_id)
+            except exceptions.ObjectNotFoundException:
+                pass
 
         used_amount = await self.trading_repository.get_external_deal_amount(
-            guarantor.id
+            external_deal.warranty_reputation_user_id
         )
 
-        if used_amount + external_deal.amount > guarantor.amount:
+        if (
+            used_amount + external_deal.refund_amount
+            > external_deal.warranty_reputation_user.amount
+        ):
             raise exceptions.NotEnoughAmountException(
-                guarantor.id, external_deal.amount
+                external_deal.warranty_reputation_user_id, external_deal.refund_amount
             )
 
-        return await self.update_external_deal(
+        return await self.trading_repository.update_external_deal(
             external_deal.id,
             dtos.UpdateExternalDealDTO(status=types.DealStatus.PENDING),
         )
 
-    async def update_external_deal(
-        self, id: int, dto: dtos.UpdateExternalDealDTO
-    ) -> entities.ExternalDealEntity:
-        return await self.trading_repository.update_external_deal(id, dto)
+    async def change_external_deal_condition(
+        self, id: int, user_id: int, condition: types.DealCondition
+    ) -> None:
+        deal = await self.trading_repository.get_external_deal(id)
 
-    async def accept_external_deal(self, id: int, user_id: int) -> None:
-        external_deal = await self.trading_repository.get_external_deal(id)
+        if (
+            deal.seller_id != user_id
+            and deal.buyer_id != user_id
+            and deal.agent_id != user_id
+        ):
+            raise exceptions.UserIsNotParticipantException(user_id)
 
-        if external_deal.seller_id == user_id:
-            await self.trading_repository.update_external_deal(
-                id, dtos.UpdateExternalDealDTO(seller_acceptance=True)
+        if deal.status != types.DealStatus.PENDING:
+            raise exceptions.DealNotPendingException(
+                deal_id=id,
             )
-        elif external_deal.buyer_id == user_id:
+
+        if deal.seller_id == user_id:
             await self.trading_repository.update_external_deal(
-                id, dtos.UpdateExternalDealDTO(buyer_acceptance=True)
+                id, dtos.UpdateExternalDealDTO(seller_condition=condition)
+            )
+        elif deal.buyer_id == user_id:
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(buyer_condition=condition)
             )
         else:
-            raise exceptions.UserNotParticipantOfExternalDealException(user_id, id)
+            raise exceptions.UserIsNotParticipantException(user_id)
 
-    async def delete_external_deal(self, id: int) -> None:
+        await self.change_external_deal_status(id)
+
+    async def change_external_deal_status(self, id: int) -> None:
+        deal = await self.trading_repository.get_external_deal(id)
+
+        if deal.status != types.DealStatus.PENDING:
+            raise exceptions.DealNotPendingException(
+                deal_id=id,
+            )
+
+        if deal.expires_at < datetime.now():
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(status=types.DealStatus.EXPIRED)
+            )
+            return
+
+        if (
+            deal.seller_condition == types.DealCondition.COMPLAINT
+            or deal.buyer_condition == types.DealCondition.COMPLAINT
+        ):
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(status=types.DealStatus.REJECTED)
+            )
+        elif (
+            deal.seller_condition == types.DealCondition.ACCEPTED
+            and deal.buyer_condition == types.DealCondition.ACCEPTED
+        ):
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(status=types.DealStatus.COMPLETED)
+            )
+
+            await self.user_repository.add_external_deal_count(
+                deal.warranty_reputation_user_id
+            )
+        elif (
+            deal.seller_condition == types.DealCondition.CANCELLED
+            and deal.buyer_condition == types.DealCondition.CANCELLED
+        ):
+            await self.trading_repository.update_external_deal(
+                id, dtos.UpdateExternalDealDTO(status=types.DealStatus.CANCELLED)
+            )
+
+    async def delete_external_deal(self, id: int, user_id: int) -> None:
+        reputation_user = await self.user_repository.get_reputation_user_by_user_id(
+            user_id
+        )
         deal = await self.trading_repository.get_external_deal(id)
 
         if deal.status != types.DealStatus.DRAFT:
             raise exceptions.DealNotDraftException(deal.id)
 
+        if deal.warranty_reputation_user_id != reputation_user.id:
+            raise exceptions.UserIsNotGuarantorException(user_id)
+
         await self.trading_repository.delete_external_deal(id)
+
+    async def expire_external_deals(
+        self,
+    ) -> List[entities.ExternalDealWithRelationsEntity]:
+        expired_deals = await self.trading_repository.get_expired_external_deals()
+
+        if not expired_deals:
+            return []
+
+        expired_ids = [deal.id for deal in expired_deals]
+        await self.trading_repository.expire_external_deals()
+        return await self.trading_repository.get_external_deals_by_ids(expired_ids)
+
+    async def resolve_external_deal(self, id: int, status: types.DealStatus) -> None:
+        if status not in [types.DealStatus.COMPLETED, types.DealStatus.CANCELLED]:
+            raise exceptions.InvalidDataException(status=status)
+
+        deal = await self.trading_repository.get_external_deal(id)
+
+        if deal.status not in [types.DealStatus.EXPIRED, types.DealStatus.REJECTED]:
+            raise exceptions.ExternalDealNotBlockedException(deal.id)
+
+        await self.trading_repository.update_external_deal(
+            id, dtos.UpdateExternalDealDTO(status=status)
+        )
+
+        if status == types.DealStatus.COMPLETED:
+            await self.user_repository.add_external_deal_count(
+                deal.warranty_reputation_user_id
+            )
+
+    async def create_or_update_external_deal_notification(
+        self, dto: dtos.CreateExternalDealNotificationDTO
+    ) -> entities.ExternalDealNotificationEntity:
+        try:
+            notification = await self.trading_repository.get_external_deal_notification(
+                dto.external_deal_id, dto.user_id
+            )
+        except exceptions.ObjectNotFoundException:
+            return await self.trading_repository.create_external_deal_notification(dto)
+
+        return await self.trading_repository.update_external_deal_notification(
+            notification.id,
+            dtos.UpdateExternalDealNotificationDTO(
+                telegram_message_id=dto.telegram_message_id,
+                telegram_chat_id=dto.telegram_chat_id,
+            ),
+        )
+
+    async def get_external_deal_notification(
+        self, external_deal_id: int, user_id: int
+    ) -> entities.ExternalDealNotificationEntity:
+        return await self.trading_repository.get_external_deal_notification(
+            external_deal_id, user_id
+        )
+
+    async def get_external_deal_amount(self, reputation_id: int) -> float:
+        return await self.trading_repository.get_external_deal_amount(reputation_id)
+
+    async def get_expired_external_deals(
+        self,
+    ) -> List[entities.ExternalDealWithRelationsEntity]:
+        return await self.trading_repository.get_expired_external_deals()

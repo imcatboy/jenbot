@@ -50,26 +50,3 @@ class UserActions:
             )
 
         raise exceptions.UserNotFoundException(str(username_or_id))
-
-    async def send_message_to_users(
-        self, external_deal: entities.ExternalDealWithUsersEntity
-    ):
-        try:
-            chat_id = external_deal.seller.telegram_id
-            await self.bot.send_message(
-                chat_id,
-                text.get_deal_message(external_deal),
-                reply_markup=keyboards.get_finish_external_deal_keyboard(external_deal),
-            )
-        except TelegramAPIError:
-            pass
-
-        try:
-            chat_id = external_deal.buyer.telegram_id
-            await self.bot.send_message(
-                chat_id,
-                text.get_deal_message(external_deal),
-                reply_markup=keyboards.get_finish_external_deal_keyboard(external_deal),
-            )
-        except TelegramAPIError:
-            pass

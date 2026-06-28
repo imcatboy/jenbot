@@ -1,7 +1,13 @@
 from aiogram.filters.callback_data import CallbackData
 from typing import Optional
 
-from domain.objects.types import ReportType, ReportStatus, UserReputationRole
+from domain.objects.types import (
+    ReportType,
+    ReportStatus,
+    UserReputationRole,
+    DealCondition,
+    DealStatus,
+)
 
 
 class ReportCallback(CallbackData, prefix="report"):
@@ -88,20 +94,14 @@ class ReviewDeleteAdminCallback(CallbackData, prefix="review_delete_admin"):
     id: int
 
 
-class ExternalDealAcceptCallback(CallbackData, prefix="external_deal_accept"):
+class ChangeExternalDealDraftCallback(CallbackData, prefix="external_deal_draft"):
     id: int
+    is_accepted: bool
 
 
-class ExternalDealDeleteCallback(CallbackData, prefix="external_deal_delete"):
+class ChangeExternalDealStatusCallback(CallbackData, prefix="external_deal_status"):
     id: int
-
-
-class FinishExternalDealCallback(CallbackData, prefix="finish_external_deal"):
-    id: int
-
-
-class ComplainExternalDealCallback(CallbackData, prefix="complain_external_deal"):
-    id: int
+    condition: DealCondition
 
 
 class ReputationRequestCallback(CallbackData, prefix="reputation_request"):
@@ -111,3 +111,14 @@ class ReputationRequestCallback(CallbackData, prefix="reputation_request"):
 
 class ReviewCallback(CallbackData, prefix="review"):
     user_id: int
+
+
+class ExternalDealFirstRoleCallback(CallbackData, prefix="external_deal_first_role"):
+    is_seller: bool = False
+    is_buyer: bool = False
+    is_agent: bool = False
+
+
+class ResolveExternalDealCallback(CallbackData, prefix="resolve_external_deal"):
+    id: int
+    status: DealStatus

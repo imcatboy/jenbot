@@ -55,8 +55,7 @@ async def ban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.usernames,
-            purpose_user.telegram_id,
+            purpose_user,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -102,8 +101,7 @@ async def globalban_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_ban_user_success_message(
-            purpose_user.usernames,
-            purpose_user.telegram_id,
+            purpose_user,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -139,9 +137,7 @@ async def unban_handler(
     await moderation_actions.unban_user(purpose_user.id, message.chat.id)
     await audit_actions.upload_action_audit(ChatAction.UNBAN, purpose_user, user)
     await message.answer(
-        text.UNBAN_USER_SUCCESS.format(
-            text.format_user_handle(purpose_user.usernames, purpose_user.telegram_id)
-        )
+        text.UNBAN_USER_SUCCESS.format(text.format_user_handle(purpose_user))
     )
 
 
@@ -182,8 +178,7 @@ async def mute_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_mute_user_success_message(
-            purpose_user.usernames,
-            purpose_user.telegram_id,
+            purpose_user,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -219,9 +214,7 @@ async def unmute_handler(
     await moderation_actions.unmute_user(purpose_user.id, message.chat.id)
     await audit_actions.upload_action_audit(ChatAction.UNMUTE, purpose_user, user)
     await message.answer(
-        text.UNMUTE_USER_SUCCESS.format(
-            text.format_user_handle(purpose_user.usernames, purpose_user.telegram_id)
-        )
+        text.UNMUTE_USER_SUCCESS.format(text.format_user_handle(purpose_user))
     )
 
 
@@ -262,8 +255,7 @@ async def warn_handler(
     await audit_actions.upload_audit(violation.id, message.reply_to_message)
     await message.answer(
         text.get_warn_user_success_message(
-            purpose_user.usernames,
-            purpose_user.telegram_id,
+            purpose_user,
             command_data.expires_at,
             escape(command_data.reason),
         )
@@ -371,9 +363,7 @@ async def addmoderator_handler(
     user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.MODERATOR)
     await message.answer(
-        text.ADD_MODERATOR_SUCCESS.format(
-            text.format_user_handle(user.usernames, user.telegram_id)
-        )
+        text.ADD_MODERATOR_SUCCESS.format(text.format_user_handle(user))
     )
 
 
@@ -393,9 +383,7 @@ async def removemoderator_handler(
     user = await user_actions.get_telegram_user(command_data.username, message.chat.id)
     await user_service.update_role(user.id, UserRole.USER)
     await message.answer(
-        text.REMOVE_MODERATOR_SUCCESS.format(
-            text.format_user_handle(user.usernames, user.telegram_id)
-        )
+        text.REMOVE_MODERATOR_SUCCESS.format(text.format_user_handle(user))
     )
 
 

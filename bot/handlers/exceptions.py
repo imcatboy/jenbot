@@ -62,6 +62,15 @@ async def exception_handler(event: ErrorEvent):
         case exceptions.UserIsSelfException():
             await message.answer(text.USER_IS_SELF)
             return True
+        case exceptions.UserIsNotParticipantException():
+            await message.answer(text.USER_IS_NOT_PARTICIPANT)
+            return True
+        case exceptions.ExternalDealNotBlockedException():
+            await message.answer(text.EXTERNAL_DEAL_NOT_BLOCKED)
+            return True
+        case exceptions.DealNotPendingException():
+            await message.answer(text.DEAL_NOT_PENDING)
+            return True
 
     logger.exception(
         f"Unhandled exception: {event.exception}", exc_info=event.exception

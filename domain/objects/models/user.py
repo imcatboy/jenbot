@@ -24,9 +24,14 @@ if TYPE_CHECKING:
         ReportModel,
         TrackerModel,
     )
+    from .trading import (
+        DealModel,
+        ExternalDealModel,
+        ScamReportModel,
+        ExternalDealNotificationModel,
+    )
     from .economy import TransactionModel, ChatPurchaseModel, ReviewModel
     from .marketplace import AdvertisementModel, ProductModel, CategoryModel
-    from .trading import DealModel, ExternalDealModel, ScamReportModel
     from .moderation import ReputationRequestModel
 
 
@@ -218,6 +223,18 @@ class UserModel(EntityModel):
         foreign_keys="ReputationRequestModel.applied_by_user_id",
         cascade="all, delete-orphan",
     )
+    created_external_deals: Mapped[List[ExternalDealModel]] = relationship(
+        back_populates="created_by_user",
+        foreign_keys="ExternalDealModel.created_by_user_id",
+        cascade="all, delete-orphan",
+    )
+    external_deal_notifications: Mapped[List[ExternalDealNotificationModel]] = (
+        relationship(
+            back_populates="user",
+            foreign_keys="ExternalDealNotificationModel.user_id",
+            cascade="all, delete-orphan",
+        )
+    )
 
 
 class UserDetailModel(EntityModel):
@@ -256,6 +273,10 @@ class ReputationUserModel(EntityModel):
             name="ck_reputation_user_search_count_positive",
         ),
         CheckConstraint(
+            "deal_count >= 0",
+            name="ck_reputation_user_deal_count_positive",
+        ),
+        CheckConstraint(
             "applied_report_count >= 0",
             name="ck_reputation_user_applied_report_count_positive",
         ),
@@ -274,6 +295,7 @@ class ReputationUserModel(EntityModel):
     search_count: Mapped[int] = mapped_column(default=0)
     applied_report_count: Mapped[int] = mapped_column(default=0)
     review_count: Mapped[int] = mapped_column(default=0)
+    deal_count: Mapped[int] = mapped_column(default=0)
     version: Mapped[int] = mapped_column(default=0)
     added_by_user_id: Mapped[int] = mapped_column(
         "added_by_user",
@@ -299,6 +321,11 @@ class ReputationUserModel(EntityModel):
     accused_reports: Mapped[List[ScamReportModel]] = relationship(
         back_populates="accused_reputation_user",
         foreign_keys="ScamReportModel.accused_reputation_user_id",
+        cascade="all, delete-orphan",
+    )
+    warranty_external_deals: Mapped[List[ExternalDealModel]] = relationship(
+        back_populates="warranty_reputation_user",
+        foreign_keys="ExternalDealModel.warranty_reputation_user_id",
         cascade="all, delete-orphan",
     )
 

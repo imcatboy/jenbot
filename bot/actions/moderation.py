@@ -314,9 +314,7 @@ class ModerationActions:
             await self.bot.send_message(
                 tracker.tracking_user.telegram_id,
                 text.TRACKER_ADDED.format(
-                    text.format_user_handle(
-                        tracker.tracked_user.usernames, tracker.tracked_user.telegram_id
-                    )
+                    text.format_user_handle(tracker.tracked_user)
                 ),
             )
         except TelegramAPIError:
@@ -332,11 +330,7 @@ class ModerationActions:
         try:
             await self.bot.send_message(
                 tracking_user.telegram_id,
-                text.TRACKER_REMOVED.format(
-                    text.format_user_handle(
-                        tracked_user.usernames, tracked_user.telegram_id
-                    )
-                ),
+                text.TRACKER_REMOVED.format(text.format_user_handle(tracked_user)),
             )
         except TelegramAPIError:
             raise exceptions.ChatNotFoundException(tracking_user.telegram_id)

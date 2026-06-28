@@ -233,18 +233,34 @@ class UserNotParticipantOfExternalDealException(DomainException):
     def __init__(self, user_id: int, external_deal_id: int):
         self.user_id = user_id
         self.external_deal_id = external_deal_id
-        super().__init__(f"User {user_id} is not participant of external deal {external_deal_id}")
-    
+        super().__init__(
+            f"User {user_id} is not participant of external deal {external_deal_id}"
+        )
+
 
 class ReputationRequestAlreadyExistsException(DomainException):
 
     def __init__(self, user_id: int):
         self.user_id = user_id
         super().__init__(f"Reputation request for user {user_id} already exists")
-    
+
 
 class UserIsSelfException(DomainException):
 
+    def __init__(self, *user_ids: int):
+        self.user_ids = user_ids
+        super().__init__(f"User {', '.join(map(str, user_ids))} is self")
+
+
+class UserIsNotParticipantException(DomainException):
+
     def __init__(self, user_id: int):
         self.user_id = user_id
-        super().__init__(f"User {user_id} is self")
+        super().__init__(f"User {user_id} is not a participant of the external deal")
+
+
+class ExternalDealNotBlockedException(DomainException):
+
+    def __init__(self, external_deal_id: int):
+        self.external_deal_id = external_deal_id
+        super().__init__(f"External deal {external_deal_id} is not expired or rejected")

@@ -146,7 +146,10 @@ class UserService:
         self, user_ids: List[int]
     ) -> entities.ReputationUserWithRelationsEntity:
         for user_id in user_ids:
-            user_reputation = await self.get_reputation_user_by_user_id(user_id)
+            try:
+                user_reputation = await self.get_reputation_user_by_user_id(user_id)
+            except exceptions.ObjectNotFoundException:
+                continue
 
             if user_reputation.role in [
                 UserReputationRole.SMALL_GUARANTOR,

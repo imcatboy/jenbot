@@ -50,21 +50,34 @@ class DealEntity(EntityWithMetadata):
 
 
 class ExternalDealEntity(EntityWithMetadata):
-    amount: float
+    deal_amount: float
+    refund_amount: float
+    payment: Optional[str] = None
     description: str
     expires_at: datetime
     status: DealStatus
-    seller_acceptance: bool
-    buyer_acceptance: bool
+    seller_condition: Optional[DealCondition] = None
+    buyer_condition: Optional[DealCondition] = None
     seller_id: int
     buyer_id: int
     agent_id: Optional[int] = None
+    warranty_reputation_user_id: int
+    created_by_user_id: int
 
 
-class ExternalDealWithUsersEntity(ExternalDealEntity):
+class ExternalDealWithRelationsEntity(ExternalDealEntity):
     seller: UserEntity
     buyer: UserEntity
     agent: Optional[UserEntity] = None
+    warranty_reputation_user: ReputationUserWithUsersEntity
+    created_by_user: UserEntity
+
+
+class ExternalDealNotificationEntity(EntityWithMetadata):
+    telegram_chat_id: int
+    telegram_message_id: int
+    external_deal_id: int
+    user_id: int
 
 
 class ScamReportEntity(EntityWithMetadata):

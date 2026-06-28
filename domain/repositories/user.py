@@ -11,7 +11,7 @@ from .relations import (
     get_profile_relations,
 )
 from domain.objects import models, entities, dtos, exceptions
-from domain.objects.types import UserRole
+from domain.objects.types import UserRole, UserReputationRole
 from .base import BaseRepository
 
 
@@ -281,11 +281,9 @@ class UserRepository(BaseRepository):
                 cast(models.UserModel.telegram_id, String).like(f"%{search}%")
             )
 
-        if re.match(r"^[a-zA-Z0-9_]+$", search.replace("@", "")):
+        if re.match(r"^@[a-zA-Z0-9_]+$", search):
             conditions.append(
-                models.UsernameModel.username.ilike(
-                    f"%{search.replace("@", "").lower()}%"
-                )
+                models.UsernameModel.username.ilike(f"%{search.lower()}%")
             )
         else:
             conditions.append(models.UserDetailModel.value.ilike(f"%{search.lower()}%"))
@@ -312,6 +310,13 @@ class UserRepository(BaseRepository):
             update(models.ReputationUserModel)
             .where(models.ReputationUserModel.id.in_(reputation_user_ids))
             .values(search_count=models.ReputationUserModel.search_count + 1)
+        )
+
+    async def add_external_deal_count(self, reputation_user_id: int) -> None:
+        await self.session.execute(
+            update(models.ReputationUserModel)
+            .where(models.ReputationUserModel.id == reputation_user_id)
+            .values(deal_count=models.ReputationUserModel.deal_count + 1)
         )
 
     async def get_or_create_marketplace_user(
