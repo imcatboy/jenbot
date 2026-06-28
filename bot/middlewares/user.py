@@ -35,6 +35,7 @@ class UserMiddleware(BaseMiddleware):
             and not event.reply_to_message.sender_chat
             and event.reply_to_message.from_user
             and not event.reply_to_message.from_user.is_bot
+            and event.reply_to_message.message_id != event.message_thread_id
         ):
             reply_from_user = event.reply_to_message.from_user
             reply_usernames = (
