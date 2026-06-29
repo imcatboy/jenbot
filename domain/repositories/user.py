@@ -283,7 +283,9 @@ class UserRepository(BaseRepository):
 
         if re.match(r"^@[a-zA-Z0-9_]+$", search):
             conditions.append(
-                models.UsernameModel.username.ilike(f"%{search.lower()}%")
+                models.UsernameModel.username.ilike(
+                    f"%{search.replace('@', '').lower()}%"
+                )
             )
         else:
             conditions.append(models.UserDetailModel.value.ilike(f"%{search.lower()}%"))
