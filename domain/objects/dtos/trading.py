@@ -68,8 +68,6 @@ class CreateReviewDTO(BaseDTO):
     rating: int
     author_id: int
     subject_user_id: int
-    external_deal_id: Optional[int] = None
-    deal_id: Optional[int] = None
 
 
 class InsertReviewDTO(CreateReviewDTO):
