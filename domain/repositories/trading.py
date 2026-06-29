@@ -210,10 +210,6 @@ class TradingRepository(BaseRepository):
         await self.create_relation(
             review, models.ReputationUserModel, dto.subject_reputation_user_id
         )
-        await self.set_optional_relation(review, models.DealModel, dto.deal_id)
-        await self.set_optional_relation(
-            review, models.ExternalDealModel, dto.external_deal_id
-        )
         self.session.add(review)
         await self.session.flush()
         return entities.ReviewEntity.model_validate(review)
