@@ -40,8 +40,6 @@ class ReviewEntity(EntityWithMetadata):
     author_id: int
     subject_user_id: int
     subject_reputation_user_id: int
-    deal_id: Optional[int] = None
-    external_deal_id: Optional[int] = None
 
 
 class ReviewWithAuthorEntity(ReviewEntity):
