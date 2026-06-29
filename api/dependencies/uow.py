@@ -71,16 +71,25 @@ async def get_marketplace_service(
 
 async def get_trading_service(
     uow: SQLAlchemyUnitOfWork = Depends(get_uow),
+    redis: Redis = Depends(Provide[AppContainer.redis]),
 ) -> TradingService:
     trading_repository = TradingRepository(session=uow.session)
     marketplace_repository = MarketplaceRepository(session=uow.session)
     messaging_repository = MessagingRepository(session=uow.session)
     user_repository = UserRepository(session=uow.session)
+    user_cache = UserCache(redis=redis)
+    media_repository = MediaRepository(session=uow.session)
+    user_service = UserService(
+        user_repository=user_repository,
+        user_cache=user_cache,
+        media_repository=media_repository,
+    )
     return TradingService(
         trading_repository=trading_repository,
         marketplace_repository=marketplace_repository,
         messaging_repository=messaging_repository,
         user_repository=user_repository,
+        user_service=user_service,
     )
 
 
